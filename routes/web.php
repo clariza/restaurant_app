@@ -1,0 +1,160 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\TableController;
+use App\Http\Controllers\ItemsController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PettyCashController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ProformaController;
+use App\Http\Controllers\OrderController;
+
+// Route::get('/', function () {
+//     return view('dashboard');
+// });
+Route::get('/', function () {
+    return redirect()->route('admin.dashboard');
+});
+// Rutas de autenticación
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// // Ruta para el dashboard de usuarios normales
+// Route::middleware(['auth', 'role:vendedor'])->group(function () {
+//     Route::get('/admin/dashboard', function () {
+//         return view('admin.dashboard');
+//     })->name('admin.dashboard');
+// });
+
+// // Ruta para el dashboard de administradores
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     Route::get('/admin/dashboard', function () {
+//         return view('admin.dashboard');
+//     })->name('admin.dashboard');
+// });
+// Route::get('/admin/dashboard', function () {
+//     return view('admin.dashboard');
+// })->name('admin.dashboard');
+
+// Route::middleware(['auth'])->group(function () {
+//     // Tus rutas protegidas aquí
+//     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
+//     // Otras rutas...
+// });
+
+// Rutas de apertura de caja (sin middleware de caja abierta)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/petty-cash/create', [PettyCashController::class, 'create'])
+        ->name('petty-cash.create');
+    Route::post('/petty-cash', [PettyCashController::class, 'store'])
+        ->name('petty-cash.store');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+});
+
+// Todas las demás rutas requieren caja abierta
+Route::middleware(['auth', 'check.pettycash'])->group(function () {
+    Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+    // ... todas las demás rutas protegidas
+});
+
+
+//Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
+// });
+
+// Ruta para el menú (submenú de Ventas)
+Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+
+
+// Ruta para mostrar la lista de ventas
+Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
+
+// Ruta para mostrar los detalles de las ventas
+Route::get('/ventas/{sale}', [SaleController::class, 'show'])->name('sales.show');
+
+Route::post('/sales', [SaleController::class, 'store'])
+    ->middleware('api') // Usar el middleware 'api' en lugar de 'web'
+    ->name('sales.store');
+    
+// Ruta para la vista de detalles del cliente
+Route::get('/customer-details', function () {
+    return view('customer-details');
+})->name('customer.details');
+
+// Rutas para el CRUD de usuarios
+// Route::get('/users', [UserController::class, 'index'])->name('users.index'); // Listar usuarios
+// Route::get('/users/create', [UserController::class, 'create'])->name('users.create'); // Mostrar formulario de creación
+// Route::post('/users', [UserController::class, 'store'])->name('users.store'); // Guardar nuevo usuario
+// Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit'); // Mostrar formulario de edición
+// Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update'); // Actualizar usuario
+// Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Eliminar usuario
+// Rutas para el CRUD de usuarios (solo admin)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+});
+
+// Rutas para compras (solo admin)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('purchases', PurchaseController::class);
+});
+
+// Rutas para Table
+Route::resource('tables', TableController::class);
+
+// Rutas para Producto (MenuItem)
+Route::resource('items', ItemsController::class);
+
+// Rutas para category
+Route::resource('categories', CategoryController::class);
+
+// Ruta para procesar la actualización de una categoría
+Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+// Ruta para mostrar el formulario de edición
+Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+
+Route::get('/items/create', [ItemsController::class, 'create'])->name('items.create');
+Route::get('/items/{item}/edit', [ItemsController::class, 'edit'])->name('items.edit'); // Mostrar formulario de edición
+
+// Route::resource('purchases', PurchaseController::class);
+Route::resource('suppliers', SupplierController::class);
+
+Route::resource('petty-cash', PettyCashController::class);
+Route::resource('expenses', ExpenseController::class);
+//Ruta para procesar calcular el total efectivo de denominaciones
+Route::post('/petty-cash/save-closure', [PettyCashController::class, 'saveClosure'])->name('petty-cash.save-closure');
+Route::post('/calculate-total-cash', [SaleController::class, 'calculateTotalCash']);
+Route::post('/petty-cash/close-all-open', [PettyCashController::class, 'closeAllOpen'])->name('petty-cash.close-all-open');
+Route::get('/petty-cash/check-open', [PettyCashController::class, 'checkOpen'])->name('petty-cash.check-open');
+
+Route::get('/petty-cash/{pettyCash}/print', [PettyCashController::class, 'print'])
+    ->name('petty-cash.print');
+Route::post('/proformas', [ProformaController::class, 'store']);
+Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])->name('proformas.convert');
+// Rutas para órdenes
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
+
+// Rutas para proformas
+Route::get('/proformas/{proforma}', [ProformaController::class, 'show'])->name('proformas.show');
+Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])->name('proformas.print');
+Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])
+    ->middleware('auth')
+    ->name('proformas.convert');
+
+Route::resource('deliveries', DeliveryController::class)->middleware('auth');
