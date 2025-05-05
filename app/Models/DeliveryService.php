@@ -1,10 +1,12 @@
 <?php
 
+// app/Models/DeliveryService.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Delivery extends Model
+class DeliveryService extends Model
 {
     use HasFactory;
 
@@ -17,9 +19,4 @@ class Delivery extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
 }

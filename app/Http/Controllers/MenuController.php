@@ -9,6 +9,8 @@ use App\Models\Category;
 use App\Models\Proforma; 
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
+use App\Models\Delivery;
+use App\Models\DeliveryService;
 
 class MenuController extends Controller
 {
@@ -45,14 +47,15 @@ class MenuController extends Controller
         $categories = Category::with('menuItems')->get();
         $tables = Table::all();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-
+        $deliveryServices = DeliveryService::where('is_active', true)->get();
         return view('menu.index', [
             'orders' => $allOrders,
             'counts' => $counts,
             'categories' => $categories,
             'tables' => $tables,
             'hasOpenPettyCash' => $hasOpenPettyCash,
-            'showOrderDetails' => true
+            'showOrderDetails' => true,
+            'deliveryServices' => $deliveryServices
         ]);
     }
 }

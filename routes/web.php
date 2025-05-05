@@ -14,6 +14,7 @@ use App\Http\Controllers\PettyCashController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\DeliveryServiceController;
 
 // Route::get('/', function () {
 //     return view('dashboard');
@@ -26,28 +27,6 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// // Ruta para el dashboard de usuarios normales
-// Route::middleware(['auth', 'role:vendedor'])->group(function () {
-//     Route::get('/admin/dashboard', function () {
-//         return view('admin.dashboard');
-//     })->name('admin.dashboard');
-// });
-
-// // Ruta para el dashboard de administradores
-// Route::middleware(['auth', 'role:admin'])->group(function () {
-//     Route::get('/admin/dashboard', function () {
-//         return view('admin.dashboard');
-//     })->name('admin.dashboard');
-// });
-// Route::get('/admin/dashboard', function () {
-//     return view('admin.dashboard');
-// })->name('admin.dashboard');
-
-// Route::middleware(['auth'])->group(function () {
-//     // Tus rutas protegidas aquí
-//     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
-//     // Otras rutas...
-// });
 
 // Rutas de apertura de caja (sin middleware de caja abierta)
 Route::middleware(['auth'])->group(function () {
@@ -62,6 +41,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'check.pettycash'])->group(function () {
     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+       // Rutas para Delivery
+    Route::resource('deliveries', DeliveryServiceController::class);
     // ... todas las demás rutas protegidas
 });
 
@@ -91,14 +72,7 @@ Route::get('/customer-details', function () {
     return view('customer-details');
 })->name('customer.details');
 
-// Rutas para el CRUD de usuarios
-// Route::get('/users', [UserController::class, 'index'])->name('users.index'); // Listar usuarios
-// Route::get('/users/create', [UserController::class, 'create'])->name('users.create'); // Mostrar formulario de creación
-// Route::post('/users', [UserController::class, 'store'])->name('users.store'); // Guardar nuevo usuario
-// Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit'); // Mostrar formulario de edición
-// Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update'); // Actualizar usuario
-// Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Eliminar usuario
-// Rutas para el CRUD de usuarios (solo admin)
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -156,5 +130,3 @@ Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])-
 Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])
     ->middleware('auth')
     ->name('proformas.convert');
-
-Route::resource('deliveries', DeliveryController::class)->middleware('auth');

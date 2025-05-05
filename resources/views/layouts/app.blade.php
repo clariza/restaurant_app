@@ -361,6 +361,7 @@
 
     </style>
 </head>
+
 <body class="bg-[#fafafa]">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar (Visible en tablets y pantallas más grandes) -->
@@ -452,6 +453,11 @@
                                 <i class="fas fa-edit mr-3"></i>
                                 <span>Usuarios</span>
                             </a>
+                               <!-- Nuevo submenú para Delivery -->
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('deliveries.index') }}">
+                                <i class="fas fa-truck mr-3"></i>
+                                <span>Delivery</span>
+                            </a>
                         </div>
                     </div>
                     @endunless
@@ -520,6 +526,30 @@
     </div>
 
     <script>
+        function handleLogout() {
+        // Limpiar el pedido
+        localStorage.removeItem('order');
+        localStorage.removeItem('orderType');
+        
+        // Enviar solicitud de logout
+        fetch('{{ route("logout") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '{{ route("login") }}';
+            }
+        });
+    }
+
+    // Asignar el manejador a todos los botones/logout
+    document.querySelectorAll('[data-logout]').forEach(button => {
+        button.addEventListener('click', handleLogout);
+    });
         // Toggle para el menú móvil
         const menuToggle = document.getElementById('menu-toggle');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -606,6 +636,63 @@
         @endif
     });
     </script>
+    <script>
+// Manejar logout con limpieza de orden
+function handleLogout() {
+    // Limpiar el pedido primero
+    localStorage.removeItem('order');
+    localStorage.removeItem('orderType');
+    
+    // Enviar solicitud de logout
+    fetch('{{ route("logout") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '{{ route("login") }}';
+        }
+    });
+}
+// Limpiar pedido al cerrar sesión
+document.addEventListener('DOMContentLoaded', function() {
+            // Manejar logout desde el menú de usuario
+            const logoutForm = document.querySelector('form[action*="logout"]');
+            if (logoutForm) {
+                logoutForm.addEventListener('submit', function(e) {
+                    // Limpiar el pedido antes de enviar el formulario
+                    localStorage.removeItem('order');
+                    localStorage.removeItem('orderType');
+                });
+            }
+
+            // Verificar si el usuario está autenticado
+            @if(!auth()->check())
+                // Limpiar el pedido si no hay sesión activa
+                localStorage.removeItem('order');
+                localStorage.removeItem('orderType');
+            @endif
+        });
+
+        // Limpiar pedido cuando se detecta un 401 (no autorizado)
+        window.addEventListener('load', function() {
+            // Interceptar llamadas AJAX para detectar logout
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const response = await originalFetch(...args);
+                if (response.status === 401) {
+                    // Sesión expirada, limpiar pedido
+                    localStorage.removeItem('order');
+                    localStorage.removeItem('orderType');
+                    window.location.reload();
+                }
+                return response;
+            };
+        });
+</script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('scripts')
 </body>

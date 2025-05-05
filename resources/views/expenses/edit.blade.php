@@ -15,6 +15,16 @@
         
         <!-- Grid de 2 columnas para pantallas medianas/grandes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nombre de gasto -->
+            <div class="mb-4">
+                <label for="expense_name" class="input-label">Nombre de Gasto</label>
+                <input type="text" name="expense_name" id="expense_name" 
+                       class="modal-input" 
+                       placeholder="Ingrese el nombre del gasto"
+                       value="{{ old('expense_name', $expense->expense_name) }}"
+                       required>
+            </div>
+            
             <!-- Descripción -->
             <div class="mb-4">
                 <label for="description" class="input-label">Descripción</label>
@@ -35,7 +45,7 @@
                        required>
             </div>
             
-            <!-- Fecha -->
+            <!-- Fecha (ahora es editable pero se establece automáticamente al crear) -->
             <div class="mb-4">
                 <label for="date" class="input-label">Fecha</label>
                 <input type="date" name="date" id="date" 
@@ -43,28 +53,17 @@
                        value="{{ old('date', \Carbon\Carbon::parse($expense->date)->format('Y-m-d')) }}"
                        required>
             </div>
-            
-            <!-- Categoría -->
-            <div class="mb-4">
-                <label for="category" class="input-label">Categoría</label>
-                <input type="text" name="category" id="category" 
-                       class="modal-input"
-                       placeholder="Ej. Operativos, Administrativos"
-                       value="{{ old('category', $expense->category) }}">
-            </div>
-            
-            <!-- Subcategoría -->
-            <div class="mb-4">
-                <label for="subcategory" class="input-label">Subcategoría</label>
-                <input type="text" name="subcategory" id="subcategory" 
-                       class="modal-input"
-                       placeholder="Ej. Materiales, Servicios"
-                       value="{{ old('subcategory', $expense->subcategory) }}">
-            </div>
         </div>
         
-        <!-- Botón de submit con estilo consistente -->
-        <div class="flex justify-end mt-6">
+        <!-- Botones de acción -->
+        <div class="flex justify-end mt-6 space-x-4">
+            <!-- Botón Volver Atrás -->
+            <a href="{{ route('expenses.index') }}" 
+               class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Volver Atrás
+            </a>
+            
+            <!-- Botón Guardar Cambios -->
             <button type="submit" 
                     class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary-light)] transition duration-200 inline-flex items-center">
                 <i class="fas fa-save mr-2"></i>Guardar Cambios

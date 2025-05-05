@@ -33,20 +33,22 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'expense_name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'date' => 'required|date',
-            'category' => 'nullable|string|max:255',
-            'subcategory' => 'nullable|string|max:255', // Validación añadida
         ]);
 
         $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
-        
+    
         if (!$openPettyCash) {
             return back()->with('error', 'No hay una caja chica abierta. Abre una caja chica antes de registrar gastos.');
         }
 
-        $expense = new Expense($request->all());
+        $expense = new Expense();
+        $expense->expense_name = $request->expense_name;
+        $expense->description = $request->description;
+        $expense->amount = $request->amount;
+        $expense->date = now(); // Asigna la fecha y hora actual
         $expense->petty_cash_id = $openPettyCash->id;
         $expense->save();
 
@@ -67,11 +69,10 @@ class ExpenseController extends Controller
     public function update(Request $request, Expense $expense)
     {
         $request->validate([
+            'expense_name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'date' => 'required|date',
-            'category' => 'nullable|string|max:255',
-            'subcategory' => 'nullable|string|max:255', // Validación añadida
         ]);
 
         $expense->update($request->all());

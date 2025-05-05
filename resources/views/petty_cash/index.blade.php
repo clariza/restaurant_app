@@ -220,10 +220,7 @@
                     </div>
                     
                     <div class="pt-4">
-                        <button onclick="calcularTotal()" 
-                                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
-                            <i class="fas fa-calculator mr-1"></i> Calcular
-                        </button>
+                        
                         <button onclick="saveClosure()" 
                                 class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                             <i class="fas fa-save mr-1"></i> Guardar Cierre

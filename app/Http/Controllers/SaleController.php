@@ -175,12 +175,13 @@ public function dashboard()
     public function create()
 {
     $tables = Table::all();
+    $deliveryServices = DeliveryService::where('is_active', true)->get();
     if ($tables->isEmpty()) {
         dd('No hay mesas en la base de datos');
     } else {
         dd($tables); // Verifica si $tables contiene datos
     }
-    return view('layouts.order-details', compact('tables'));
+    return view('layouts.order-details', compact('tables', 'deliveryServices'));
 }
 }   
     

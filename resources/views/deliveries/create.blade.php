@@ -1,46 +1,52 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h2>{{ isset($delivery) ? 'Editar' : 'Crear' }} Servicio de Delivery</h2>
+<div class="container mx-auto p-6">
+    <!-- Título con estilo consistente -->
+    <h1 class="text-xl font-bold mb-6 text-[var(--primary-color)] relative pb-2 section-title">
+        Nuevo Servicio de Delivery
+        <span class="absolute bottom-0 left-0 w-10 h-1 bg-[var(--primary-color)] rounded"></span>
+    </h1>
+    
+    <!-- Formulario con estilos del sistema -->
+    <form action="{{ route('deliveries.store') }}" method="POST" class="bg-white rounded-lg shadow-md p-6">
+        @csrf
+        
+        <!-- Grid de 2 columnas para pantallas medianas/grandes -->
+        <div class="grid grid-cols-1 gap-6">
+            <!-- Nombre del servicio -->
+            <div class="mb-4">
+                <label for="name" class="input-label">Nombre del Servicio</label>
+                <input type="text" name="name" id="name" 
+                       class="modal-input" 
+                       placeholder="Ingrese el nombre del servicio"
+                       required>
+            </div>
+            
+            <!-- Descripción -->
+            <div class="mb-4">
+                <label for="description" class="input-label">Descripción</label>
+                <textarea name="description" id="description" 
+                       class="modal-input" 
+                       placeholder="Ingrese la descripción del servicio"
+                       rows="3"></textarea>
+            </div>
         </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ isset($delivery) ? route('deliveries.update', $delivery->id) : route('deliveries.store') }}" method="POST">
-                @csrf
-                @if(isset($delivery))
-                    @method('PUT')
-                @endif
-
-                <div class="mb-3">
-                    <label for="name" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $delivery->name ?? '') }}" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="description" class="form-label">Descripción</label>
-                    <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $delivery->description ?? '') }}</textarea>
-                </div>
-
-                @if(isset($delivery))
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {{ old('is_active', $delivery->is_active) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="is_active">Activo</label>
-                </div>
-                @endif
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
-                <a href="{{ route('deliveries.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Cancelar
-                </a>
-            </form>
+        
+        <!-- Botones de acción alineados a la derecha -->
+        <div class="flex justify-end mt-6 space-x-4">
+            <!-- Botón Cancelar -->
+            <a href="{{ route('deliveries.index') }}" 
+               class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 inline-flex items-center">
+                <i class="fas fa-times mr-2"></i>Cancelar
+            </a>
+            
+            <!-- Botón Guardar -->
+            <button type="submit" 
+                    class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary-light)] transition duration-200 inline-flex items-center">
+                <i class="fas fa-save mr-2"></i>Guardar Servicio
+            </button>
         </div>
-    </div>
+    </form>
 </div>
 @endsection

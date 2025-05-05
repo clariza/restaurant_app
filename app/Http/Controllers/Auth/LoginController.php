@@ -65,9 +65,18 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        
+        
+        // Limpiar el pedido del cliente antes de cerrar sesión
+        if ($request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Redirigir a login con mensaje
         return redirect('login');
     }
 }

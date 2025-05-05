@@ -30,22 +30,20 @@
         <table class="min-w-full divide-y divide-[var(--gray-light)]">
             <thead class="bg-[var(--primary-color)]">
                 <tr>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Descripción</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Monto</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Fecha</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Categoría</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Subcategoría</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-[var(--gray-light)]">
                 @foreach($expenses as $expense)
                 <tr class="hover:bg-[var(--background-color)] transition duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">{{ $expense->expense_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">{{ $expense->description }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">S/ {{ number_format($expense->amount, 2) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-light)]">{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-light)]">{{ $expense->category ?? 'Sin categoría' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-light)]">{{ $expense->subcategory ?? 'Sin subcategoría' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="{{ route('expenses.edit', $expense->id) }}" 
                            class="text-[var(--blue)] hover:text-[var(--primary-light)] mr-3 transition duration-200">
