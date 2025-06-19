@@ -11,12 +11,13 @@ use Illuminate\Http\Request;
 use App\Models\PettyCash;
 use App\Models\Delivery;
 use App\Models\DeliveryService;
+use App\Models\Setting;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        
+
         // Obtener las últimas 5 órdenes normales con sus items y usuario
         $orders = Sale::with(['items', 'user'])
             ->latest()
@@ -46,8 +47,11 @@ class MenuController extends Controller
         // Obtener todas las categorías con sus elementos del menú
         $categories = Category::with('menuItems')->get();
         $tables = Table::all();
+        
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         $deliveryServices = DeliveryService::where('is_active', true)->get();
+        $settings = Setting::firstOrCreate([]);
+        //$setting->tables_enabled = $validated['tables_enabled'];
         return view('menu.index', [
             'orders' => $allOrders,
             'counts' => $counts,
@@ -55,7 +59,24 @@ class MenuController extends Controller
             'tables' => $tables,
             'hasOpenPettyCash' => $hasOpenPettyCash,
             'showOrderDetails' => true,
-            'deliveryServices' => $deliveryServices
+            'deliveryServices' => $deliveryServices,
+            'settings' => $settings
         ]);
     }
+     public function available()
+    {
+        try {
+            $tables = Table::all();
+            return response()->json([
+                'success' => true,
+                'data' => $tables
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las mesas'
+            ], 500);
+        }
+    }
+
 }

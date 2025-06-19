@@ -23,8 +23,22 @@ class Sale extends Model
         'transaction_number', 
         'petty_cash_id',
         'payment_method',
-        'order_notes', // Agregar este campo
+        'order_notes',
+        'daily_order_number',
+        'order_date'
     ];
+
+    
+    // Método para generar número de pedido
+    public static function generateOrderNumber()
+    {
+        $today = now()->toDateString();
+        $lastOrder = static::where('order_date', $today)->latest()->first();
+    
+        $sequence = $lastOrder ? (int)explode('-', $lastOrder->daily_order_number)[1] + 1 : 1;
+    
+        return 'PED-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);   
+    }
 
     // Relación con los ítems de venta
     public function items()

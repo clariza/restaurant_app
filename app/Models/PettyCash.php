@@ -16,8 +16,8 @@ class PettyCash extends Model
         'date',
         'notes',
         'status',
-        'total_sales_cash', // Nuevo campo
-        'total_sales_qr',   // Nuevo campo
+        'total_sales_cash', 
+        'total_sales_qr',   
         'total_sales_card', // Nuevo campo
         'total_expenses',   // Nuevo campo
         'total_general',

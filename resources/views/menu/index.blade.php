@@ -4,135 +4,163 @@
 @php
     $isAdmin = auth()->user()->type === 'Admin';
 @endphp
+
 <!-- Barra de búsqueda -->
-<div class="flex justify-between items-center mb-6 mt-0">
+<!-- <div class="flex justify-between items-center mb-6 mt-0">
     <div class="flex items-center w-full">
         <input class="border rounded-lg bg-gray-200 py-2 pl-2 pr-4 w-full md:w-64 text-gray-700 focus:outline-none focus:bg-white focus:shadow-md" placeholder="Buscar menú ..." type="text"/>
     </div>
-</div>  
-
-<!-- Línea de Órdenes -->
-<div>
-    <div class="flex justify-between items-center">
-        <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Lista de Órdenes</h2>
-        <a href="{{ route('orders.index') }}" class="flex items-center text-[#203363] hover:text-[#47517c] transition-colors">
-            <span class="mr-2">Ver todas</span>
-            <i class="fas fa-chevron-right"></i>
-        </a>
-    </div>
-
-    <!-- Filtros para Línea de Órdenes - Estilo claro -->
-    <div class="order-filters flex flex-wrap gap-3 mb-6">
-        <button onclick="filterOrders('all')" class="filter-btn filter-all px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-            <span class="w-6 h-6 rounded-full bg-[#203363] flex items-center justify-center text-white text-xs mr-2">{{ $counts['all'] }}</span>
-            Todos
-        </button>
-        <button onclick="filterOrders('Comer aquí')" class="filter-btn filter-dine-in px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-            <span class="w-6 h-6 rounded-full bg-[#FFD166] flex items-center justify-center text-[#203363] text-xs mr-2">{{ $counts['dine_in'] }}</span>
-            Comer Aquí
-        </button>
-        <button onclick="filterOrders('Para llevar')" class="filter-btn filter-take-away px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-            <span class="w-6 h-6 rounded-full bg-[#06D6A0] flex items-center justify-center text-white text-xs mr-2">{{ $counts['take_away'] }}</span>
-            Para llevar
-        </button>
-        <button onclick="filterOrders('Recoger')" class="filter-btn filter-pickup px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-            <span class="w-6 h-6 rounded-full bg-[#118AB2] flex items-center justify-center text-white text-xs mr-2">{{ $counts['pickup'] }}</span>
-            Recoger
-        </button>
-        <button onclick="filterOrders('proforma')" class="filter-btn filter-proforma px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-            <span class="w-6 h-6 rounded-full bg-[#EF476F] flex items-center justify-center text-white text-xs mr-2">{{ $counts['proforma'] }}</span>
-            Proforma
+</div>   -->
+<!-- Barra de búsqueda -->
+<div class="flex justify-between items-center mb-6 mt-0">
+    <div class="flex items-center w-full">
+        <input id="menu-search" class="border rounded-lg bg-gray-200 py-2 pl-2 pr-4 w-full md:w-64 text-gray-700 focus:outline-none focus:bg-white focus:shadow-md" 
+               placeholder="Buscar menú ..." type="text"
+               oninput="searchMenuItems(this.value)"/>
+        <button onclick="clearSearch()" class="ml-2 text-[#6380a6] hover:text-[#203363] hidden" id="clear-search-btn">
+            <i class="fas fa-times"></i>
         </button>
     </div>
-<!-- Div separador con margen -->
-
-<div class="orders-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    @foreach($orders as $order)
-        @php
-            $borderClass = '';
-            $orderTypeText = '';
-            $isProforma = $order instanceof \App\Models\Proforma;
-            
-            if ($isProforma) {
-                $borderClass = 'border-[#EF476F] proforma-card';
-                $orderTypeText = 'Proforma';
-            } else {
-                switch($order->order_type) {
-                    case 'Comer aquí':
-                        $borderClass = 'border-[#FFD166] dine-in-card';
-                        $orderTypeText = 'Mesa ' . $order->table_number;
-                        break;
-                    case 'Para llevar':
-                        $borderClass = 'border-[#06D6A0] take-away-card';
-                        $orderTypeText = 'Para llevar';
-                        break;
-                    case 'Recoger':
-                        $borderClass = 'border-[#118AB2] pickup-card';
-                        $orderTypeText = 'Recoger';
-                        break;
-                }
-            }
-            
-            // Calcular tiempo transcurrido
-            $createdAt = $order->created_at->diffForHumans();
-            $itemsCount = $order->items->count();
-            $totalAmount = number_format($order->total, 2);
-            
-            // Determinar el estado para el badge
-            $statusBadge = '';
-            if ($isProforma) {
-                $statusBadge = '<span class="absolute top-2 right-2 bg-[#EF476F] text-white text-xs px-2 py-1 rounded-full">Reserva</span>';
-            } else {
-                $statusBadge = '<span class="absolute top-2 right-2 bg-[#203363] text-white text-xs px-2 py-1 rounded-full">Venta</span>';
-            }
-        @endphp
-
-        <div class="border-l-4 {{ $borderClass }} rounded-lg p-4 bg-white hover:shadow-md transition-shadow cursor-pointer relative" 
-             onclick="openOrderDetails('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $order->id }}')">
-            {!! $statusBadge !!}
-            
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="font-bold text-[#203363]">#{{ $order->transaction_number ?? 'PROF-'.$order->id }}</p>
-                    <p class="text-sm text-[#6380a6]">{{ $orderTypeText }}</p>
-                </div>
-                <span class="text-xs text-gray-500">{{ $createdAt }}</span>
-            </div>
-            
-            <div class="my-2">
-                <!-- <p class="text-sm text-[#203363]">
-                    <i class="fas fa-user mr-1"></i> {{ $order->customer_name ?? 'Cliente no especificado' }}
-                </p> -->
-                @if($order->notes)
-                    <p class="text-xs text-gray-500 mt-1 truncate">
-                        <i class="fas fa-sticky-note mr-1"></i> {{ $order->notes }}
-                    </p>
-                @endif
-            </div>
-            
-            <div class="flex justify-between items-center mt-3">
-                <p class="text-sm font-medium text-[#203363]">
-                    <i class="fas fa-list-ul mr-1"></i> {{ $itemsCount }} ítems
-                </p>
-                @if($isAdmin)
-                <p class="text-sm font-medium text-[#203363]">
-                    <i class="fas fa-dollar-sign mr-1"></i> {{ $totalAmount }}
-                </p>
-                @endif
-</div>
-            
-@if($isProforma)
-    <div class="mt-3 flex justify-end">
-        @if(!$order->order) <!-- Si no tiene una orden relacionada -->
-            <button onclick="event.stopPropagation(); convertProformaToOrder('{{ $order->id }}')" 
-                    class="bg-[#203363] text-white px-3 py-1 rounded text-xs hover:bg-[#47517c] transition-colors">
-                Convertir a Orden
-            </button>
-        @endif
-    </div>
-@endif
+        <div class="flex space-x-2">
+        <!-- Botón existente de Historial -->
+        <div class="ml-4">
+            <a href="{{ route('orders.index') }}" 
+               class="bg-[#6380a6] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors flex items-center justify-center">
+                <i class="fas fa-history mr-2"></i> Ver Historial
+            </a>
         </div>
-    @endforeach
+        
+        <!-- Nuevo botón para Caja Chica -->
+        <div class="ml-4">
+            <a href="{{ route('petty-cash.index') }}" 
+               class="bg-[#EF476F] text-white px-4 py-2 rounded-lg hover:bg-[#d43a5d] transition-colors flex items-center justify-center">
+                <i class="fas fa-cash-register mr-2"></i> Caja Chica
+            </a>
+        </div>
+    </div>
+</div>
+<!-- Línea de Órdenes - Sección desplegable -->
+<div class="mb-4">
+    <!-- Encabezado con botón minimalista -->
+    <div class="flex justify-between items-center">
+        <h2 class="section-title text-xl font-bold text-[#203363]">Lista de Órdenes</h2>
+        <button onclick="toggleOrdersSection()" class="toggle-btn flex items-center space-x-1 text-[#6380a6] hover:text-[#203363] transition-colors group">
+            <span class="text-sm font-medium">Mostrar/Ocultar</span>
+            <i id="orders-arrow" class="fas fa-chevron-down text-xs transition-all duration-200 group-hover:text-[#203363]"></i>
+        </button>
+    </div>
+
+    <!-- Contenedor de órdenes (oculto por defecto) -->
+    <div id="orders-container" class="hidden transition-all duration-300 ease-in-out">
+        <!-- Filtros para Línea de Órdenes -->
+        <div class="order-filters flex flex-wrap gap-3 my-4">
+            <button onclick="filterOrders('all')" class="filter-btn filter-all px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
+                <span class="w-6 h-6 rounded-full bg-[#203363] flex items-center justify-center text-white text-xs mr-2">{{ $counts['all'] }}</span>
+                Todos
+            </button>
+            <button onclick="filterOrders('Comer aquí')" class="filter-btn filter-dine-in px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
+                <span class="w-6 h-6 rounded-full bg-[#FFD166] flex items-center justify-center text-[#203363] text-xs mr-2">{{ $counts['dine_in'] }}</span>
+                Comer Aquí
+            </button>
+            <button onclick="filterOrders('Para llevar')" class="filter-btn filter-take-away px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
+                <span class="w-6 h-6 rounded-full bg-[#06D6A0] flex items-center justify-center text-white text-xs mr-2">{{ $counts['take_away'] }}</span>
+                Para llevar
+            </button>
+            <button onclick="filterOrders('Recoger')" class="filter-btn filter-pickup px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
+                <span class="w-6 h-6 rounded-full bg-[#118AB2] flex items-center justify-center text-white text-xs mr-2">{{ $counts['pickup'] }}</span>
+                Recoger
+            </button>
+            <button onclick="filterOrders('proforma')" class="filter-btn filter-proforma px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
+                <span class="w-6 h-6 rounded-full bg-[#EF476F] flex items-center justify-center text-white text-xs mr-2">{{ $counts['proforma'] }}</span>
+                Proforma
+            </button>
+        </div>
+
+        <!-- Grid de órdenes -->
+        <div class="orders-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            @foreach($orders as $order)
+                @php
+                    $borderClass = '';
+                    $orderTypeText = '';
+                    $isProforma = $order instanceof \App\Models\Proforma;
+                    
+                    if ($isProforma) {
+                        $borderClass = 'border-[#EF476F] proforma-card';
+                        $orderTypeText = 'Proforma';
+                    } else {
+                        switch($order->order_type) {
+                            case 'Comer aquí':
+                                $borderClass = 'border-[#FFD166] dine-in-card';
+                                $orderTypeText = 'Mesa ' . $order->table_number;
+                                break;
+                            case 'Para llevar':
+                                $borderClass = 'border-[#06D6A0] take-away-card';
+                                $orderTypeText = 'Para llevar';
+                                break;
+                            case 'Recoger':
+                                $borderClass = 'border-[#118AB2] pickup-card';
+                                $orderTypeText = 'Recoger';
+                                break;
+                        }
+                    }
+                    
+                    $createdAt = $order->created_at->diffForHumans();
+                    $itemsCount = $order->items->count();
+                    $totalAmount = number_format($order->total, 2);
+                    
+                    $statusBadge = '';
+                    if ($isProforma) {
+                        $statusBadge = '<span class="absolute top-2 right-2 bg-[#EF476F] text-white text-xs px-2 py-1 rounded-full">Reserva</span>';
+                    } else {
+                        $statusBadge = '<span class="absolute top-2 right-2 bg-[#203363] text-white text-xs px-2 py-1 rounded-full">Venta</span>';
+                    }
+                @endphp
+
+                <div class="border-l-4 {{ $borderClass }} rounded-lg p-4 bg-white hover:shadow-md transition-shadow cursor-pointer relative" 
+                     onclick="openOrderDetails('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $order->id }}')">
+                    {!! $statusBadge !!}
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-bold text-[#203363]">#{{ $order->transaction_number ?? 'PROF-'.$order->id }}</p>
+                            <p class="text-sm text-[#6380a6]">{{ $orderTypeText }}</p>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ $createdAt }}</span>
+                    </div>
+                    
+                    <div class="my-2">
+                        @if($order->notes)
+                            <p class="text-xs text-gray-500 mt-1 truncate">
+                                <i class="fas fa-sticky-note mr-1"></i> {{ $order->notes }}
+                            </p>
+                        @endif
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-3">
+                        <p class="text-sm font-medium text-[#203363]">
+                            <i class="fas fa-list-ul mr-1"></i> {{ $itemsCount }} ítems
+                        </p>
+                        @if($isAdmin)
+                        <p class="text-sm font-medium text-[#203363]">
+                            <i class="fas fa-dollar-sign mr-1"></i> {{ $totalAmount }}
+                        </p>
+                        @endif
+                    </div>
+                    
+                    @if($isProforma)
+                        <div class="mt-3 flex justify-end">
+                            @if(!$order->order)
+                                <button onclick="event.stopPropagation(); convertProformaToOrder('{{ $order->id }}')" 
+                                        class="bg-[#203363] text-white px-3 py-1 rounded text-xs hover:bg-[#47517c] transition-colors">
+                                    Convertir a Orden
+                                </button>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 <div class="mb-8"></div>  <!-- Esto añadirá espacio entre secciones -->
 <!-- Categorías -->
@@ -222,6 +250,74 @@
     </div>
 
     <style>
+        /* Estilos para la barra de búsqueda */
+.search-highlight {
+    background-color: #FFD166;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.search-no-results {
+    text-align: center;
+    padding: 20px;
+    color: #6380a6;
+    font-style: italic;
+}
+
+/* Animación para los resultados de búsqueda */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-result-item {
+    animation: fadeIn 0.3s ease-out;
+}
+    /* Estilos minimalistas para el botón de toggle */
+.toggle-btn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(99, 128, 166, 0.1);
+}
+
+.toggle-btn:active {
+    transform: scale(0.98);
+}
+
+/* Efecto sutil para pantallas grandes */
+@media (min-width: 768px) {
+    .toggle-btn {
+        opacity: 0.8;
+    }
+    
+    .toggle-btn:hover {
+        opacity: 1;
+    }
+}
+    #orders-container {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    #orders-container.show {
+        max-height: 2000px; /* Valor suficientemente grande */
+        opacity: 1;
+        display: block;
+    }
+
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
           /* Colores de fondo para badges */
           .bg-primary {
             background-color: var(--primary-color);
@@ -912,7 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
         // Función para agregar ítems al pedido
-        function addToOrder(item) {
+function addToOrder(item) {
             // Convertir item.price a número si es una cadena
             item.price = parseFloat(item.price);
 
@@ -994,5 +1090,196 @@ document.addEventListener('DOMContentLoaded', () => {
         // O si estás usando un sistema de vistas dinámicas:
         // loadMenuView();
     }
+      function toggleOrdersSection() {
+        const container = document.getElementById('orders-container');
+        const arrow = document.getElementById('orders-arrow');
+        
+        container.classList.toggle('show');
+        arrow.classList.toggle('rotate-180');
+    }
+
+    // Asegurarse de que esté oculto al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('orders-container');
+        container.classList.remove('show');
+    });
+    // Variable para almacenar todos los ítems del menú
+let allMenuItems = [];
+
+// Función para inicializar la búsqueda
+function initializeSearch() {
+    allMenuItems = []; // Resetear el array
+    
+    // Recopilar todos los ítems del menú correctamente
+    document.querySelectorAll('#menu-items .grid > div').forEach(item => {
+        const nameElement = item.querySelector('p.text-md.font-semibold');
+        const priceElement = item.querySelector('p.text-lg.font-bold');
+        
+        if (nameElement && priceElement) {
+            const itemData = {
+                element: item,
+                name: nameElement.textContent.toLowerCase(),
+                price: parseFloat(priceElement.textContent.replace('$', '')),
+                category: item.closest('[id^="category-"]').id.replace('category-', ''),
+                categoryName: item.closest('[id^="category-"]').querySelector('h3').textContent
+            };
+            allMenuItems.push(itemData);
+        }
+    });
+}
+
+// Función principal de búsqueda mejorada
+function searchMenuItems(searchTerm) {
+    const searchValue = searchTerm.toLowerCase().trim();
+    const clearBtn = document.getElementById('clear-search-btn');
+    
+    // Mostrar/ocultar botón de limpiar
+    if (searchValue.length > 0) {
+        clearBtn.classList.remove('hidden');
+    } else {
+        clearBtn.classList.add('hidden');
+        resetSearch();
+        return;
+    }
+
+    // Ocultar todas las categorías primero
+    document.querySelectorAll('#menu-items > div').forEach(div => {
+        div.style.display = 'none';
+    });
+
+    // Filtrar ítems que coincidan con la búsqueda
+    const results = allMenuItems.filter(item => 
+        item.name.includes(searchValue) || 
+        item.categoryName.toLowerCase().includes(searchValue)
+    );
+
+    // Mostrar resultados
+    displaySearchResults(results, searchValue);
+}
+
+// Función para mostrar los resultados de búsqueda mejorada
+function displaySearchResults(results, searchTerm) {
+    const menuContainer = document.getElementById('menu-items');
+    
+    // Limpiar resultados anteriores
+    const oldResults = document.getElementById('search-results-container');
+    if (oldResults) oldResults.remove();
+
+    if (results.length === 0) {
+        // Mostrar mensaje de no resultados
+        const noResults = document.createElement('div');
+        noResults.className = 'search-no-results p-4 text-center';
+        noResults.innerHTML = `
+            <i class="fas fa-search mb-2 text-2xl text-[#6380a6]"></i>
+            <p>No se encontraron resultados para "${searchTerm}"</p>
+        `;
+        menuContainer.appendChild(noResults);
+        return;
+    }
+
+    // Crear contenedor para resultados
+    const resultsContainer = document.createElement('div');
+    resultsContainer.id = 'search-results-container';
+    
+    // Agrupar resultados por categoría
+    const resultsByCategory = {};
+    results.forEach(item => {
+        if (!resultsByCategory[item.categoryName]) {
+            resultsByCategory[item.categoryName] = [];
+        }
+        resultsByCategory[item.categoryName].push(item);
+    });
+
+    // Crear HTML para los resultados
+    for (const [categoryName, items] of Object.entries(resultsByCategory)) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'mb-8 search-result-item';
+        
+        const categoryTitle = document.createElement('h3');
+        categoryTitle.className = 'text-lg font-bold text-[#203363] mb-4';
+        categoryTitle.textContent = categoryName;
+        categoryDiv.appendChild(categoryTitle);
+
+        const itemsGrid = document.createElement('div');
+        itemsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+        
+        items.forEach(item => {
+            // Clonar el elemento original para no afectar el DOM original
+            const clonedItem = item.element.cloneNode(true);
+            
+            // Resaltar el texto coincidente en el nombre
+            const itemName = clonedItem.querySelector('p.text-md.font-semibold');
+            if (itemName) {
+                const highlightedName = highlightText(itemName.textContent, searchTerm);
+                itemName.innerHTML = highlightedName;
+            }
+            
+            itemsGrid.appendChild(clonedItem);
+        });
+        
+        categoryDiv.appendChild(itemsGrid);
+        resultsContainer.appendChild(categoryDiv);
+    }
+    
+    menuContainer.appendChild(resultsContainer);
+}
+
+// Función para resaltar texto coincidente
+function highlightText(text, searchTerm) {
+    if (!searchTerm) return text;
+    
+    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+    return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+// Función para escapar caracteres especiales en regex
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Función para limpiar la búsqueda
+function clearSearch() {
+    document.getElementById('menu-search').value = '';
+    document.getElementById('clear-search-btn').classList.add('hidden');
+    resetSearch();
+}
+
+// Función para resetear la búsqueda
+function resetSearch() {
+    const menuContainer = document.getElementById('menu-items');
+    const searchResults = document.getElementById('search-results-container');
+    if (searchResults) searchResults.remove();
+    
+    // Mostrar todas las categorías nuevamente
+    document.querySelectorAll('#menu-items > div').forEach(div => {
+        div.style.display = 'none';
+    });
+    
+    // Mostrar la categoría "Todos" por defecto
+    const allCategory = document.querySelector('#menu-items > div:first-child');
+    if (allCategory) allCategory.style.display = 'block';
+}
+
+// Inicializar la búsqueda al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSearch();
+    
+    filterOrders('all');
+    filterItems('all');
+    
+    const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
+    if (!isAdmin) {
+        document.querySelectorAll('.price-display').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+    
+    // Manejar la tecla Escape para limpiar la búsqueda
+    document.getElementById('menu-search').addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            clearSearch();
+        }
+    });
+});
     </script>
 @endsection

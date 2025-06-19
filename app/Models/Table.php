@@ -14,9 +14,32 @@ class Table extends Model
         'number', // Número de la mesa
         'state', // Estado de la mesa
     ];
+     protected $attributes = [
+        'state' => 'Disponible',
+    ];
 
     protected $casts = [
         'number' => 'integer', // Asegura que el número sea un entero
-        'state' => 'string',  // Asegura que el estado sea una cadena
     ];
+    public static $validStates = ['Disponible', 'Ocupada', 'Reservada'];
+    
+    public function scopeAvailable($query)
+    {
+        return $query->where('state', 'Disponible');
+    }
+    
+    public function isAvailable()
+    {
+        return $this->state === 'Disponible';
+    }
+    
+    public function isOccupied()
+    {
+        return $this->state === 'Ocupada';
+    }
+    
+    public function isReserved()
+    {
+        return $this->state === 'Reservada';
+    }
 }

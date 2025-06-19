@@ -15,6 +15,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DeliveryServiceController;
+use App\Http\Controllers\SettingController;
 
 // Route::get('/', function () {
 //     return view('dashboard');
@@ -130,3 +131,8 @@ Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])-
 Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])
     ->middleware('auth')
     ->name('proformas.convert');
+// Agrega esta ruta
+Route::get('/menu/available', [TableController::class, 'available'])->name('tables.available');
+Route::post('/tables/{table}/state', [TableController::class, 'updateState'])
+    ->name('tables.update-state');
+Route::post('/settings/update', [SettingController::class, 'update'])->name('settings.update');

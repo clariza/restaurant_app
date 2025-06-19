@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+            $table->integer('supplier_id');
             $table->string('product');
             $table->decimal('price', 8, 2);
             $table->integer('quantity');

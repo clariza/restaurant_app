@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('tax', 10, 2);
             $table->decimal('total', 10, 2);
             $table->string('status')->default('reservado');
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            // $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

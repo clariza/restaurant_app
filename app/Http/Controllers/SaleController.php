@@ -119,7 +119,10 @@ public function dashboard()
             $taxRate = 0;
             $tax = $subtotal * $taxRate;
             $total = $subtotal + $tax;
-    
+             // Generar número de pedido
+            $orderNumber = Sale::generateOrderNumber();
+            $today = now()->toDateString();
+
             // Crear la venta incluyendo order_notes
             $sale = Sale::create([
                 'user_id' => Auth::id(),
@@ -135,7 +138,9 @@ public function dashboard()
                 'total' => $total,
                 'transaction_number' => $request->transaction_number,
                 'payment_method' => $request->payment_method,
-                'order_notes' => $request->order_notes, // Incluir las notas del pedido
+                'order_notes' => $request->order_notes,
+                'daily_order_number' => $orderNumber,
+                'order_date' => $today,
             ]);
     
             foreach ($order as $item) {
@@ -151,6 +156,7 @@ public function dashboard()
                 'success' => true,
                 'message' => 'Pedido procesado correctamente.',
                 'sale_id' => $sale->id,
+                'daily_order_number' => $sale->daily_order_number,
             ]);
     
         } catch (\Exception $e) {

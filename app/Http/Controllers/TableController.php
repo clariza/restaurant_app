@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Models\PettyCash;
+use App\Models\Setting;
 class TableController extends Controller
 {
     /**
@@ -12,9 +14,12 @@ class TableController extends Controller
     // Mostrar lista de mesas
     public function index()
     {
-        $tables = Table::all();
+        $settings = Setting::firstOrCreate([]);
+        $tablesEnabled = $settings->tables_enabled;
+        $tables = $tablesEnabled ? Table::all() : collect();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('tables.index', compact('tables','hasOpenPettyCash'));
+        $settings = Setting::firstOrCreate([]);
+        return view('tables.index', compact('tables','hasOpenPettyCash','tablesEnabled','settings'));
     }
 
     /**
@@ -83,4 +88,61 @@ class TableController extends Controller
           $table->delete();
           return redirect()->route('tables.index')->with('success', 'Mesa eliminada correctamente.');
       }
+          /**
+     * Obtener mesas disponibles para el pedido
+     */
+     public function available()
+    {
+        try {
+            $tables = Table::all();
+            return response()->json([
+                'success' => true,
+                'data' => $tables
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las mesas'
+            ], 500);
+        }
+    }
+
+        public function getAvailableTables()
+        {
+            $tables = Table::where('state', 'Disponible')->get();
+            return response()->json($tables);
+        }
+         /**
+     * Cambiar estado de una mesa
+     */
+    public function changeTableState(Request $request, Table $table)
+    {
+        $request->validate([
+            'state' => 'required|in:Disponible,Ocupada,Reservada'
+        ]);
+
+        $table->update(['state' => $request->state]);
+        return response()->json(['success' => true]);
+    }
+     /**
+     * Cambiar estado de una mesa
+     */
+    public function updateState(Request $request, $tableId)
+    {
+        try {
+            $table = Table::findOrFail($tableId);
+            $table->state = $request->state;
+            $table->save();
+        
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    
+
 }
