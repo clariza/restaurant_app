@@ -1496,96 +1496,71 @@ function generateTicketContent(dailyOrderNumber) {
         (document.getElementById('table-number')?.value || '1') : '';
     const orderNotes = localStorage.getItem('orderNotes') || '';
     const customerName = document.getElementById('customer-name')?.value || '';
-
-    // Nuevos campos: vendedor y número de pedido
-    const sellerName = "{{ Auth::user()->name }}";  // Nombre del usuario autenticado
-    const orderNumber = Math.floor(Math.random() * 10000); // Número aleatorio para el pedido
-
+    const sellerName = "{{ Auth::user()->name }}";
+    
     // Calcular totales
     const subtotal = order.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const tax = 0;
     const total = subtotal + tax;
 
-    // Formatear número de pedido
-    const formattedOrderNumber = dailyOrderNumber.split('-')[1];
+    // Formatear fecha y hora
+    const now = new Date();
+    const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
     return `
-        <style>
-            .ticket-preview {
-                font-family: 'Courier New', monospace;
-                font-size: 14px;
-                width: 100%;
-                max-width: 300px;
-                margin: 0 auto;
-                padding: 10px;
-                background-color: white;
-            }
-            .header { text-align: center; margin-bottom: 10px; }
-            .title { font-weight: bold; font-size: 16px; }
-            .subtitle { font-size: 14px; }
-            .divider { border-top: 1px dashed #000; margin: 8px 0; }
-            .item-row { display: flex; justify-content: space-between; margin: 4px 0; }
-            .total-row { font-weight: bold; margin-top: 8px; }
-            .footer { text-align: center; margin-top: 10px; font-size: 12px; }
-            .notes { margin-top: 8px; font-style: italic; font-size: 13px; white-space: pre-wrap; }
-            .customer { margin-top: 8px; font-weight: bold; font-size: 13px; }
-            .details { margin: 8px 0; } /* Nuevo estilo para detalles */
-            .detail-row { margin: 3px 0; } /* Nuevo estilo para filas de detalle */
-        </style>
-        <div class="ticket-preview">
-            <div class="header">
-                <div class="title">RESTAURANTE MIQUNA</div>
-                <div class="subtitle">${new Date().toLocaleString()}</div>
-                ${orderType ? `<div class="subtitle">${orderType} ${orderType === 'Comer aquí' && tableNumber ? 'Mesa: ' + tableNumber : ''}</div>` : ''}
-            </div>
-            <div class="divider"></div>
-            
-            <!-- Nuevos detalles: vendedor y número de pedido -->
-            <div class="details">
-                <div class="detail-row">
-                    <strong>Vendedor:</strong> ${sellerName}
-                </div>
-                <div class="detail-row">
-                    <strong>Pedido:</strong> ${orderNumber}
-                </div>
-            </div>
-            <div class="divider"></div>
-            
-            ${customerName ? `<div class="customer">Cliente: ${customerName}</div>` : ''}
-            
-            ${order.map(item => `
-                <div class="item-row">
-                    <span>${item.quantity}x ${(item.name || '').substring(0, 20)}</span>
-                    <span>$${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</span>
-                </div>
-            `).join('')}
-            
-            <div class="divider"></div>
-            
+        <div class="header">
+            <div class="title">RESTAURANTE MIQUNA</div>
+            <div class="subtitle">${dateStr} ${timeStr}</div>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Vendedor:</span>
+            <span>${sellerName}</span>
+        </div>
+        <div class="item-row">
+            <span>Pedido:</span>
+            <span>${dailyOrderNumber}</span>
+        </div>
+        <div class="divider"></div>
+        
+        ${orderType ? `<div class="item-row"><span>Tipo:</span><span>${orderType} ${orderType === 'Comer aquí' && tableNumber ? 'Mesa ' + tableNumber : ''}</span></div>` : ''}
+        
+        ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
+        
+        <div class="divider"></div>
+        
+        ${order.map(item => `
             <div class="item-row">
-                <span>Subtotal:</span>
-                <span>$${subtotal.toFixed(2)}</span>
+                <span>${item.quantity}x ${item.name.substring(0, 20)}</span>
+                <span>$${(item.price * item.quantity).toFixed(2)}</span>
             </div>
-            <div class="item-row">
-                <span>Impuesto (0%):</span>
-                <span>$${tax.toFixed(2)}</span>
-            </div>
-            <div class="item-row total-row">
-                <span>TOTAL:</span>
-                <span>$${total.toFixed(2)}</span>
-            </div>
-            
-            ${orderNotes ? `
-                <div class="divider"></div>
-                <div>
-                    <div class="notes">Notas:</div>
-                    <div>${orderNotes}</div>
-                </div>
-            ` : ''}
-            
+        `).join('')}
+        
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Subtotal:</span>
+            <span>$${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="item-row">
+            <span>Impuesto:</span>
+            <span>$${tax.toFixed(2)}</span>
+        </div>
+        <div class="item-row total-row">
+            <span>TOTAL:</span>
+            <span>$${total.toFixed(2)}</span>
+        </div>
+        
+        ${orderNotes ? `
             <div class="divider"></div>
-            <div class="footer">
-                Gracias por su preferencia!
-            </div>
+            <div class="notes">Notas: ${orderNotes}</div>
+        ` : ''}
+        
+        <div class="divider"></div>
+        <div class="footer">
+            ¡Gracias por su preferencia!
         </div>
     `;
 }
@@ -1649,119 +1624,56 @@ function closePrintPreview(confirmed = false) {
  * Confirma la impresión
  */
 function confirmPrint() {
-    // Obtener el contenido del ticket
-    //const printContent = generateTicketContent();
-    const previewContent = document.getElementById('print-preview-content');
-    const printContent = previewContent.innerHTML;
+    const printContent = document.getElementById('print-preview-content').innerHTML;
     
-    // Crear un iframe oculto para la impresión térmica
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'absolute';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    
-    printFrame.srcdoc = `
+    // Crear una ventana nueva para imprimir
+    const printWindow = window.open('', '_blank');
+    printWindow.document.open();
+    printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <meta charset="utf-8">
             <title>Ticket de Venta</title>
             <style>
-                /* Estilos optimizados para impresora térmica */
                 body {
                     font-family: 'Courier New', monospace;
-                    font-size: 10px;
+                    font-size: 12px;
+                    width: 72mm; /* Ancho estándar para tickets (72mm) */
                     margin: 0;
                     padding: 2mm;
-                    width: 80mm; /* Ancho estándar para tickets */
+                    -webkit-print-color-adjust: exact;
                 }
-                .ticket {
-                    width: 100%;
-                    max-width: 80mm;
-                    margin: 0 auto;
+                .header { text-align: center; margin-bottom: 3px; }
+                .title { font-weight: bold; font-size: 14px; }
+                .subtitle { font-size: 11px; }
+                .divider { border-top: 1px dashed #000; margin: 3px 0; }
+                .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
+                .total-row { font-weight: bold; margin-top: 4px; }
+                .footer { text-align: center; margin-top: 5px; font-size: 10px; }
+                .notes { margin-top: 4px; font-style: italic; font-size: 11px; }
+                .customer { margin-top: 4px; font-weight: bold; font-size: 11px; }
+                @page {
+                    size: 72mm auto;
+                    margin: 0;
                 }
-                .header {
-                    text-align: center;
-                    margin-bottom: 3px;
-                }
-                .title {
-                    font-weight: bold;
-                    font-size: 12px;
-                    margin-bottom: 2px;
-                }
-                .subtitle {
-                    font-size: 9px;
-                    margin-bottom: 3px;
-                }
-                .divider {
-                    border-top: 1px dashed #000;
-                    margin: 4px 0;
-                }
-                .item-row {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 2px 0;
-                }
-                .total-row {
-                    font-weight: bold;
-                    margin-top: 4px;
-                }
-                .footer {
-                    text-align: center;
-                    margin-top: 5px;
-                    font-size: 8px;
-                }
-                .notes {
-                    margin-top: 4px;
-                    font-style: italic;
-                    font-size: 9px;
-                }
-                .customer {
-                    margin-top: 4px;
-                    font-weight: bold;
-                    font-size: 9px;
-                }
-                
-                /* Configuración específica para impresión */
                 @media print {
-                    @page {
-                        size: 80mm 200mm; /* Ancho fijo, alto variable */
-                        margin: 0;
-                    }
                     body {
                         margin: 0;
                         padding: 0;
                     }
+                    .no-print { display: none !important; }
                 }
             </style>
-            <script>
-                // Imprimir automáticamente al cargar
-                window.onload = function() {
-                    window.print();
-                    // Cerrar después de imprimir
-                    setTimeout(function() {
-                        window.close();
-                    }, 100);
-                };
-            <\/script>
         </head>
-        <body>
-            <div class="ticket">
-                ${printContent}
-            </div>
+        <body onload="window.print(); setTimeout(function(){ window.close(); }, 100);">
+            ${printContent}
         </body>
         </html>
-    `;
-    
-    // Agregar al documento y disparar impresión
-    document.body.appendChild(printFrame);
+    `);
+    printWindow.document.close();
     
     // Cerrar el modal de vista previa
-    if (typeof window.handlePrintClose === 'function') {
-        window.handlePrintClose(true);
-    }
+    closePrintPreview(true);
 }
 
 /**
