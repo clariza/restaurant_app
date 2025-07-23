@@ -11,14 +11,19 @@ class Purchase extends Model
     
     protected $fillable = [
         'supplier_id',
-        'product',
-        'price',
-        'quantity',
+        'reference_number',
         'purchase_date',
+        'total_amount',
+        'status',
     ];
+
 
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
     }
 }

@@ -18,10 +18,10 @@ class PettyCash extends Model
         'status',
         'total_sales_cash', 
         'total_sales_qr',   
-        'total_sales_card', // Nuevo campo
-        'total_expenses',   // Nuevo campo
+        'total_sales_card', 
+        'total_expenses',   
         'total_general',
-        'closed_at',        // Nuevo campo
+        'closed_at',        
     ];
     protected $casts = [
         'date' => 'date',

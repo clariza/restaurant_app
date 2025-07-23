@@ -168,15 +168,27 @@ public function dashboard()
         }
     }
 
-    public function show(Sale $sale)
-    {
-    // Cargar la venta con sus ítems
-        $sale->load('items','user');
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-
-    // Pasar la venta a la vista
-        return view('sales.show', compact('sale','hasOpenPettyCash'));
-    }
+    public function show($id)
+{
+    $sale = Sale::with(['user', 'items'])->findOrFail($id);
+    $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+    // Obtener venta anterior
+    $previousSale = Sale::where('id', '<', $sale->id)
+        ->orderBy('id', 'desc')
+        ->first();
+    
+    // Obtener venta siguiente
+    $nextSale = Sale::where('id', '>', $sale->id)
+        ->orderBy('id', 'asc')
+        ->first();
+    
+    return view('sales.show', [
+        'sale' => $sale,
+        'previousSale' => $previousSale,
+        'nextSale' => $nextSale,
+        'hasOpenPettyCash'=>$hasOpenPettyCash
+    ]);
+}
 
     public function create()
 {

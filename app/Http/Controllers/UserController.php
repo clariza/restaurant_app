@@ -7,10 +7,20 @@ use Illuminate\Http\Request;
 use App\Models\PettyCash;
 class UserController extends Controller
 {
+    public function __construct()
+    {
+       // $this->middleware('auth');
+        //$this->middleware('admin')->except(['index', 'show']); // Solo admin puede acceder a todo excepto index y show
+    }
     // Mostrar lista de usuarios
     public function index()
     {
-        $users = User::all();
+       // $users = User::all();
+       if(auth()->user()->role === 'admin') {
+            $users = User::all();
+        } else {
+            $users = User::where('id', auth()->id())->get();
+        }
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         //return view('users.index', compact('users'));
         return view('users.index', compact('users','hasOpenPettyCash'),['showOrderDetails' => false]);
@@ -19,6 +29,7 @@ class UserController extends Controller
     // Mostrar formulario de creación
     public function create()
     {
+       // $this->authorize('create', User::class);
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         return view('users.create',compact('hasOpenPettyCash'), ['showOrderDetails' => false]);
     }
@@ -45,6 +56,7 @@ class UserController extends Controller
     // Mostrar formulario de edición
     public function edit(User $user)
     {
+        //$this->authorize('update', $user);
         //return view('users.edit', compact('user'));
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         return view('users.edit', compact('user','hasOpenPettyCash'),['showOrderDetails' => false]);
@@ -53,24 +65,33 @@ class UserController extends Controller
     // Actualizar usuario
     public function update(Request $request, User $user)
     {
+        //$this->authorize('update', $user);
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
+            'role' => 'sometimes|in:admin,vendedor', // Solo admin puede cambiar roles
+            
         ]);
-
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password ? bcrypt($request->password) : $user->password,
-        ]);
+        ];
 
+          // Solo admin puede cambiar el rol
+        if(auth()->user()->role === 'admin' && $request->has('role')) {
+            $data['role'] = $request->role;
+        }
+
+        $user->update($data);
         return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
     }
 
     // Eliminar usuario
     public function destroy(User $user)
     {
+        //$this->authorize('delete', $user);
         $user->delete();
         return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
     }

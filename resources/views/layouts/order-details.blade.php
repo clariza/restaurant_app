@@ -619,7 +619,6 @@ html, body {
             <input type="hidden" name="order_type" id="order-type" value="Comer aquí">
 
       
-    <!-- Selección de mesa (solo visible para "Comer aquí" Y cuando tables_enabled es true) -->
     @if($settings->tables_enabled)
 <div id="table-selection" class="mb-3">
     <div class="flex items-center justify-between mb-1">
@@ -1494,7 +1493,15 @@ function generateTicketContent(dailyOrderNumber) {
     const orderType = document.getElementById('order-type')?.value || 'Comer aquí';
     const tableNumber = orderType === 'Comer aquí' ? 
         (document.getElementById('table-number')?.value || '1') : '';
-    const orderNotes = localStorage.getItem('orderNotes') || '';
+    
+    // Obtener servicio de delivery si el tipo es "Para llevar"
+    const deliveryService = orderType === 'Para llevar' ? 
+        (document.getElementById('delivery-service')?.value || '') : '';
+    
+    // Obtener todas las notas del contenedor
+    const orderNotes = document.getElementById('order-notes')?.value || '';
+    const proformaNotes = document.getElementById('proforma-notes')?.value || '';
+    
     const customerName = document.getElementById('customer-name')?.value || '';
     const sellerName = "{{ Auth::user()->name }}";
     
@@ -1507,6 +1514,11 @@ function generateTicketContent(dailyOrderNumber) {
     const now = new Date();
     const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
     const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    // Combinar todas las notas si existen
+    let allNotes = '';
+    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}`;
 
     return `
         <div class="header">
@@ -1525,7 +1537,7 @@ function generateTicketContent(dailyOrderNumber) {
         </div>
         <div class="divider"></div>
         
-        ${orderType ? `<div class="item-row"><span>Tipo:</span><span>${orderType} ${orderType === 'Comer aquí' && tableNumber ? 'Mesa ' + tableNumber : ''}</span></div>` : ''}
+        ${orderType ? `<div class="item-row"><span>Tipo:</span><span>${orderType} ${orderType === 'Comer aquí' && tableNumber ? 'Mesa ' + tableNumber : ''}${orderType === 'Para llevar' && deliveryService ? ' - ' + deliveryService : ''}</span></div>` : ''}
         
         ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
         
@@ -1553,9 +1565,9 @@ function generateTicketContent(dailyOrderNumber) {
             <span>$${total.toFixed(2)}</span>
         </div>
         
-        ${orderNotes ? `
+        ${allNotes ? `
             <div class="divider"></div>
-            <div class="notes">Notas: ${orderNotes}</div>
+            <div class="notes">${allNotes}</div>
         ` : ''}
         
         <div class="divider"></div>
@@ -1577,23 +1589,27 @@ function showPrintPreview(content) {
         previewModal.id = 'print-preview-modal';
         previewModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden z-[1000] flex items-center justify-center';
         previewModal.innerHTML = `
-            <div class="modal-container bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                <div class="flex justify-between items-center mb-4">
+        <div class="modal-container bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2">
                     <h3 class="text-lg font-bold text-[#203363]">Vista previa de impresión</h3>
-                    <button onclick="closePrintPreview()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
-                <div id="print-preview-content" class="bg-white p-4 border border-gray-300 mb-4 max-h-[60vh] overflow-y-auto"></div>
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500">
-                        Cancelar
-                    </button>
-                    <button onclick="confirmPrint()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c]">
-                        <i class="fas fa-print mr-2"></i> Imprimir
-                    </button>
-                </div>
+            <div class="flex items-center space-x-2 bg-black">
+                <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-2 py-2 rounded-lg hover:bg-gray-500 text-sm">
+                    Cancelar
+                </button>
+                <button onclick="closePrintPreview()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+    </div>
+    <div id="print-preview-content" class="bg-white p-4 border border-gray-300 mb-4 max-h-[60vh] overflow-y-auto"></div>
+    <div class="flex justify-end">
+        <button onclick="confirmPrint()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c]">
+            <i class="fas fa-print mr-2"></i> Imprimir
+        </button>
+    </div>
+</div>
         `;
         document.body.appendChild(previewModal);
     }
@@ -1626,8 +1642,7 @@ function closePrintPreview(confirmed = false) {
 function confirmPrint() {
     const printContent = document.getElementById('print-preview-content').innerHTML;
     
-    // Crear una ventana nueva para imprimir
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open();
     printWindow.document.open();
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -1638,7 +1653,7 @@ function confirmPrint() {
                 body {
                     font-family: 'Courier New', monospace;
                     font-size: 12px;
-                    width: 72mm; /* Ancho estándar para tickets (72mm) */
+                    width: 72mm;
                     margin: 0;
                     padding: 2mm;
                     -webkit-print-color-adjust: exact;
@@ -1650,8 +1665,11 @@ function confirmPrint() {
                 .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
                 .total-row { font-weight: bold; margin-top: 4px; }
                 .footer { text-align: center; margin-top: 5px; font-size: 10px; }
-                .notes { margin-top: 4px; font-style: italic; font-size: 11px; }
-                .customer { margin-top: 4px; font-weight: bold; font-size: 11px; }
+                .notes { 
+                    margin-top: 4px; 
+                    font-size: 11px;
+                    white-space: pre-wrap; /* Para mantener los saltos de línea */
+                }
                 @page {
                     size: 72mm auto;
                     margin: 0;
@@ -1672,7 +1690,6 @@ function confirmPrint() {
     `);
     printWindow.document.close();
     
-    // Cerrar el modal de vista previa
     closePrintPreview(true);
 }
 
@@ -2395,11 +2412,17 @@ function showPrintConfirmation(dailyOrderNumber) {
             document.body.appendChild(previewModal);
             previewContent = document.getElementById('print-preview-content');
         }
-         // Generar el contenido del ticket
+        
+        // Obtener datos adicionales para el ticket
         const order = JSON.parse(localStorage.getItem('order')) || [];
         const orderType = document.getElementById('order-type')?.value || 'Comer aquí';
         const tableNumber = orderType === 'Comer aquí' ? 
             (document.getElementById('table-number')?.value || '1') : '';
+        
+        // Obtener servicio de delivery si el tipo es "Para llevar"
+        const deliveryService = orderType === 'Para llevar' ? 
+            (document.getElementById('delivery-service')?.value || '') : '';
+            
         const orderNotes = localStorage.getItem('orderNotes') || '';
         const customerName = document.getElementById('customer-name')?.value || '';
 
@@ -2408,10 +2431,9 @@ function showPrintConfirmation(dailyOrderNumber) {
         const tax = 0;
         const total = subtotal + tax;
         
-        const sellerName = "{{ Auth::user()->name }}"; // Nombre del usuario autenticado
-        const saleNumber = Math.floor(Math.random() * 10000); // Generar número aleatorio de venta
+        const sellerName = "{{ Auth::user()->name }}";
 
-          // Generar contenido del ticket (con nuevos campos)
+        // Generar contenido del ticket (con servicio de delivery si aplica)
         const printContent = `
             <style>
                 .ticket-preview {
@@ -2432,7 +2454,6 @@ function showPrintConfirmation(dailyOrderNumber) {
                 .footer { text-align: center; margin-top: 10px; font-size: 12px; }
                 .notes { margin-top: 8px; font-style: italic; font-size: 13px; white-space: pre-wrap; }
                 .customer { margin-top: 8px; font-weight: bold; font-size: 13px; }
-                /* Nuevos estilos para los campos añadidos */
                 .sale-info { 
                     display: flex;
                     justify-content: space-between;
@@ -2441,6 +2462,7 @@ function showPrintConfirmation(dailyOrderNumber) {
                 }
                 .seller-info { font-weight: bold; }
                 .sale-number { font-weight: bold; }
+                .delivery-info { margin-top: 4px; font-size: 13px; }
             </style>
             <div class="ticket-preview">
                 <div class="header">
@@ -2457,6 +2479,13 @@ function showPrintConfirmation(dailyOrderNumber) {
                 <div class="divider"></div>
                 
                 ${customerName ? `<div class="customer">Cliente: ${customerName}</div>` : ''}
+                
+                ${orderType === 'Para llevar' && deliveryService ? `
+                    <div class="delivery-info">
+                        <div>Servicio Delivery: ${deliveryService}</div>
+                    </div>
+                    <div class="divider"></div>
+                ` : ''}
                 
                 ${order.map(item => `
                     <div class="item-row">
@@ -2482,9 +2511,9 @@ function showPrintConfirmation(dailyOrderNumber) {
                 
                 ${orderNotes ? `
                     <div class="divider"></div>
-                    <div >
+                    <div>
                         <div class="notes">Notas:</div>
-                        <div >${orderNotes}</div>
+                        <div>${orderNotes}</div>
                     </div>
                 ` : ''}
                 
@@ -2495,7 +2524,6 @@ function showPrintConfirmation(dailyOrderNumber) {
             </div>
         `;
       
-
         // Asignar el contenido y mostrar el modal
         if (previewContent) {
             previewContent.innerHTML = printContent;

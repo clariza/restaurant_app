@@ -87,6 +87,27 @@ class ItemsController extends Controller
        return redirect()->route('items.index')->with('success', 'Producto actualizado correctamente.');
    }
 
+   public function search(Request $request)
+    {
+        $query = $request->input('query');
+        $products = MenuItem::with('category')
+        ->where(function($q) use ($query) {
+            $q->where('name', 'like', "%{$query}%")
+              ->orWhere('description', 'like', "%{$query}%");
+        })
+        ->limit(10)
+        ->get(['id', 'name', 'price', 'category_id']);
+    
+        return response()->json($products->map(function($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'category' => $product->category
+            ];
+        }));
+    }
+
    // Eliminar un producto
    public function destroy(MenuItem $item)
    {

@@ -393,6 +393,10 @@
                                 <i class="fas fa-list mr-3"></i>
                                 <span>Lista de Ventas</span>
                             </a>
+                             <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('tables.index') }}">
+                                <i class="fas fa-table mr-3"></i>
+                                <span>Mesas</span>
+                            </a>
                         </div>
                     </div>
 
@@ -436,10 +440,7 @@
                             <i class="fas fa-chevron-down ml-auto transition-transform duration-300 arrow"></i>
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="configuracion-submenu">
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('tables.index') }}">
-                                <i class="fas fa-table mr-3"></i>
-                                <span>Mesas</span>
-                            </a>
+                           
                             <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('items.index') }}">
                                 <i class="fas fa-cube mr-3"></i>
                                 <span>Productos</span>
@@ -613,28 +614,84 @@
         });
     });
     // Verificar estado de caja chica al cargar la página
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     @if(!$hasOpenPettyCash && Route::currentRouteName() != 'petty-cash.create')
+    //         // Bloquear todos los enlaces excepto logout y apertura de caja
+    //         const allLinks = document.querySelectorAll('a');
+    //         allLinks.forEach(link => {
+    //             if (!link.href.includes('logout') && !link.href.includes('petty-cash/create')) {
+    //                 link.addEventListener('click', function(e) {
+    //                     if (this.href !== window.location.href) {
+    //                         e.preventDefault();
+    //                         window.location.href = "{{ route('petty-cash.create') }}";
+    //                     }
+    //                 });
+    //             }
+    //         });
+            
+    //         // Mostrar mensaje si se intenta acceder a otra ruta
+    //         @if(Route::currentRouteName() != 'petty-cash.create' && Route::currentRouteName() != 'login')
+    //             alert('Debe abrir una caja chica antes de continuar.');
+    //             window.location.href = "{{ route('petty-cash.create') }}";
+    //         @endif
+    //     @endif
+    // });
     document.addEventListener('DOMContentLoaded', function() {
-        @if(!$hasOpenPettyCash && Route::currentRouteName() != 'petty-cash.create')
-            // Bloquear todos los enlaces excepto logout y apertura de caja
-            const allLinks = document.querySelectorAll('a');
-            allLinks.forEach(link => {
-                if (!link.href.includes('logout') && !link.href.includes('petty-cash/create')) {
-                    link.addEventListener('click', function(e) {
-                        if (this.href !== window.location.href) {
-                            e.preventDefault();
-                            window.location.href = "{{ route('petty-cash.create') }}";
-                        }
-                    });
-                }
+    @if(!$hasOpenPettyCash && Route::currentRouteName() != 'petty-cash.create')
+        // Definir las rutas que deben bloquearse
+        const blockedRoutes = [
+            'menu',  // Ruta del Menú
+            'sales'  // Ruta de Lista de Ventas
+        ];
+        
+        // Bloquear solo los enlaces específicos
+        const allLinks = document.querySelectorAll('a');
+        allLinks.forEach(link => {
+            // Verificar si el enlace coincide con alguna ruta bloqueada
+            const shouldBlock = blockedRoutes.some(route => {
+                return link.href.includes(route.replace('.', '/'));
             });
             
-            // Mostrar mensaje si se intenta acceder a otra ruta
-            @if(Route::currentRouteName() != 'petty-cash.create' && Route::currentRouteName() != 'login')
-                alert('Debe abrir una caja chica antes de continuar.');
-                window.location.href = "{{ route('petty-cash.create') }}";
-            @endif
+            if (shouldBlock) {
+                link.addEventListener('click', function(e) {
+                    if (this.href !== window.location.href) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Apertura de Caja Requerida',
+                            text: 'Debe abrir una caja chica para acceder a las funciones de ventas',
+                            confirmButtonText: 'Abrir Caja',
+                            confirmButtonColor: '#203363'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "{{ route('petty-cash.create') }}";
+                            }
+                        });
+                    }
+                });
+                
+                // Cambiar estilo visual para indicar que está bloqueado
+                link.style.opacity = '0.6';
+                link.style.cursor = 'not-allowed';
+            }
+        });
+        
+        // Mostrar mensaje si se intenta acceder directamente a una ruta bloqueada
+        @if(in_array(Route::currentRouteName(), ['menu.index', 'sales.index']))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Apertura de Caja Requerida',
+                text: 'Debe abrir una caja chica para acceder a esta función',
+                confirmButtonText: 'Abrir Caja',
+                confirmButtonColor: '#203363'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{{ route('petty-cash.create') }}";
+                }
+            });
         @endif
-    });
+    @endif
+});
     </script>
     <script>
 // Manejar logout con limpieza de orden

@@ -81,6 +81,20 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+     // Rutas para la búsqueda de productos (Items)
+    Route::get('/items/search', [ItemsController::class, 'search'])->name('items.search');
+      // Rutas para compras
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
+    Route::post('/purchases', [PurchaseController::class, 'store'])
+    ->name('purchases.store');
+    
+      // Rutas para la búsqueda de productos
+    Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])
+        ->name('purchases.searchProducts');
+    Route::get('/purchases/product-details/{id}', [PurchaseController::class, 'getProductDetails'])
+        ->name('purchases.productDetails');
 });
 
 // Rutas para compras (solo admin)

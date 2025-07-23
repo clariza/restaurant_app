@@ -128,7 +128,7 @@
     </div>
 </div>
 
-<script>
+<!-- <script>
     // Deshabilitar todos los enlaces del sidebar excepto logout
     document.addEventListener('DOMContentLoaded', function() {
         const sidebarLinks = document.querySelectorAll('.sidebar a');
@@ -143,6 +143,50 @@
                         confirmButtonColor: '#203363'
                     });
                 });
+            }
+        });
+    });
+</script> -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Definir las rutas que deben bloquearse
+        const blockedRoutes = [
+            'menu',  // Ruta del Menú
+            'sales'   // Ruta de Lista de Ventas
+        ];
+        
+        // Obtener todos los enlaces del sidebar
+        const sidebarLinks = document.querySelectorAll('.sidebar a');
+        
+        sidebarLinks.forEach(link => {
+           // alert('get here');
+            // Verificar si el enlace coincide con alguna ruta bloqueada
+            const shouldBlock = blockedRoutes.some(route => {
+                console.log(route);
+                console.log('ya noo');
+                console.log(link.href);
+                // Comprobar si la URL del enlace contiene la ruta
+                return link.href.includes(route);
+            });
+
+            if (shouldBlock) {
+                // Agregar evento para bloquear el clic
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Apertura de Caja Requerida',
+                        text: 'Debe abrir una caja chica antes de acceder a las funciones de ventas.',
+                        confirmButtonColor: '#203363',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+                
+                // Cambiar estilo visual para indicar que está bloqueado
+                link.style.opacity = '0.6';
+                link.style.cursor = 'not-allowed';
+                link.title = 'Se requiere apertura de caja';
             }
         });
     });

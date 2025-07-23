@@ -17,7 +17,8 @@ class SupplierController extends Controller
 
     public function create()
     {
-        return view('suppliers.create');
+        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+        return view('suppliers.create',compact('hasOpenPettyCash'));
     }
 
     public function store(Request $request)
