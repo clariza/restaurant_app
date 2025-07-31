@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\MenuItem;
+use App\Models\InventoryMovement;
 use App\Models\Table;
 use App\Models\PettyCash;
 use Illuminate\Http\Request;
@@ -70,103 +72,136 @@ public function dashboard()
         return view('sales.index', compact('sales','hasOpenPettyCash'));
     }
     public function store(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuario no autenticado.',
-            ], 401);
-        }
-    
-        // Validar los datos del formulario (agregar order_notes)
-        $validator = Validator::make($request->all(), [
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'nullable|email|max:255',
-            'customer_phone' => 'nullable|string|max:20',
-            'order' => 'required|json',
-            'order_type' => 'required|string',
-            'table_number' => 'nullable|string',
-            'transaction_number' => 'nullable|string',
-            'payment_method' => 'required|string|in:QR,Efectivo,Tarjeta',
-            'order_notes' => 'nullable|string|max:500', // Validación para order_notes
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de validación',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-    
-        try {
-            $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
-    
-            if (!$openPettyCash) {
-                throw new \Exception('No hay una caja chica abierta.');
-            }
-    
-            $order = json_decode($request->order, true);
-    
-            if (!is_array($order)) {
-                throw new \Exception('El pedido no es un array válido.');
-            }
-    
-            $subtotal = array_reduce($order, function ($sum, $item) {
-                return $sum + ($item['price'] * $item['quantity']);
-            }, 0);
-    
-            $taxRate = 0;
-            $tax = $subtotal * $taxRate;
-            $total = $subtotal + $tax;
-             // Generar número de pedido
-            $orderNumber = Sale::generateOrderNumber();
-            $today = now()->toDateString();
-
-            // Crear la venta incluyendo order_notes
-            $sale = Sale::create([
-                'user_id' => Auth::id(),
-                'petty_cash_id' => $openPettyCash->id,
-                'customer_name' => $request->customer_name,
-                'phone' => $request->customer_phone,
-                'order_type' => $request->order_type,
-                'table_number' => $request->table_number,
-                'subtotal' => $subtotal,
-                'discount' => 0,
-                'service_charge' => 0,
-                'tax' => $tax,
-                'total' => $total,
-                'transaction_number' => $request->transaction_number,
-                'payment_method' => $request->payment_method,
-                'order_notes' => $request->order_notes,
-                'daily_order_number' => $orderNumber,
-                'order_date' => $today,
-            ]);
-    
-            foreach ($order as $item) {
-                $sale->items()->create([
-                    'name' => $item['name'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
-                ]);
-            }
-    
-            return response()->json([
-                'success' => true,
-                'message' => 'Pedido procesado correctamente.',
-                'sale_id' => $sale->id,
-                'daily_order_number' => $sale->daily_order_number,
-            ]);
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hubo un error al procesar el pedido.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+{
+    // Validar autenticación
+    if (!Auth::check()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Usuario no autenticado.',
+        ], 401);
     }
+
+    // Validación mejorada
+    $validator = Validator::make($request->all(), [
+        'customer_name' => 'required|string|max:255',
+        'customer_email' => 'nullable|email|max:255',
+        'customer_phone' => 'nullable|string|max:20',
+        'order' => 'required|json',
+        'order_type' => 'required|string',
+        'table_number' => 'nullable|string',
+        'transaction_number' => 'nullable|string',
+        'payment_method' => 'required|string|in:QR,Efectivo,Tarjeta',
+        'order_notes' => 'nullable|string|max:500',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
+
+    try {
+        // Verificar caja chica abierta
+        $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
+        if (!$openPettyCash) {
+            throw new \Exception('No hay una caja chica abierta.');
+        }
+
+        // Procesar el pedido
+        $order = json_decode($request->order, true);
+        if (!is_array($order)) {
+            throw new \Exception('El pedido no es un array válido.');
+        }
+        
+        // Calcular totales
+        $subtotal = array_reduce($order, fn($sum, $item) => $sum + ($item['price'] * $item['quantity']), 0);
+        $taxRate = 0;
+        $tax = $subtotal * 0; // 0% de impuesto
+        $total = $subtotal + $tax;
+
+        // Generar número de pedido
+        $orderNumber = Sale::generateOrderNumber();
+        $today = now()->toDateString();
+        // Crear la venta
+        $sale = Sale::create([
+            'user_id' => Auth::id(),
+            'petty_cash_id' => $openPettyCash->id,
+            'customer_name' => $request->customer_name,
+            'phone' => $request->customer_phone,
+            'email' => $request->customer_email,
+            'order_type' => $request->order_type,
+            'table_number' => $request->table_number,
+            'subtotal' => $subtotal,
+            'discount' => 0,
+            'service_charge' => 0,
+            'tax' => $tax,
+            'total' => $total,
+            'transaction_number' => $request->transaction_number,
+            'payment_method' => $request->payment_method,
+            'order_notes' => $request->order_notes,
+            'daily_order_number' => $orderNumber,
+            'order_date' => now()->toDateString(),
+        ]);
+
+        // Procesar items y actualizar stock
+foreach ($order as $item) {
+    // Crear el ítem de venta
+    $sale->items()->create([
+        'name' => $item['name'],
+        'quantity' => $item['quantity'],
+        'price' => $item['price'],
+        'total' => $item['price'] * $item['quantity'],
+    ]);
+
+    // Buscar el MenuItem por nombre (asumiendo que 'name' es único)
+    $menuItem = MenuItem::where('name', $item['name'])->first();
+
+    // Si no se encuentra el MenuItem, lanzar excepción con detalles
+    if (!$menuItem) {
+        throw new \Exception("El ítem del menú '{$item['name']}' no existe en la base de datos.");
+    }
+
+    // Validar que haya suficiente stock
+    if ($menuItem->stock < $item['quantity']) {
+        throw new \Exception("No hay suficiente stock para {$menuItem->name}. Stock actual: {$menuItem->stock}");
+    }
+
+    // Registrar el movimiento de inventario
+    InventoryMovement::create([
+        'menu_item_id' => $menuItem->id,
+        'user_id' => Auth::id(),
+        'movement_type' => 'subtraction',
+        'quantity' => $item['quantity'],
+        'old_stock' => $menuItem->stock,
+        'new_stock' => $menuItem->stock - $item['quantity'],
+        'notes' => "Venta #{$orderNumber}"
+    ]);
+
+    // Actualizar el stock del ítem
+    $menuItem->stock -= $item['quantity'];
+    $menuItem->save();
+}
+
+       // DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pedido procesado correctamente.',
+            'sale_id' => $sale->id,
+            'daily_order_number' => $sale->daily_order_number,
+        ]);
+
+    } catch (\Exception $e) {
+       // DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Hubo un error al procesar el pedido.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
 
     public function show($id)
 {
@@ -200,6 +235,24 @@ public function dashboard()
         dd($tables); // Verifica si $tables contiene datos
     }
     return view('layouts.order-details', compact('tables', 'deliveryServices'));
+}
+
+    // En SaleController
+public function checkStock(Request $request)
+{
+    $items = $request->input('items', []);
+    
+    foreach ($items as $item) {
+        $menuItem = MenuItem::find($item['name']);
+        if (!$menuItem || $menuItem->stock < $item['quantity']) {
+            return response()->json([
+                'available' => false,
+                'itemName' => $menuItem ? $menuItem->name : 'Ítem no encontrado'
+            ]);
+        }
+    }
+    
+    return response()->json(['available' => true]);
 }
 }   
     

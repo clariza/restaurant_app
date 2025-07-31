@@ -230,11 +230,7 @@ html, body {
     display: flex;
     flex-direction: column;
 }
-.notes-container {
-    margin-top: auto; /* Empuja las notas hacia arriba antes de los botones */
-    margin-bottom: 16px;
-}
-    
+ 
     .notes-label {
         display: block;
         font-size: 12px;
@@ -1091,6 +1087,24 @@ function increaseItemQuantity(index) {
 
     if (index >= 0 && index < order.length) {
         const item = order[index];
+        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+        
+        if (menuItem) {
+            const currentStock = parseInt(menuItem.dataset.stock) || 0;
+            
+            if (currentStock <= 0) {
+                alert(`No hay suficiente stock para ${item.name}`);
+                return;
+            }
+            
+            // Actualizar stock visualmente
+            const newStock = currentStock - 1;
+            const minStock = parseInt(menuItem.dataset.minStock) || 0;
+            const stockType = menuItem.dataset.stockType;
+            const stockUnit = menuItem.dataset.stockUnit;
+            
+            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
+        }
         item.quantity += 1;
 
         // Actualizar el localStorage y la vista
@@ -1109,6 +1123,20 @@ function removeItem(index) {
 
     if (index >= 0 && index < order.length) {
         const item = order[index];
+        
+         // Encontrar el elemento del menú correspondiente
+        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+        
+        if (menuItem) {
+            const currentStock = parseInt(menuItem.dataset.stock) || 0;
+            const minStock = parseInt(menuItem.dataset.minStock) || 0;
+            const stockType = menuItem.dataset.stockType;
+            const stockUnit = menuItem.dataset.stockUnit;
+            
+            // Revertir el stock visualmente
+            const newStock = currentStock + 1;
+            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
+        }
 
         if (item.quantity > 1) {
             item.quantity -= 1;
@@ -2243,7 +2271,16 @@ function closeProformaModal() {
 // Función para procesar el pedido
 async function processOrder() {
     try {
-        // Validaciones iniciales
+        // Verificar stock antes de procesar
+        // const stockCheck = await checkStockAvailability(order);
+        // if (!stockCheck.available) {
+        //     alert(`No hay suficiente stock para: ${stockCheck.itemName}`);
+        //     return;
+        // }
+        
+         // Obtener paymentMethods de localStorage
+        let paymentMethods = JSON.parse(localStorage.getItem('paymentMethods')) || [];
+        // Validaciones iniciales  
         const customerName = document.getElementById('customer-name')?.value;
         if (!customerName) {
             alert('El nombre del cliente es obligatorio');
@@ -2264,12 +2301,9 @@ async function processOrder() {
             price: item.price,
             quantity: item.quantity
         }));
-
-        // Obtener paymentMethods de localStorage
-        let paymentMethods = JSON.parse(localStorage.getItem('paymentMethods')) || [];
         
         if (paymentMethods.length === 0) {
-            const paymentDetails = JSON.parse(localStorage.getItem('paymentDetails')) || [];
+            
             paymentMethods = paymentDetails.map(p => ({
                 method: p.paymentType,
                 amount: parseFloat(p.totalPaid) || 0,
@@ -2288,6 +2322,7 @@ async function processOrder() {
         const customerPhone = document.getElementById('customer-phone')?.value || '';
         const orderNotes = localStorage.getItem('orderNotes') || '';
         
+
         let tableNumber = '';
         if (orderType === 'Comer aquí') {
               // Solo validar mesa si tablesEnabled es true
@@ -2345,7 +2380,7 @@ async function processOrder() {
         }
 
         const data = await response.json();
-        console.log(data);
+
         const dailyOrderNumber = data.daily_order_number;
         // Mostrar vista previa y esperar confirmación
         const printConfirmed = await showPrintConfirmation(dailyOrderNumber);
@@ -2377,7 +2412,24 @@ async function processOrder() {
         alert(`Error: ${error.message}`);
     }
 }
-
+async function checkStockAvailability(order) {
+    try {
+        const response = await fetch('/api/check-stock', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ items: order })
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error al verificar stock:', error);
+        return { available: false, itemName: 'Error al verificar stock' };
+    }
+}
 // Función para mostrar confirmación de impresión
 function showPrintConfirmation(dailyOrderNumber) {
     const printContent = generateTicketContent(dailyOrderNumber);
@@ -2783,10 +2835,23 @@ function clearOrder() {
     if (!confirm('¿Estás seguro de que deseas limpiar todo el pedido? Esta acción no se puede deshacer.')) {
         return;
     }
-    
+    const order = JSON.parse(localStorage.getItem('order')) || [];
+    // Revertir el stock de todos los ítems
+    order.forEach(item => {
+        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+        if (menuItem) {
+            const currentStock = parseInt(menuItem.dataset.stock) || 0;
+            const minStock = parseInt(menuItem.dataset.minStock) || 0;
+            const stockType = menuItem.dataset.stockType;
+            const stockUnit = menuItem.dataset.stockUnit;
+            
+            const newStock = currentStock + item.quantity;
+            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
+        }
+    });
     // Limpiar el pedido del localStorage
     localStorage.setItem('order', JSON.stringify([]));
-    
+    updateOrderDetails();
     // Limpiar las notas
     const notesTextarea = document.getElementById('order-notes');
     if (notesTextarea) {

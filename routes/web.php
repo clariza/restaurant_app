@@ -16,6 +16,7 @@ use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DeliveryServiceController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\InventoryController;
 
 // Route::get('/', function () {
 //     return view('dashboard');
@@ -44,7 +45,7 @@ Route::middleware(['auth', 'check.pettycash'])->group(function () {
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
        // Rutas para Delivery
     Route::resource('deliveries', DeliveryServiceController::class);
-    // ... todas las demás rutas protegidas
+
 });
 
 
@@ -150,3 +151,10 @@ Route::get('/menu/available', [TableController::class, 'available'])->name('tabl
 Route::post('/tables/{table}/state', [TableController::class, 'updateState'])
     ->name('tables.update-state');
 Route::post('/settings/update', [SettingController::class, 'update'])->name('settings.update');
+// Rutas para inventario
+Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+Route::post('/inventory/update-stock', [InventoryController::class, 'updateStock'])->name('inventory.update-stock');
+Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
+Route::get('/inventory/{id}/movements', [InventoryController::class, 'itemMovements'])->name('inventory.item-movements');
+// En routes/api.php
+Route::post('/check-stock', [SaleController::class, 'checkStock']);

@@ -39,6 +39,7 @@
         </div>
     </div>
 </div>
+
 <!-- Línea de Órdenes - Sección desplegable -->
 <div class="mb-4">
     <!-- Encabezado con botón minimalista -->
@@ -163,6 +164,7 @@
     </div>
 </div>
 <div class="mb-8"></div>  <!-- Esto añadirá espacio entre secciones -->
+
 <!-- Categorías -->
 <div class="categories-container mb-6">
     <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Categorías</h2>
@@ -192,64 +194,103 @@
     </div>
 </div>
 
-     <!-- Menú -->
-     <div class="overflow-y-auto scrollbar-hidden" id="menu-container" style="max-height: calc(100vh - 300px);">
-        <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Menú especial para ti</h2>
-        <div id="menu-items">
-            @foreach ($categories as $category)
-                <div id="category-{{ $category->id }}" class="mb-8" style="display: none;">
-                    <h3 class="text-lg font-bold text-[#203363] mb-4">{{ $category->name }}</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        @foreach ($category->menuItems as $item)
-                            <div class="border rounded-lg p-4 flex flex-col items-center hover:shadow-lg transition-shadow">
-                                <!-- Imagen responsiva -->
-                                <img 
-                                    alt="{{ $item->name }}" 
-                                    class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer" 
-                                    src="{{ $item->image }}" 
-                                    onclick="openItemModal({{ json_encode($item) }})"
-                                />
+<!-- Menú -->
+<div class="overflow-y-auto scrollbar-hidden" id="menu-container" style="max-height: calc(100vh - 300px);">
+    <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Menú especial para ti</h2>
+    <div id="menu-items">
+        @foreach ($categories as $category)
+    @if($category->menuItems->count() > 0)
+        <div id="category-{{ $category->id }}" class="mb-8" style="display: none;">
+            <h3 class="text-lg font-bold text-[#203363] mb-4">{{ $category->name }}</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                @foreach ($category->menuItems as $item)
+                    <div class="border rounded-lg p-4 flex flex-col items-center hover:shadow-lg transition-shadow relative"
+                         data-item-id="{{ $item->id }}"
+                         data-stock-type="{{ $item->stock_type }}"
+                         data-stock="{{ $item->stock }}"
+                         data-stock-unit="{{ $item->stock_unit }}"
+                         data-min-stock="{{ $item->min_stock }}">
+                         
+                        <!-- Label de stock en esquina superior izquierda -->
+                        <div class="absolute top-2 left-2 stock-badge-container">
+                             @if($item->stock_type == 'discrete')
+            @if($item->stock <= 0)
+                <span class="stock-badge stock-out">SIN STOCK</span>
+            @elseif($item->stock < $item->min_stock)
+                <span class="stock-badge stock-low">{{ (int)$item->stock }} UNI</span>
+            @else
+                <span class="stock-badge stock-high">{{ (int)$item->stock }} UNI</span>
+            @endif
+        @else
+            @if($item->stock <= 0)
+                <span class="stock-badge stock-out">SIN STOCK</span>
+            @elseif($item->stock < $item->min_stock)
+                <span class="stock-badge stock-low">{{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}</span>
+            @else
+                <span class="stock-badge stock-high">{{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}</span>
+            @endif
+        @endif
+                        </div>
 
-                                <!-- Nombre del ítem -->
-                                <p class="text-md font-semibold text-[#203363] mb-2 text-center">{{ $item->name }}</p>
+                        <!-- Imagen responsiva -->
+                        <img alt="{{ $item->name }}" 
+                             class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2" 
+                             src="{{ $item->image }}" 
+                             onclick="openItemModal({{ json_encode($item) }})"/>
 
-                                <!-- Contenedor para precio y botón alineados al centro -->
-                                <div class="w-full flex flex-col items-center mt-auto">
-                                    <!-- Precio del ítem -->
-                                    <p class="text-lg font-bold text-[#203363] mb-2">
-                                        ${{ number_format($item->price, 2) }}
-                                    </p>
+                        <!-- Nombre del ítem -->
+                        <p class="text-md font-semibold text-[#203363] mb-2 text-center">{{ $item->name }}</p>
 
-                                    <!-- Botón "Agregar" -->
-                                    <button onclick="addToOrder({{ json_encode($item) }})" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]">
-                                        Agregar
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
+                        <!-- Contenedor para precio y botón -->
+                        <div class="w-full flex flex-col items-center mt-auto">
+                            <!-- Precio del ítem -->
+                            <p class="text-lg font-bold text-[#203363] mb-2">
+                                ${{ number_format($item->price, 2) }}
+                            </p>
+
+                            <!-- Botón "Agregar" -->
+                            <button onclick="addToOrder({{ json_encode([
+                                'id' => $item->id,
+                                'name' => $item->name,
+                                'price' => $item->price,
+                                'stock' => $item->stock,
+                                'stock_type' => $item->stock_type,
+                                'stock_unit' => $item->stock_unit,
+                                'min_stock' => $item->min_stock
+                            ]) }})" 
+                            class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]">
+                                Agregar
+                            </button>
+                        </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-
-    <!-- Modal para detalles del ítem -->
-    <div id="item-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300">
-        <div id="item-modal-content" class="bg-white rounded-lg p-6 transform -translate-y-10 transition-transform duration-300 relative">
-            <!-- Botón para cerrar el modal -->
-            <button onclick="closeItemModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <!-- Contenido del modal -->
-            <div id="item-modal-content-detail" class="mt-4">
-                <!-- Aquí se cargarán los detalles del ítem dinámicamente -->
+                @endforeach
             </div>
         </div>
+    @endif
+@endforeach
     </div>
+</div>
 
+<!-- Modal para detalles del ítem -->
+<div id="item-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300">
+    <div id="item-modal-content" class="bg-white rounded-lg p-6 transform -translate-y-10 transition-transform duration-300 relative">
+        <!-- Botón para cerrar el modal -->
+        <button onclick="closeItemModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Contenido del modal -->
+        <div id="item-modal-content-detail" class="mt-4">
+            <!-- Aquí se cargarán los detalles del ítem dinámicamente -->
+        </div>
+    </div>
+</div>
     <style>
+button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #cccccc !important;
+}        
         /* Estilos para la barra de búsqueda */
 .search-highlight {
     background-color: #FFD166;
@@ -805,6 +846,78 @@
         #item-modal-content button:hover {
             color: #374151; /* Color gris más oscuro al hacer hover */
         }
+        /* En la sección de estilos existente */
+
+.stock-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.stock-high {
+    background-color: #10B981;
+    color: white;
+}
+
+.stock-medium {
+    background-color: #F59E0B;
+    color: white;
+}
+
+.stock-low {
+    background-color: #EF4444;
+    color: white;
+}
+
+.stock-out {
+    background-color: #6B7280;
+    color: white;
+    text-decoration: line-through;
+}
+
+/* Estilo para botones deshabilitados por falta de stock */
+button[disabled].opacity-50 {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Animación para cambios de stock */
+@keyframes stockUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.stock-updated {
+    animation: stockUpdate 0.5s ease;
+}
+
+/* Animación para cambios de stock */
+.animate-pulse {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Estilo para botones deshabilitados por falta de stock */
+button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #cccccc !important;
+}
+
+/* Efecto hover para los badges de stock */
+.stock-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
     </style>
 
     <script>
@@ -1009,6 +1122,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
         // Función para agregar ítems al pedido
 function addToOrder(item) {
+            // Verificar stock disponible
+    const stockElement = document.querySelector(`[data-item-id="${item.id}"] .stock-badge`);
+    const currentStock = parseInt(stockElement.textContent.split(' ')[0]);
+    
+    if (currentStock <= 0) {
+        alert(`No hay suficiente stock para ${item.name}`);
+        return;
+    }
+
+    // Actualizar stock visualmente
+    const newStock = currentStock - 1;
+    updateStockBadge(item.id, newStock, item.min_stock, item.stock_type, item.stock_unit);
             // Convertir item.price a número si es una cadena
             item.price = parseFloat(item.price);
 
@@ -1029,6 +1154,7 @@ function addToOrder(item) {
 
             // Actualizar la vista de order-details
             updateOrderDetails();
+            showOrderPanel();
         }
 
         // Función para actualizar la vista de order-details
@@ -1258,6 +1384,45 @@ function resetSearch() {
     // Mostrar la categoría "Todos" por defecto
     const allCategory = document.querySelector('#menu-items > div:first-child');
     if (allCategory) allCategory.style.display = 'block';
+}
+function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!itemElement) return;
+
+    const stockBadge = itemElement.querySelector('.stock-badge');
+    if (!stockBadge) return;
+
+    // Actualizar el valor del stock en el atributo data
+    itemElement.dataset.stock = newStock;
+
+    // Actualizar el texto del badge según el tipo de stock
+    let stockText = '';
+    if (stockType === 'discrete') {
+        stockText = `${newStock} UNI`;
+    } else {
+        stockText = `${newStock} ${stockUnit.toUpperCase()}`;
+    }
+
+    // Actualizar clases según el nivel de stock
+    stockBadge.classList.remove('stock-high', 'stock-low', 'stock-out');
+    
+    if (newStock <= 0) {
+        stockBadge.textContent = 'SIN STOCK';
+        stockBadge.classList.add('stock-out');
+    } else if (newStock < minStock) {
+        stockBadge.textContent = stockText;
+        stockBadge.classList.add('stock-low');
+    } else {
+        stockBadge.textContent = stockText;
+        stockBadge.classList.add('stock-high');
+    }
+
+    // Actualizar estado del botón "Agregar"
+    const addButton = itemElement.querySelector('button');
+    if (addButton) {
+        addButton.disabled = newStock <= 0;
+        addButton.classList.toggle('opacity-50', newStock <= 0);
+    }
 }
 
 // Inicializar la búsqueda al cargar la página

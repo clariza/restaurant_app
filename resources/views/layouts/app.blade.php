@@ -9,6 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
      /* Estilos base */
     /* Estructura principal */
@@ -440,7 +443,12 @@
                             <i class="fas fa-chevron-down ml-auto transition-transform duration-300 arrow"></i>
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="configuracion-submenu">
-                           
+                             <!-- Nuevo ítem para Inventario -->
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('inventory.index') }}">
+                                <i class="fas fa-boxes mr-3"></i>
+                                <span>Inventario</span>
+                            </a>
+        
                             <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('items.index') }}">
                                 <i class="fas fa-cube mr-3"></i>
                                 <span>Productos</span>

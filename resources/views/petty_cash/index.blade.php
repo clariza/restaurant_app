@@ -320,23 +320,287 @@
     .remove-expense-btn:hover {
     background-color: #fecaca;
     }
-    /* Estilos responsivos */
-/* @media (max-width: 768px) {
-    .expense-row {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .expense-field {
-        flex: 1 1 100%;
-    }
-    
-    .expense-actions {
-        flex: 0 0 100%;
-        text-align: right;
-    }
-} */
 
+    /* Estilos minimalistas para el modal */
+    .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-container {
+        background-color: #f8fafc;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        max-width: 900px;
+        padding: 1.5rem;
+    }
+
+    .modal-header {
+        padding: 0.5rem 0 1rem 0;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .modal-close {
+        color: #64748b;
+        font-size: 1.5rem;
+    }
+
+    /* Estilos compactos para inputs */
+    .input-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .input-group label {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .input-group input {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.25rem;
+        width: 100%;
+        background-color: white;
+        transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+        outline: none;
+        border-color: #93c5fd;
+        box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.2);
+    }
+
+    /* Estilos para la tabla de denominaciones */
+    .denominations-table {
+        font-size: 0.875rem;
+    }
+
+    .denominations-table th,
+    .denominations-table td {
+        padding: 0.5rem;
+    }
+
+    .denomination-input {
+        padding: 0.25rem 0.5rem;
+        width: 60px;
+        text-align: center;
+        font-size: 0.875rem;
+    }
+
+    /* Estilos compactos para gastos */
+    .expense-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        align-items: center;
+    }
+
+    .expense-field {
+        flex: 1;
+    }
+
+    .expense-input {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        width: 100%;
+    }
+
+    .remove-expense-btn {
+        padding: 0.5rem;
+        color: #ef4444;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .add-expense-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.25rem;
+    }
+
+    /* Estilos para botones */
+    .save-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+    }
+
+    /* Layout mejorado */
+    .closure-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .section-container {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #334155;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Efectos hover minimalistas */
+    .save-btn:hover {
+        background-color: #2563eb;
+    }
+
+    .add-expense-btn:hover {
+        background-color: #f1f5f9;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .closure-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .denomination-input {
+    width: 70px;
+    text-align: center;
+}
+
+.expense-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+/* Asegurar que los inputs personalizados mantengan el estilo sm */
+.expense-input, .denomination-input {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    height: calc(1.5em + 0.5rem + 2px); /* Igual que Bootstrap sm */
+}
+/* Estilos para la sección de Conteo de Efectivo */
+.denominations-section .table-container {
+    margin-top: 0.5rem;
+}
+
+.denominations-table {
+    width: 100%;
+    font-size: 0.875rem; /* Tamaño sm */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.denominations-table th {
+    background-color: #f8f9fa;
+    padding: 0.375rem 0.5rem; /* Padding sm */
+    font-weight: 500;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.denominations-table td {
+    padding: 0.375rem 0.5rem; /* Padding sm */
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.denomination-input {
+    width: 70px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem; /* Tamaño sm */
+    text-align: center;
+    height: calc(1.5em + 0.5rem + 2px); /* Altura sm de Bootstrap */
+    border: 1px solid #ced4da;
+    border-radius: 0.2rem;
+}
+
+.denominations-table .text-right {
+    text-align: right;
+}
+
+.total-row {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+/* Estilos para la sección de Resumen de Cierre */
+.closure-form-section .input-group {
+    margin-bottom: 0.75rem;
+}
+
+.closure-form-section label {
+    font-size: 0.875rem; /* Tamaño sm */
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.closure-form-section .form-control {
+    font-size: 0.875rem; /* Tamaño sm */
+    padding: 0.25rem 0.5rem; /* Padding sm */
+    height: calc(1.5em + 0.5rem + 2px); /* Altura sm de Bootstrap */
+}
+
+.closure-form-section .form-control[readonly] {
+    background-color: #f8f9fa;
+}
+
+/* Estilos para los botones en el resumen */
+.form-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem; /* Tamaño sm */
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .denomination-input {
+        width: 60px;
+    }
+    
+    .denominations-table th, 
+    .denominations-table td {
+        padding: 0.25rem 0.375rem;
+    }
+}
+
+/* Ajustes para mantener consistencia con Bootstrap sm */
+.section-container {
+    padding: 1rem;
+}
+
+.section-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.25rem;
+}
 
     
 </style>
@@ -441,29 +705,30 @@
             <div class="expenses-section">
                 <div class="expenses-header">
                     <h4 class="font-medium">Registro de Gastos</h4>
-                    <button type="button" class="add-expense-btn" onclick="addExpense()">
-                        <i class="fas fa-plus mr-1"></i> Agregar Gasto
-                    </button>
+                    
+<button type="button" class="btn btn-secondary btn-sm add-expense-btn">
+    <i class="fas fa-plus mr-1"></i> Agregar Gasto
+</button>
                 </div>
                 
                 <div class="expenses-container" id="expensesContainer">
                     <!-- Fila de gasto inicial -->
                     <div class="expense-row">
-                        <div class="expense-field">
-                            <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
-                        </div>
-                        <div class="expense-actions">
-                            <button type="button" class="remove-expense-btn" onclick="removeExpense(this)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
+<div class="expense-field">
+    <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
+</div>
+<div class="expense-field">
+        <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
+    </div>
+    <div class="expense-field">
+        <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
+    </div>
+    <div class="expense-actions">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
                 </div>
             </div>
 
@@ -487,10 +752,8 @@
                                     <tr>
                                         <td class="text-left">${{ number_format($denominacion, 2) }}</td>
                                         <td>
-                                            <input type="number" min="0" 
-                                                   class="denomination-input" 
-                                                   data-denominacion="{{ $denominacion }}" 
-                                                   placeholder="0">
+                                            <input type="number" min="0" class="form-control form-control-sm denomination-input" 
+           data-denominacion="{{ $denominacion }}" placeholder="0">
                                         </td>
                                         <td class="text-right">
                                             <span class="subtotal">$0.00</span>
@@ -514,34 +777,33 @@
                     <div class="section-container">
                         <h4 class="section-title">Resumen de Cierre</h4>
                         <div class="form-grid">
-                            <div class="input-group">
-                                <label for="total-gastos">Total Gastos</label>
-                                <input type="number" id="total-gastos" 
-                                       value="0" step="0.01" readonly>
-                            </div>
-                            
-                            <div class="input-group">
-                                <label for="ventas-efectivo">Ventas en Efectivo</label>
-                                <input type="number" id="ventas-efectivo" 
-                                       value="0" step="0.01" readonly>
-                            </div>
-                            
-                            <div class="input-group">
-                                <label for="ventas-qr">Ventas QR</label>
-                                <input type="number" id="ventas-qr" 
-                                       value="{{ $totalSalesQR }}" step="0.01">
-                            </div>
-                            
-                            <div class="input-group">
-                                <label for="ventas-tarjeta">Ventas Tarjeta</label>
-                                <input type="number" id="ventas-tarjeta" 
-                                       value="{{ $totalSalesCard }}" step="0.01">
-                            </div>
-                            
+                            <div class="input-group mb-2">
+    <label for="total-gastos" class="small">Total Gastos</label>
+    <input type="number" id="total-gastos" class="form-control form-control-sm" 
+           value="0" step="0.01" readonly>
+</div>
+
+<div class="input-group mb-2">
+    <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
+    <input type="number" id="ventas-efectivo" class="form-control form-control-sm" 
+           value="0" step="0.01" readonly>
+</div>
+
+<div class="input-group mb-2">
+    <label for="ventas-qr" class="small">Ventas QR</label>
+    <input type="number" id="ventas-qr" class="form-control form-control-sm" 
+           value="{{ $totalSalesQR }}" step="0.01">
+</div>
+
+<div class="input-group mb-2">
+    <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
+    <input type="number" id="ventas-tarjeta" class="form-control form-control-sm" 
+           value="{{ $totalSalesCard }}" step="0.01">
+</div>
                             <div class="form-actions">
-                                <button onclick="saveClosure()" class="save-btn">
-                                    <i class="fas fa-save mr-1"></i> Guardar Cierre
-                                </button>
+                                <button type="button" class="btn btn-primary btn-sm save-btn">
+    <i class="fas fa-save mr-1"></i> Guardar Cierre
+</button>
                             </div>
                         </div>
                     </div>

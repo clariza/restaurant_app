@@ -16,7 +16,15 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price');
+            
+            // Campos de inventario
+            $table->decimal('stock', 10, 2)->default(0);
+            $table->decimal('min_stock', 10, 2)->default(5);
+            $table->enum('stock_type', ['discrete', 'continuous'])->default('discrete');
+            $table->string('stock_unit', 10)->nullable();
+
             $table->string('image')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->unsignedBigInteger('category_id')->index('menu_items_category_id_foreign');
             $table->timestamps();
         });
