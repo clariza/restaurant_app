@@ -12,7 +12,7 @@
             </a>
 
             <!-- Lista de Pedidos (mostrar para admin) -->
-            <a href="{{ route('sales.index') }}" class="bg-[#8e92ae] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#7c7f9a] transition-colors">
+            <a href="{{ route('orders.index') }}" class="bg-[#8e92ae] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#7c7f9a] transition-colors">
                 <i class="fas fa-list text-4xl text-[#203363] mb-4"></i>
                 <h2 class="text-xl font-bold text-[#203363]">Lista de Ventas</h2>
                 <p class="text-[#203363]">Revisa y gestiona los pedidos</p>
@@ -40,7 +40,7 @@
             </a>
 
             <!-- Lista de Ventas (mostrar para vendedor) -->
-            <a href="{{ route('sales.index') }}" class="bg-[#8e92ae] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#7c7f9a] transition-colors">
+            <a href="{{ route('orders.index') }}" class="bg-[#8e92ae] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#7c7f9a] transition-colors">
                 <i class="fas fa-list text-4xl text-[#203363] mb-4"></i>
                 <h2 class="text-xl font-bold text-[#203363]">Lista de Ventas</h2>
                 <p class="text-[#203363]">Revisa y gestiona los pedidos</p>

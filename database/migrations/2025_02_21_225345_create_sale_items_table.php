@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('sale_items', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('sale_id')->index('sale_items_sale_id_foreign');
+            $table->foreignId('menu_item_id')->constrained('menu_items'); // Sin ->nullable()
             $table->string('name');
             $table->integer('quantity');
             $table->decimal('price');

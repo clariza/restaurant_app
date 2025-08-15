@@ -6,12 +6,6 @@
 @endphp
 
 <!-- Barra de búsqueda -->
-<!-- <div class="flex justify-between items-center mb-6 mt-0">
-    <div class="flex items-center w-full">
-        <input class="border rounded-lg bg-gray-200 py-2 pl-2 pr-4 w-full md:w-64 text-gray-700 focus:outline-none focus:bg-white focus:shadow-md" placeholder="Buscar menú ..." type="text"/>
-    </div>
-</div>   -->
-<!-- Barra de búsqueda -->
 <div class="flex justify-between items-center mb-6 mt-0">
     <div class="flex items-center w-full">
         <input id="menu-search" class="border rounded-lg bg-gray-200 py-2 pl-2 pr-4 w-full md:w-64 text-gray-700 focus:outline-none focus:bg-white focus:shadow-md" 
@@ -21,28 +15,10 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-        <div class="flex space-x-2">
-        <!-- Botón existente de Historial -->
-        <div class="ml-4">
-            <a href="{{ route('orders.index') }}" 
-               class="bg-[#6380a6] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors flex items-center justify-center">
-                <i class="fas fa-history mr-2"></i> Ver Historial
-            </a>
-        </div>
-        
-        <!-- Nuevo botón para Caja Chica -->
-        <div class="ml-4">
-            <a href="{{ route('petty-cash.index') }}" 
-               class="bg-[#EF476F] text-white px-4 py-2 rounded-lg hover:bg-[#d43a5d] transition-colors flex items-center justify-center">
-                <i class="fas fa-cash-register mr-2"></i> Caja Chica
-            </a>
-        </div>
-    </div>
 </div>
 
 <!-- Línea de Órdenes - Sección desplegable -->
-<div class="mb-4">
-    <!-- Encabezado con botón minimalista -->
+<!-- <div class="mb-4">
     <div class="flex justify-between items-center">
         <h2 class="section-title text-xl font-bold text-[#203363]">Lista de Órdenes</h2>
         <button onclick="toggleOrdersSection()" class="toggle-btn flex items-center space-x-1 text-[#6380a6] hover:text-[#203363] transition-colors group">
@@ -51,9 +27,7 @@
         </button>
     </div>
 
-    <!-- Contenedor de órdenes (oculto por defecto) -->
     <div id="orders-container" class="hidden transition-all duration-300 ease-in-out">
-        <!-- Filtros para Línea de Órdenes -->
         <div class="order-filters flex flex-wrap gap-3 my-4">
             <button onclick="filterOrders('all')" class="filter-btn filter-all px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
                 <span class="w-6 h-6 rounded-full bg-[#203363] flex items-center justify-center text-white text-xs mr-2">{{ $counts['all'] }}</span>
@@ -77,7 +51,6 @@
             </button>
         </div>
 
-        <!-- Grid de órdenes -->
         <div class="orders-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             @foreach($orders as $order)
                 @php
@@ -162,14 +135,11 @@
             @endforeach
         </div>
     </div>
-</div>
-<div class="mb-8"></div>  <!-- Esto añadirá espacio entre secciones -->
-
-<!-- Categorías -->
+</div> -->
+<div class="mb-8"></div> 
 <div class="categories-container mb-6">
     <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Categorías</h2>
 
-    <!-- Dropdown para móviles -->
     <div class="block mobile-categories md:hidden">
         <select id="category-dropdown" onchange="filterItems(this.value)" class="w-full p-2 border rounded-lg bg-[#a4b6ce] text-[#203363] focus:outline-none">
             <option value="all">Todos</option>
@@ -178,8 +148,6 @@
             @endforeach
         </select>
     </div>
-
-    <!-- Lista de botones para pantallas grandes -->
     <div class="category-filters desktop-categories hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
         <button onclick="filterItems('all')" class="category-btn flex flex-col items-center p-4 border rounded-lg bg-[#a4b6ce] hover:bg-[#203363] hover:text-white transition-colors">
             <i class="fas fa-th-list text-2xl mb-2"></i>
@@ -194,7 +162,6 @@
     </div>
 </div>
 
-<!-- Menú -->
 <div class="overflow-y-auto scrollbar-hidden" id="menu-container" style="max-height: calc(100vh - 300px);">
     <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Menú especial para ti</h2>
     <div id="menu-items">
@@ -212,24 +179,19 @@
                          data-min-stock="{{ $item->min_stock }}">
                          
                         <!-- Label de stock en esquina superior izquierda -->
-                        <div class="absolute top-2 left-2 stock-badge-container">
-                             @if($item->stock_type == 'discrete')
-            @if($item->stock <= 0)
-                <span class="stock-badge stock-out">SIN STOCK</span>
-            @elseif($item->stock < $item->min_stock)
-                <span class="stock-badge stock-low">{{ (int)$item->stock }} UNI</span>
+                        <div class="absolute top-2 left-2">
+                            <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
+              @if($item->stock <= 0) bg-gray-500 text-white
+              @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
+              @else bg-green-500 text-white @endif">
+              @if($item->stock_type == 'discrete')
+                {{ (int)$item->stock }} UNI
             @else
-                <span class="stock-badge stock-high">{{ (int)$item->stock }} UNI</span>
+                {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
             @endif
-        @else
-            @if($item->stock <= 0)
-                <span class="stock-badge stock-out">SIN STOCK</span>
-            @elseif($item->stock < $item->min_stock)
-                <span class="stock-badge stock-low">{{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}</span>
-            @else
-                <span class="stock-badge stock-high">{{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}</span>
-            @endif
-        @endif
+
+                            </span>
+            
                         </div>
 
                         <!-- Imagen responsiva -->
@@ -250,17 +212,19 @@
 
                             <!-- Botón "Agregar" -->
                             <button onclick="addToOrder({{ json_encode([
-                                'id' => $item->id,
-                                'name' => $item->name,
-                                'price' => $item->price,
-                                'stock' => $item->stock,
-                                'stock_type' => $item->stock_type,
-                                'stock_unit' => $item->stock_unit,
-                                'min_stock' => $item->min_stock
-                            ]) }})" 
-                            class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]">
-                                Agregar
-                            </button>
+        'id' => $item->id,
+        'name' => $item->name,
+        'price' => $item->price,
+        'stock' => $item->stock,
+        'stock_type' => $item->stock_type,
+        'stock_unit' => $item->stock_unit,
+        'min_stock' => $item->min_stock
+    ]) }})" 
+    class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
+           @if($item->stock <= 0) opacity-50 cursor-not-allowed @endif"
+    @if($item->stock <= 0) disabled @endif>
+        Agregar
+    </button>
                         </div>
                     </div>
                 @endforeach
@@ -918,6 +882,16 @@ button[disabled] {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+/* Animación para el badge de stock */
+.animate-pulse {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
     </style>
 
     <script>
@@ -1122,35 +1096,60 @@ document.addEventListener('DOMContentLoaded', () => {
 });
         // Función para agregar ítems al pedido
 function addToOrder(item) {
-            // Verificar stock disponible
-    const stockElement = document.querySelector(`[data-item-id="${item.id}"] .stock-badge`);
-    const currentStock = parseInt(stockElement.textContent.split(' ')[0]);
-    
+    // Verificar si hay stock disponible
+    const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+    if (!menuItem) return;
+     const currentStock = parseInt(menuItem.dataset.stock) || 0;
     if (currentStock <= 0) {
-        alert(`No hay suficiente stock para ${item.name}`);
+        alert('No hay suficiente stock disponible');
         return;
     }
-
-    // Actualizar stock visualmente
+     // Reducir el stock visualmente
     const newStock = currentStock - 1;
-    updateStockBadge(item.id, newStock, item.min_stock, item.stock_type, item.stock_unit);
-            // Convertir item.price a número si es una cadena
-            item.price = parseFloat(item.price);
+    updateStockBadge(item.id, newStock, parseInt(menuItem.dataset.minStock), menuItem.dataset.stockType, menuItem.dataset.stockUnit);
 
-            // Obtener el pedido actual del localStorage
-            let order = JSON.parse(localStorage.getItem('order')) || [];
+    // // Bloquear si ya se procesó el pago
+    // if (paymentProcessed) {
+    //     alert('No se pueden agregar ítems después de procesar el pago');
+    //     return;
+    // }
+    // const itemElement = document.querySelector(`[data-item-id="${item.id}"]`);
+    // if (!itemElement) return;
+    //         // Verificar stock disponible
+    // //const stockElement = document.querySelector(`[data-item-id="${item.id}"] .stock-badge`);
+    // item.price = parseFloat(item.price);
+    // // Obtener el elemento del menú correspondiente
+    // const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
 
-            // Verificar si el ítem ya está en el pedido
-            const existingItem = order.find(i => i.id === item.id);
-            if (existingItem) {
-                existingItem.quantity += 1; // Incrementar la cantidad si ya existe
-            } else {
-                item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
-                order.push(item);
-            }
+    //   if (menuItem) {
 
-            // Guardar el pedido actualizado en el localStorage
-            localStorage.setItem('order', JSON.stringify(order));
+    //     const currentStock = parseInt(menuItem.dataset.stock) || 0;
+    //     const minStock = parseInt(menuItem.dataset.minStock) || 0;
+    //     const stockType = menuItem.dataset.stockType;
+    //     const stockUnit = menuItem.dataset.stockUnit;
+       
+    //     const newStock = currentStock - 1;
+
+
+    //     updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
+    //   }
+
+    
+   
+    // 7. Actualizar el pedido en localStorage (código existente)
+    let order = JSON.parse(localStorage.getItem('order')) || [];
+   
+     // Verificar si el ítem ya está en el pedido
+    const existingItem = order.find(i => i.id === item.id);
+     if (existingItem) {
+        existingItem.quantity += 1; // Incrementar la cantidad si ya existe
+    } else {
+        item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
+        order.push(item);
+    }
+
+        // Guardar el pedido actualizado en el localStorage
+         localStorage.setItem('order', JSON.stringify(order));
 
             // Actualizar la vista de order-details
             updateOrderDetails();
@@ -1390,39 +1389,56 @@ function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
     if (!itemElement) return;
 
     const stockBadge = itemElement.querySelector('.stock-badge');
-    if (!stockBadge) return;
+    const addButton = itemElement.querySelector('button');
+    if (!stockBadge || !addButton) return;
 
     // Actualizar el valor del stock en el atributo data
     itemElement.dataset.stock = newStock;
 
     // Actualizar el texto del badge según el tipo de stock
-    let stockText = '';
+    //let stockText = '';
+    // if (stockType === 'discrete') {
+    //     stockText = `${newStock} UNI`;
+    // } else {
+    //     stockText = `${newStock} ${stockUnit.toUpperCase()}`;
+    // }
+     // Actualizar el texto del badge
     if (stockType === 'discrete') {
-        stockText = `${newStock} UNI`;
+        stockBadge.textContent = `${newStock} UNI`;
     } else {
-        stockText = `${newStock} ${stockUnit.toUpperCase()}`;
+        stockBadge.textContent = `${newStock} ${stockUnit.toUpperCase()}`;
     }
-
     // Actualizar clases según el nivel de stock
-    stockBadge.classList.remove('stock-high', 'stock-low', 'stock-out');
+    //stockBadge.classList.remove('stock-high', 'stock-low', 'stock-out');
+    // Actualizar clases según el nivel de stock
+    stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
     
     if (newStock <= 0) {
+        stockBadge.classList.add('bg-gray-500', 'text-white');
         stockBadge.textContent = 'SIN STOCK';
-        stockBadge.classList.add('stock-out');
+        addButton.disabled = true;
+        addButton.classList.add('opacity-50', 'cursor-not-allowed');
     } else if (newStock < minStock) {
-        stockBadge.textContent = stockText;
-        stockBadge.classList.add('stock-low');
+        stockBadge.classList.add('bg-yellow-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
     } else {
-        stockBadge.textContent = stockText;
-        stockBadge.classList.add('stock-high');
+        stockBadge.classList.add('bg-green-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
     // Actualizar estado del botón "Agregar"
-    const addButton = itemElement.querySelector('button');
-    if (addButton) {
-        addButton.disabled = newStock <= 0;
-        addButton.classList.toggle('opacity-50', newStock <= 0);
-    }
+    //const addButton = itemElement.querySelector('button');
+    // if (addButton) {
+    //     addButton.disabled = newStock <= 0;
+    //     addButton.classList.toggle('opacity-50', newStock <= 0);
+    // }
+    // Añadir animación para feedback visual
+    stockBadge.classList.add('animate-pulse');
+    setTimeout(() => {
+        stockBadge.classList.remove('animate-pulse');
+    }, 500);
 }
 
 // Inicializar la búsqueda al cargar la página

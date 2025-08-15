@@ -1,4 +1,121 @@
 <style>
+     #order-panel {
+        /* width: 100%; */
+        height: calc(100vh - 64px); /* Restar la altura del header */
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        right: 0;
+        top: 64px; /* Mantener el top para alinearse bajo el header */
+        background: white;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+        overflow: hidden;
+        z-index: 50;
+    }
+    .buttons-container {
+    margin-top: auto;
+    padding-top: 12px;
+    background: white;
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.buttons-container > div {
+    display: flex;
+    gap: 8px;
+}
+
+/* Estilo para botones de icono */
+.buttons-container a[title] {
+    position: relative;
+}
+
+.buttons-container a[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #203363;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+    .buttons-container {
+        padding: 12px 0;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .buttons-container > div {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    
+    .buttons-container button, 
+    .buttons-container a {
+        width: 100%;
+        max-width: 60px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .buttons-container a span {
+        display: none;
+    }
+}
+.buttons-container {
+    margin-top: auto; /* Empuja el contenedor hacia abajo */
+    padding-top: 12px;
+    background: white;
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.buttons-container > div {
+    display: flex;
+    gap: 8px;
+}
+
+/* Añadimos margen inferior al botón de pago */
+#btn-multiple-payment {
+    margin-bottom: 8px;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+    .buttons-container {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 12px 0;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .buttons-container > div {
+        flex-direction: column;
+    }
+    
+    .buttons-container button, 
+    .buttons-container a {
+        width: 100%;
+    }
+}
 .sale-number {
     font-weight: bold;
     font-size: 13px;
@@ -601,46 +718,44 @@ html, body {
         </div>
     </div>
 </div>
-<div id="order-panel" class="w-full md:w-1/5 bg-white p-4 rounded-lg shadow-lg fixed right-0 top-0 h-full">
-        <div class="mb-4">
-            <h2 class="text-lg font-bold mb-2 text-[#203363]">Detalles del Pedido</h2>
+    <div id="order-panel" class="w-full md:w-1/5 bg-white p-4 rounded-lg shadow-lg">
+    <!-- Eliminado el título "Detalles del Pedido" -->
+        <div class="mb-2">
+        <!-- Botones para seleccionar el tipo de pedido - movidos justo debajo del header -->
+        <div class="flex flex-col space-y-2">
+            <button type="button" id="btn-comer-aqui" onclick="setOrderType('Comer aquí')" class="w-full bg-[#203363] text-white px-3 py-1.5 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105">Comer aquí</button>
+            <button type="button" id="btn-para-llevar" onclick="setOrderType('Para llevar')" class="w-full border border-[#203363] text-[#203363] px-3 py-1.5 rounded-lg hover:bg-[#203363] hover:text-white transition-colors transform hover:scale-105">Para llevar</button>
+            <button type="button" id="btn-recoger" onclick="setOrderType('Recoger')" class="w-full border border-[#203363] text-[#203363] px-3 py-1.5 rounded-lg hover:bg-[#203363] hover:text-white transition-colors transform hover:scale-105">Recoger</button>
         </div>
-        <div class="mb-4">
-            <!-- Botones para seleccionar el tipo de pedido -->
-            <div class="flex flex-col space-y-2 mb-3">
-                <button type="button" id="btn-comer-aqui" onclick="setOrderType('Comer aquí')" class="w-full bg-[#203363] text-white px-3 py-1.5 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105">Comer aquí</button>
-                <button type="button" id="btn-para-llevar" onclick="setOrderType('Para llevar')" class="w-full border border-[#203363] text-[#203363] px-3 py-1.5 rounded-lg hover:bg-[#203363] hover:text-white transition-colors transform hover:scale-105">Para llevar</button>
-                <button type="button" id="btn-recoger" onclick="setOrderType('Recoger')" class="w-full border border-[#203363] text-[#203363] px-3 py-1.5 rounded-lg hover:bg-[#203363] hover:text-white transition-colors transform hover:scale-105">Recoger</button>
-            </div>
-            <input type="hidden" name="order_type" id="order-type" value="Comer aquí">
+        <input type="hidden" name="order_type" id="order-type" value="Comer aquí">
 
       
-    @if($settings->tables_enabled)
-<div id="table-selection" class="mb-3">
-    <div class="flex items-center justify-between mb-1">
-        <label for="table-number" class="block text-sm text-[#203363] font-bold">Selecciona la Mesa:</label>
-        <a href="{{ route('tables.index') }}" class="text-xs text-[#6380a6] hover:text-[#203363] transition-colors flex items-center group">
+        @if($settings->tables_enabled)
+        <div id="table-selection" class="mb-3">
+        <div class="flex items-center justify-between mb-1">
+            <label for="table-number" class="block text-sm text-[#203363] font-bold">Selecciona la Mesa:</label>
+            <a href="{{ route('tables.index') }}" class="text-xs text-[#6380a6] hover:text-[#203363] transition-colors flex items-center group">
             <i class="fas fa-cog mr-1 text-[#a4b6ce] group-hover:text-[#203363] transition-colors"></i>
             <span class="border-b border-transparent group-hover:border-[#a4b6ce] transition-colors">Configurar</span>
-        </a>
-    </div>
-    <select id="table-number" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
+            </a>
+        </div>
+        <select id="table-number" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
         @foreach ($tables as $table)
             <option value="{{ $table->id }}">Mesa {{ $table->number }}</option>
         @endforeach
-    </select>
-</div>
-@endif
+        </select>
+        </div>
+        @endif
 
             <!-- Selección de delivery (solo visible para "Para llevar" o "Recoger") -->
-<div id="delivery-selection" class="mb-3 hidden">
-    <label for="delivery-service" class="block text-sm text-[#203363] font-bold mb-1">Servicio de Delivery:</label>
-    <select id="delivery-service" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
-        @foreach ($deliveryServices as $service)
-            <option value="{{ $service->name }}">{{ $service->name }}</option>
-        @endforeach
-    </select>
-</div>
+        <div id="delivery-selection" class="mb-3 hidden">
+        <label for="delivery-service" class="block text-sm text-[#203363] font-bold mb-1">Servicio de Delivery:</label>
+        <select id="delivery-service" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
+            @foreach ($deliveryServices as $service)
+                <option value="{{ $service->name }}">{{ $service->name }}</option>
+            @endforeach
+        </select>
+        </div>
 
             <!-- Detalles del pedido -->
             <div id="order-details" class="mt-3 transition-all opacity-100 text-sm">
@@ -648,22 +763,22 @@ html, body {
             </div>
         </div>
          <!-- Agregar esto dentro del div principal (justo antes de los botones de acción) -->
-    <div class="notes-container">
-        <label for="order-notes" class="notes-label">Notas especiales para el pedido:</label>
-        <textarea id="order-notes" name="order_notes" class="notes-textarea" placeholder="Ej: Quiero una hamburguesa sin queso cheddar, salsa aparte..." maxlength="250" oninput="updateNotesCounter()"></textarea>
-        <div class="notes-counter"><span id="notes-chars">0</span>/250 caracteres</div>
-        <div class="notes-examples">Ejemplos: 
+        <div class="notes-container">
+            <label for="order-notes" class="notes-label">Notas especiales para el pedido:</label>
+            <textarea id="order-notes" name="order_notes" class="notes-textarea" placeholder="Ej: Quiero una hamburguesa sin queso cheddar, salsa aparte..." maxlength="250" oninput="updateNotesCounter()"></textarea>
+            <div class="notes-counter"><span id="notes-chars">0</span>/250 caracteres</div>
+            <div class="notes-examples">Ejemplos: 
             <span>Sin cebolla</span>
             <span>Salsa aparte</span>
             <span>Bien cocido</span>
             <span>Poco sal</span>
         </div>
     </div>
-
+    
     <!-- Reemplaza el div contenedor de los botones con este código -->
-<div class="buttons-container">
-    <div class="flex flex-row space-x-2 mb-2"> <!-- Contenedor flex en fila -->
-         <!-- Nuevo botón: Limpiar Pedido -->
+        <div class="buttons-container">
+        <div class="flex flex-row space-x-2 mb-2"> <!-- Contenedor flex en fila -->
+        <!-- Nuevo botón: Limpiar Pedido -->
         <button id="btn-clear-order" 
                 class="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors transform hover:scale-105 text-sm flex items-center justify-center" 
                 onclick="clearOrder()">
@@ -673,19 +788,59 @@ html, body {
         <button id="btn-proforma" class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center" onclick="generateProforma()">
             <i class="fas fa-file-invoice mr-2"></i> Proforma
         </button>
+    </div>
+    
+    <!-- Botón de Realizar Pago -->
+    <button id="btn-multiple-payment" class="w-full flex-1 bg-[#203363] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center mb-2" onclick="showPaymentModal()">
+        Realizar Pago
+    </button>
+    
+    <!-- Nuevos botones agregados debajo de Realizar Pago -->
+    <div class="flex flex-row space-x-2">
+        <a href="{{ route('expenses.index') }}" 
+       class="flex-1 bg-[#6c757d] text-white py-2 px-3 rounded-lg hover:bg-[#5a6268] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+       title="Gastos">
+        <i class="fas fa-receipt"></i>
+    </a>
+    <a href="{{ route('orders.index') }}" 
+       class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+       title="Historial">
+        <i class="fas fa-history"></i>
+    </a>
+    <a href="{{ route('petty-cash.index') }}" 
+       class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-[#d43a5d] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+       title="Caja Chica">
+        <i class="fas fa-cash-register"></i>
+    </a>
+    </div>
+
+</div>
+
+    <!-- <div class="buttons-container">
+       <div class="flex flex-row space-x-2 mb-2"> 
+        
+        <button id="btn-clear-order" 
+                class="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors transform hover:scale-105 text-sm flex items-center justify-center" 
+                onclick="clearOrder()">
+            <i class="fas fa-trash-alt mr-2"></i> Limpiar
+        </button>
+       
+        <button id="btn-proforma" class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center" onclick="generateProforma()">
+            <i class="fas fa-file-invoice mr-2"></i> Proforma
+        </button>
         
        
-    </div>
-     <!-- Botón de Realizar Pago -->
+       </div>
+    
         <button id="btn-multiple-payment" class="w-full flex-1 bg-[#203363] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center" onclick="showPaymentModal()">
             Realizar Pago
         </button>
     
-    <!-- Botón de Procesar Pedido (se mantiene debajo) -->
-    <!-- <button id="btn-process-order" >
+  
+        <button id="btn-process-order" >
         Procesar Pedido
-    </button> -->
-</div>
+        </button> 
+    </div> -->
     </div>
 
     <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
@@ -2792,36 +2947,36 @@ function setupTableSelectStyles() {
     tableSelect.dispatchEvent(new Event('change'));
 }
 // Función para agregar ítems al pedido
-function addToOrder(item) {
-      // Bloquear si ya se procesó el pago
-    if (paymentProcessed) {
-        alert('No se pueden agregar ítems después de procesar el pago');
-        return;
-    }
-    // Convertir item.price a número si es una cadena
-    item.price = parseFloat(item.price);
+// function addToOrder(item) {
+//       // Bloquear si ya se procesó el pago
+//     if (paymentProcessed) {
+//         alert('No se pueden agregar ítems después de procesar el pago');
+//         return;
+//     }
+//     // Convertir item.price a número si es una cadena
+//     item.price = parseFloat(item.price);
 
-    // Obtener el pedido actual del localStorage
-    let order = JSON.parse(localStorage.getItem('order')) || [];
+//     // Obtener el pedido actual del localStorage
+//     let order = JSON.parse(localStorage.getItem('order')) || [];
 
-    // Verificar si el ítem ya está en el pedido
-    const existingItem = order.find(i => i.id === item.id);
-    if (existingItem) {
-        existingItem.quantity += 1; // Incrementar la cantidad si ya existe
-    } else {
-        item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
-        order.push(item);
-    }
+//     // Verificar si el ítem ya está en el pedido
+//     const existingItem = order.find(i => i.id === item.id);
+//     if (existingItem) {
+//         existingItem.quantity += 1; // Incrementar la cantidad si ya existe
+//     } else {
+//         item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
+//         order.push(item);
+//     }
 
-    // Guardar el pedido actualizado en el localStorage
-    localStorage.setItem('order', JSON.stringify(order));
+//     // Guardar el pedido actualizado en el localStorage
+//     localStorage.setItem('order', JSON.stringify(order));
 
-    // Actualizar la vista de order-details
-    updateOrderDetails();
+//     // Actualizar la vista de order-details
+//     updateOrderDetails();
     
-    // Mostrar automáticamente el panel lateral si está oculto (para móviles)
-    showOrderPanel();
-}
+//     // Mostrar automáticamente el panel lateral si está oculto (para móviles)
+//     showOrderPanel();
+// }
 // Función para mostrar el panel de pedido
 function showOrderPanel() {
     const orderPanel = document.querySelector('.w-full.md\\:w-1\\/5.bg-white.p-4.rounded-lg.shadow-lg.fixed.right-0.top-0');

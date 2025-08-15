@@ -5,7 +5,7 @@
     <!-- Encabezado y controles -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <h1 class="text-2xl font-bold text-[#203363]">
-            <i class="fas fa-list-alt mr-2"></i> Historial de Órdenes y Proformas
+            <i class="fas fa-list-alt mr-2"></i> Historial de Ventas
         </h1>
         
         <div class="flex flex-col sm:flex-row gap-3">

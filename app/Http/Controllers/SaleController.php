@@ -72,7 +72,7 @@ public function dashboard()
         return view('sales.index', compact('sales','hasOpenPettyCash'));
     }
     public function store(Request $request)
-{
+    {
     // Validar autenticación
     if (!Auth::check()) {
         return response()->json([
@@ -145,44 +145,37 @@ public function dashboard()
             'order_date' => now()->toDateString(),
         ]);
 
-        // Procesar items y actualizar stock
-foreach ($order as $item) {
-    // Crear el ítem de venta
-    $sale->items()->create([
-        'name' => $item['name'],
-        'quantity' => $item['quantity'],
-        'price' => $item['price'],
-        'total' => $item['price'] * $item['quantity'],
-    ]);
+        foreach ($order as $item) {
+            // Buscar el MenuItem por nombre (asegúrate de que el nombre coincida exactamente)
+            $menuItem = MenuItem::where('name', $item['name'])->first();
 
-    // Buscar el MenuItem por nombre (asumiendo que 'name' es único)
-    $menuItem = MenuItem::where('name', $item['name'])->first();
+            if (!$menuItem) {
+                throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
+            }
 
-    // Si no se encuentra el MenuItem, lanzar excepción con detalles
-    if (!$menuItem) {
-        throw new \Exception("El ítem del menú '{$item['name']}' no existe en la base de datos.");
-    }
+            // Crear el SaleItem CON menu_item_id
+            $saleItem = $sale->items()->create([
+                'menu_item_id' => $menuItem->id, // Campo crítico
+                'name' => $item['name'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'total' => $item['price'] * $item['quantity'],
+            ]);
 
-    // Validar que haya suficiente stock
-    if ($menuItem->stock < $item['quantity']) {
-        throw new \Exception("No hay suficiente stock para {$menuItem->name}. Stock actual: {$menuItem->stock}");
-    }
+            // Resto de la lógica (movimiento de inventario, etc.)
+            InventoryMovement::create([
+                'menu_item_id' => $menuItem->id,
+                'user_id' => Auth::id(),
+                'movement_type' => 'subtraction',
+                'quantity' => $item['quantity'],
+                'old_stock' => $menuItem->stock,
+                'new_stock' => $menuItem->stock - $item['quantity'],
+                'notes' => "Venta #{$orderNumber}"
+            ]);
 
-    // Registrar el movimiento de inventario
-    InventoryMovement::create([
-        'menu_item_id' => $menuItem->id,
-        'user_id' => Auth::id(),
-        'movement_type' => 'subtraction',
-        'quantity' => $item['quantity'],
-        'old_stock' => $menuItem->stock,
-        'new_stock' => $menuItem->stock - $item['quantity'],
-        'notes' => "Venta #{$orderNumber}"
-    ]);
-
-    // Actualizar el stock del ítem
-    $menuItem->stock -= $item['quantity'];
-    $menuItem->save();
-}
+            $menuItem->stock -= $item['quantity'];
+            $menuItem->save();
+        }
 
        // DB::commit();
 

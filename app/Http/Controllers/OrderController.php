@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Proforma;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
@@ -49,5 +50,18 @@ class OrderController extends Controller
         : Proforma::whereRaw('1 = 0')->paginate(10);
             
         return view('orders.index', compact('orders', 'proformas', 'type', 'status', 'search','hasOpenPettyCash'));
+    }
+
+    public function show($id)
+    {
+    // Obtener la orden con sus relaciones
+    $order = Sale::with(['items.menuItem', 'user'])
+        ->findOrFail($id);
+
+    // Verificar si hay caja abierta (si es necesario)
+    $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+
+    // Pasar los datos a la vista
+    return view('orders.show', compact('order', 'hasOpenPettyCash'));
     }
 }

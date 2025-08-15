@@ -11,11 +11,19 @@ class SaleItem extends Model
 
     protected $fillable = [
         'sale_id',
+        'menu_item_id',
         'name',
         'quantity',
         'price',
         'total'
     ];
+     /**
+     * Relación con MenuItem (Producto)
+     */
+    public function menuItem()
+    {
+        return $this->belongsTo(MenuItem::class, 'menu_item_id');
+    }
 
     // Relación con la venta
     public function sale()
