@@ -1,4 +1,53 @@
 <style>
+
+#change-all-tables-availability {
+    background-color: #fef2f2;  /* Rojo muy claro */
+    color: #f87171;             /* Rojo suave y claro */
+    border: 2px solid #fecaca;  /* Borde rojo claro */
+    transition: all 0.2s ease;
+    font-weight: 400;
+    box-shadow: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+#change-all-tables-availability:hover {
+    background-color: #fee2e2;  /* Rojo un poco más intenso al pasar el mouse */
+    color: #ef4444;             /* Rojo un poco más intenso en hover */
+    border-color: #fca5a5;      /* Borde ligeramente más oscuro */
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+#change-all-tables-availability:active {
+    transform: translateY(0);
+    background-color: #fde8e8;  /* Estado activo - rojo más claro */
+}
+
+#change-all-tables-availability:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background-color: #fef2f2;
+    color: #fca5a5;            /* Texto rojo desaturado cuando está deshabilitado */
+    box-shadow: none;
+}
+/* Estilos para el indicador de estado */
+.state-available {
+    color: #10B981; /* Verde para disponible */
+}
+
+.state-unavailable {
+    color: #EF4444; /* Rojo para no disponible */
+}
+
+.state-occupied {
+    color: #F59E0B; /* Ámbar para ocupada */
+}
+
+.state-reserved {
+    color: #8B5CF6; /* Violeta para reservada */
+}
      #order-panel {
         /* width: 100%; */
         height: calc(100vh - 64px); /* Restar la altura del header */
@@ -10,7 +59,11 @@
         background: white;
         box-shadow: -2px 0 5px rgba(0,0,0,0.1);
         overflow: hidden;
-        z-index: 50;
+        z-index: 40;
+        pointer-events: none;
+    }
+    #order-panel > * {
+        pointer-events: auto;
     }
     .buttons-container {
     margin-top: auto;
@@ -37,7 +90,7 @@
 .buttons-container a[title]:hover::after {
     content: attr(title);
     position: absolute;
-    bottom: -30px;
+    top: -30px; /* Cambiado de bottom: -30px a top: -30px */
     left: 50%;
     transform: translateX(-50%);
     background: #203363;
@@ -87,11 +140,17 @@
     gap: 8px;
 }
 
-.buttons-container > div {
+/* .buttons-container > div {
     display: flex;
     gap: 8px;
+} */
+.buttons-container > div {
+    position: relative;
+    margin-top: 8px; /* Espacio para el tooltip */
 }
-
+.buttons-container a[title] {
+    position: relative;
+}
 /* Añadimos margen inferior al botón de pago */
 #btn-multiple-payment {
     margin-bottom: 8px;
@@ -431,16 +490,6 @@ html, body {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(32, 51, 99, 0.1);
 }
-/* Estilos para selects para que coincidan con inputs
-.payment-type {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    padding-right: 32px;
-} */
-
 
 /* Estilo mejorado para el select con mayor altura */
 .payment-type {
@@ -696,10 +745,41 @@ html, body {
         font-size: 15px; /* Tamaño consistente en móviles */
     }
 }
+.scroll-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px); /* Ajusta según sea necesario */
+    scrollbar-width: thin;
+}
+
+.scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Ajustes para el contenido dentro del scroll */
+.scroll-content {
+    padding-right: 8px; /* Espacio para la scrollbar */
+}
 </style>
 
-<!-- Agregar este modal para la vista previa -->
-<div id="print-preview-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[1000]">
+    <!-- Agregar este modal para la vista previa -->
+    <div id="print-preview-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[1000]">
     <div class="modal-container bg-white rounded-lg p-6 w-full max-w-md mx-auto my-8">
         <div class="modal-header flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold text-[#203363]">Vista previa de impresión</h3>
@@ -717,10 +797,10 @@ html, body {
             </button>
         </div>
     </div>
-</div>
+    </div>
     <div id="order-panel" class="w-full md:w-1/5 bg-white p-4 rounded-lg shadow-lg">
     <!-- Eliminado el título "Detalles del Pedido" -->
-        <div class="mb-2">
+    <div class="mb-2">
         <!-- Botones para seleccionar el tipo de pedido - movidos justo debajo del header -->
         <div class="flex flex-col space-y-2">
             <button type="button" id="btn-comer-aqui" onclick="setOrderType('Comer aquí')" class="w-full bg-[#203363] text-white px-3 py-1.5 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105">Comer aquí</button>
@@ -729,40 +809,62 @@ html, body {
         </div>
         <input type="hidden" name="order_type" id="order-type" value="Comer aquí">
 
-      
-        @if($settings->tables_enabled)
-        <div id="table-selection" class="mb-3">
+    @if($settings->tables_enabled)
+    <div id="table-selection" class="mb-3">
         <div class="flex items-center justify-between mb-1">
-            <label for="table-number" class="block text-sm text-[#203363] font-bold">Selecciona la Mesa:</label>
-            <a href="{{ route('tables.index') }}" class="text-xs text-[#6380a6] hover:text-[#203363] transition-colors flex items-center group">
+        <label for="table-number" class="block text-sm text-[#203363] font-bold">Selecciona la Mesa:</label>
+        <a href="{{ route('tables.index') }}" class="text-xs text-[#6380a6] hover:text-[#203363] transition-colors flex items-center group">
             <i class="fas fa-cog mr-1 text-[#a4b6ce] group-hover:text-[#203363] transition-colors"></i>
             <span class="border-b border-transparent group-hover:border-[#a4b6ce] transition-colors">Configurar</span>
-            </a>
+        </a>
         </div>
+    
         <select id="table-number" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
         @foreach ($tables as $table)
-            <option value="{{ $table->id }}">Mesa {{ $table->number }}</option>
+            <option value="{{ $table->id }}" data-state="{{ $table->state }}">Mesa {{ $table->number }} - {{ $table->state }}</option>
         @endforeach
         </select>
+    
+        <!-- Selector para el nuevo estado de todas las mesas -->
+        <div class="mt-2">
+        <label for="bulk-state-selector" class="block text-xs text-[#203363] font-bold mb-1">Cambiar estado de todas las mesas a:</label>
+        <select id="bulk-state-selector" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-xs">
+            <option value="Disponible">Disponible</option>
+            <option value="No Disponible">No Disponible</option>
+            <option value="Ocupada">Ocupada</option>
+            <option value="Reservada">Reservada</option>
+        </select>
         </div>
-        @endif
+    
+        <!-- Botón para cambiar estado de todas las mesas -->
+        <button id="change-all-tables-availability" 
+            class="w-full mt-2 py-1.5 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+            onclick="changeAllTablesAvailability()">
+            <i class="fas fa-sync-alt mr-2"></i>
+            <span id="bulk-availability-text">Cambiar Estado de Todas las Mesas</span>
+        </button>
+     
+    </div>
+    @endif
 
             <!-- Selección de delivery (solo visible para "Para llevar" o "Recoger") -->
-        <div id="delivery-selection" class="mb-3 hidden">
+    <div id="delivery-selection" class="mb-3 hidden">
         <label for="delivery-service" class="block text-sm text-[#203363] font-bold mb-1">Servicio de Delivery:</label>
         <select id="delivery-service" class="border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm">
             @foreach ($deliveryServices as $service)
                 <option value="{{ $service->name }}">{{ $service->name }}</option>
             @endforeach
         </select>
+    </div>
+    </div>
+     <!-- NUEVO CONTENEDOR CON SCROLL -->
+    <div class="scroll-container">
+    <div class="scroll-content">
+        <!-- Detalles del pedido -->
+        <div id="order-details" class="mt-3 transition-all opacity-100 text-sm">
+            <!-- Los ítems del pedido se agregarán aquí dinámicamente -->
         </div>
 
-            <!-- Detalles del pedido -->
-            <div id="order-details" class="mt-3 transition-all opacity-100 text-sm">
-                <!-- Los ítems del pedido se agregarán aquí dinámicamente -->
-            </div>
-        </div>
-         <!-- Agregar esto dentro del div principal (justo antes de los botones de acción) -->
         <div class="notes-container">
             <label for="order-notes" class="notes-label">Notas especiales para el pedido:</label>
             <textarea id="order-notes" name="order_notes" class="notes-textarea" placeholder="Ej: Quiero una hamburguesa sin queso cheddar, salsa aparte..." maxlength="250" oninput="updateNotesCounter()"></textarea>
@@ -772,49 +874,49 @@ html, body {
             <span>Salsa aparte</span>
             <span>Bien cocido</span>
             <span>Poco sal</span>
+            </div>
         </div>
     </div>
-    
+</div>
     <!-- Reemplaza el div contenedor de los botones con este código -->
         <div class="buttons-container">
         <div class="flex flex-row space-x-2 mb-2"> <!-- Contenedor flex en fila -->
         <!-- Nuevo botón: Limpiar Pedido -->
-        <button id="btn-clear-order" 
-                class="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors transform hover:scale-105 text-sm flex items-center justify-center" 
-                onclick="clearOrder()">
-            <i class="fas fa-trash-alt mr-2"></i> Limpiar
+            <button id="btn-clear-order" 
+                    class="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors transform hover:scale-105 text-sm flex items-center justify-center" 
+                    onclick="clearOrder()">
+                <i class="fas fa-trash-alt mr-2"></i> Limpiar
+            </button>
+            <!-- Botón de Proforma -->
+            <button id="btn-proforma" class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center" onclick="generateProforma()">
+                <i class="fas fa-file-invoice mr-2"></i> Proforma
+            </button>
+        </div>
+        
+        <!-- Botón de Realizar Pago -->
+        <button id="btn-multiple-payment" class="w-full flex-1 bg-[#203363] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center mb-2" onclick="showPaymentModal()">
+            Realizar Pago
         </button>
-        <!-- Botón de Proforma -->
-        <button id="btn-proforma" class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center" onclick="generateProforma()">
-            <i class="fas fa-file-invoice mr-2"></i> Proforma
-        </button>
-    </div>
     
-    <!-- Botón de Realizar Pago -->
-    <button id="btn-multiple-payment" class="w-full flex-1 bg-[#203363] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center mb-2" onclick="showPaymentModal()">
-        Realizar Pago
-    </button>
-    
-    <!-- Nuevos botones agregados debajo de Realizar Pago -->
-    <div class="flex flex-row space-x-2">
-        <a href="{{ route('expenses.index') }}" 
-       class="flex-1 bg-[#6c757d] text-white py-2 px-3 rounded-lg hover:bg-[#5a6268] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
-       title="Gastos">
-        <i class="fas fa-receipt"></i>
-    </a>
-    <a href="{{ route('orders.index') }}" 
-       class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
-       title="Historial">
-        <i class="fas fa-history"></i>
-    </a>
-    <a href="{{ route('petty-cash.index') }}" 
-       class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-[#d43a5d] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
-       title="Caja Chica">
-        <i class="fas fa-cash-register"></i>
-    </a>
+            <!-- Nuevos botones agregados debajo de Realizar Pago -->
+        <div class="flex flex-row space-x-2 ">
+            <a href="{{ route('expenses.index') }}" 
+           class="flex-1 bg-[#6c757d] text-white py-2 px-3 rounded-lg hover:bg-[#5a6268] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+           title="Gastos">
+                <i class="fas fa-receipt"></i>
+            </a>
+               <a href="{{ route('orders.index') }}" 
+           class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-[#47517c] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+           title="Historial">
+                <i class="fas fa-history"></i>
+            </a>
+            <a href="{{ route('petty-cash.index') }}" 
+           class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-[#d43a5d] transition-colors transform hover:scale-105 text-sm flex items-center justify-center"
+           title="Caja Chica">
+                <i class="fas fa-cash-register"></i>
+            </a>
+        </div>
     </div>
-
-</div>
 
     <!-- <div class="buttons-container">
        <div class="flex flex-row space-x-2 mb-2"> 
@@ -1087,7 +1189,7 @@ async function setOrderType(type) {
             document.getElementById('btn-comer-aqui').className = 'w-full bg-[#203363] text-white px-3 py-1.5 rounded-lg hover:bg-[#47517c] transition-colors transform scale-105';
             
             // Mostrar selección de mesa solo si tables_enabled es true
-            if (tableSelection) {
+            if (tableSelection && window.tablesEnabled) {
                 const tablesEnabled = @json($settings->tables_enabled ?? false);
                 if (tablesEnabled) {
                     tableSelection.classList.remove('hidden');
@@ -2946,37 +3048,7 @@ function setupTableSelectStyles() {
     // Disparar evento change para aplicar estilos iniciales
     tableSelect.dispatchEvent(new Event('change'));
 }
-// Función para agregar ítems al pedido
-// function addToOrder(item) {
-//       // Bloquear si ya se procesó el pago
-//     if (paymentProcessed) {
-//         alert('No se pueden agregar ítems después de procesar el pago');
-//         return;
-//     }
-//     // Convertir item.price a número si es una cadena
-//     item.price = parseFloat(item.price);
 
-//     // Obtener el pedido actual del localStorage
-//     let order = JSON.parse(localStorage.getItem('order')) || [];
-
-//     // Verificar si el ítem ya está en el pedido
-//     const existingItem = order.find(i => i.id === item.id);
-//     if (existingItem) {
-//         existingItem.quantity += 1; // Incrementar la cantidad si ya existe
-//     } else {
-//         item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
-//         order.push(item);
-//     }
-
-//     // Guardar el pedido actualizado en el localStorage
-//     localStorage.setItem('order', JSON.stringify(order));
-
-//     // Actualizar la vista de order-details
-//     updateOrderDetails();
-    
-//     // Mostrar automáticamente el panel lateral si está oculto (para móviles)
-//     showOrderPanel();
-// }
 // Función para mostrar el panel de pedido
 function showOrderPanel() {
     const orderPanel = document.querySelector('.w-full.md\\:w-1\\/5.bg-white.p-4.rounded-lg.shadow-lg.fixed.right-0.top-0');
@@ -3021,7 +3093,298 @@ function clearOrder() {
     // Mostrar mensaje de éxito
     alert('El pedido ha sido limpiado correctamente.');
 }
+// Variable para almacenar el estado actual de la mesa
+let currentTableState = '';
 
+
+/**
+ * Función para cambiar la disponibilidad de una mesa
+ */
+async function changeTableAvailability() {
+    try {
+        const tableSelect = document.getElementById('table-number');
+        const tableId = tableSelect.value;
+        const button = document.getElementById('change-table-availability');
+        
+        if (!tableId) {
+            alert('Por favor, seleccione una mesa primero');
+            return;
+        }
+        
+        // Mostrar estado de carga
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        button.disabled = true;
+        
+        // Realizar la petición al servidor
+        const response = await fetch(`/tables/${tableId}/change-availability`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Actualizar la interfaz
+            updateTableStateIndicator(data.new_state);
+            
+            // Actualizar el texto del option en el select
+            const option = tableSelect.options[tableSelect.selectedIndex];
+            option.text = `Mesa ${option.text.split(' - ')[0].split(' ')[1]} - ${data.new_state}`;
+            option.dataset.state = data.new_state;
+            
+            // Mostrar mensaje de éxito
+            alert(data.message);
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+    } finally {
+        // Restaurar el botón
+        setTimeout(() => {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i><span id="availability-text">Cambiar Disponibilidad</span>';
+        }, 500);
+    }
+}
+
+/**
+ * Actualizar el indicador de estado de la mesa
+ */
+function updateTableStateIndicator(state) {
+    const stateElement = document.getElementById('current-state');
+    const indicator = document.getElementById('table-state-indicator');
+    
+    if (stateElement && indicator) {
+        stateElement.textContent = state;
+        
+        // Remover clases anteriores
+        indicator.classList.remove(
+            'state-available', 
+            'state-unavailable', 
+            'state-occupied', 
+            'state-reserved'
+        );
+        
+        // Agregar clase según el estado
+        switch(state) {
+            case 'Disponible':
+                indicator.classList.add('state-available');
+                break;
+            case 'No Disponible':
+                indicator.classList.add('state-unavailable');
+                break;
+            case 'Ocupada':
+                indicator.classList.add('state-occupied');
+                break;
+            case 'Reservada':
+                indicator.classList.add('state-reserved');
+                break;
+        }
+    }
+}
+
+/**
+ * Cargar el estado de la mesa seleccionada
+ */
+async function loadTableState() {
+    try {
+        const tableSelect = document.getElementById('table-number');
+        const tableId = tableSelect.value;
+        
+        if (!tableId) return;
+        
+        const response = await fetch(`/tables/${tableId}/status`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateTableStateIndicator(data.state);
+        }
+    } catch (error) {
+        console.error('Error al cargar estado de mesa:', error);
+    }
+}
+async function changeAllTablesAvailability() {
+    try {
+        const stateSelector = document.getElementById('bulk-state-selector');
+        const newState = stateSelector.value;
+        const button = document.getElementById('change-all-tables-availability');
+        
+        if (!newState) {
+            alert('Por favor, seleccione un estado');
+            return;
+        }
+        
+        // Confirmar la acción
+        const confirmMessage = `¿Está seguro de que desea cambiar TODAS las mesas al estado "${newState}"?`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // Mostrar estado de carga
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
+        button.disabled = true;
+        
+        // Realizar la petición al servidor para cambiar todas las mesas
+        const response = await fetch('/tables/bulk-change-state', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                state: newState
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Actualizar todas las opciones del select de mesas
+            updateAllTableOptions(newState);
+            
+            // Actualizar el indicador de estado si hay una mesa seleccionada
+            updateTableStateIndicator(newState);
+            
+            // Mostrar mensaje de éxito
+            alert(`${data.updated_count} mesa(s) actualizadas al estado "${newState}"`);
+            
+            // Recargar las mesas disponibles
+            await loadAvailableTables();
+            
+        } else {
+            throw new Error(data.message || 'Error al actualizar las mesas');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+    } finally {
+        // Restaurar el botón
+        setTimeout(() => {
+            const button = document.getElementById('change-all-tables-availability');
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i><span id="bulk-availability-text">Cambiar Estado de Todas las Mesas</span>';
+        }, 500);
+    }
+}
+// Función auxiliar para actualizar todas las opciones del select
+function updateAllTableOptions(newState) {
+    const tableSelect = document.getElementById('table-number');
+    if (!tableSelect) return;
+    
+    // Actualizar todas las opciones excepto la primera (que es el placeholder)
+    for (let i = 1; i < tableSelect.options.length; i++) {
+        const option = tableSelect.options[i];
+        const tableNumber = option.text.split(' - ')[0].split(' ')[1];
+        
+        option.text = `Mesa ${tableNumber} - ${newState}`;
+        option.dataset.state = newState;
+        
+        // Habilitar o deshabilitar según el estado
+        if (newState === 'Ocupada' || newState === 'Reservada') {
+            option.disabled = true;
+        } else {
+            option.disabled = false;
+        }
+        
+        // Actualizar clases CSS
+        option.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600', 'font-medium');
+        
+        switch(newState) {
+            case 'Disponible':
+                option.classList.add('text-green-600', 'font-medium');
+                break;
+            case 'Ocupada':
+            case 'No Disponible':
+                option.classList.add('text-red-600', 'font-medium');
+                break;
+            case 'Reservada':
+                option.classList.add('text-yellow-600', 'font-medium');
+                break;
+        }
+    }
+}
+
+// CSS adicional para el selector de estado masivo
+const additionalCSS = `
+#bulk-state-selector {
+    background-color: #6380a6;
+    color: white;
+    border: 1px solid #47517c;
+    transition: all 0.3s ease;
+}
+
+#bulk-state-selector:hover {
+    background-color: #47517c;
+}
+
+#bulk-state-selector option {
+    background-color: white;
+    color: #203363;
+}
+
+#change-all-tables-availability {
+    background-color: #fef2f2;  /* Fondo rojo muy claro */
+    color: #dc2626;             /* Texto rojo medio */
+    border: 1px solid #fecaca;  /* Borde rojo suave */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#change-all-tables-availability:hover {
+    background-color: #fee2e2;  /* Fondo ligeramente más oscuro al hover */
+    color: #b91c1c;             /* Texto rojo más oscuro */
+    border-color: #fca5a5;      /* Borde rojo medio */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px 0 rgba(220, 38, 38, 0.1);
+}
+
+#change-all-tables-availability:active {
+    transform: translateY(0);
+    background-color: #fde8e8;  /* Estado activo */
+}
+
+#change-all-tables-availability:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background-color: #fef2f2;
+    color: #fca5a5;            /* Texto rojo desaturado cuando está deshabilitado */
+    box-shadow: none;
+}
+`;
+
+// Agregar los estilos al documento
+if (!document.getElementById('bulk-table-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'bulk-table-styles';
+    styleElement.textContent = additionalCSS;
+    document.head.appendChild(styleElement);
+}
+
+
+// Cargar el estado al cambiar de mesa
+document.addEventListener('DOMContentLoaded', function() {
+    const tableSelect = document.getElementById('table-number');
+    if (tableSelect) {
+        // Cargar estado inicial
+        loadTableState();
+        
+        // Actualizar estado cuando cambia la selección
+        tableSelect.addEventListener('change', loadTableState);
+    }
+});
 
 
 </script>   

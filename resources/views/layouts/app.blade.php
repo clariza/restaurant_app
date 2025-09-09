@@ -335,13 +335,13 @@
     .input-group {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Alinea los elementos al inicio */
-    width: 100%; /* Asegura que el input-group ocupe todo el ancho disponible */
+    align-items: flex-start;
+    width: 100%;
 }
 
 .input-label {
-    font-size: 14px; /* Tamaño de fuente uniforme */
-    color: #4a5568; /* Color de texto uniforme */
+    font-size: 14px; 
+    color: #4a5568; 
     margin-bottom: 6px; /* Espaciado entre el label y el input */
     width: 100%; /* Asegura que todos los labels tengan el mismo ancho */
     text-align: start; /* Alinea el texto al inicio */
@@ -362,6 +362,18 @@
     box-shadow: 0 0 6px rgba(66, 153, 225, 0.2);
 }
 
+#user-menu {
+    z-index: 1000; 
+    position: absolute;
+    right: 0;
+    top: 100%;
+    display: none;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+#user-menu:not(.hidden) {
+    display: block !important;
+}
     </style>
 </head>
 
@@ -390,9 +402,8 @@
             <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
         </button>
         
-        <!-- Menú de usuario -->
        <!-- Menú de usuario -->
-<div class="relative ml-4 px-4">  <!-- Añadido ml-4 y px-4 para margen y padding -->
+        <div class="relative ml-4 px-4">
     <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md hover:bg-gray-100 transition-colors">
         <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, {{ Auth::user()->name }}</span>
         <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
@@ -400,11 +411,11 @@
         </div>
     </button>
     
-    <!-- Menú desplegable -->
-    <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden z-50 border border-gray-200">
+    <!-- Menú desplegable mejorado -->
+    <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden border border-gray-200" style="z-index: 1000;">
         <form action="{{ route('logout') }}" method="POST" class="w-full">
             @csrf
-            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
                 <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
             </button>
         </form>
@@ -603,28 +614,76 @@
     document.querySelectorAll('[data-logout]').forEach(button => {
         button.addEventListener('click', handleLogout);
     });
-        // Toggle para el menú móvil
-        const menuToggle = document.getElementById('menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        menuToggle.addEventListener('click', () => {
-            mobileMenu.classList.toggle('-translate-x-full');
-        });
-
-        // Toggle para el menú desplegable del User Avatar
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userMenu = document.getElementById('user-menu');
-        userMenuButton.addEventListener('click', () => {
-            userMenu.classList.toggle('hidden');
-        });
-
-        // Ocultar el menú desplegable al hacer clic fuera de él
-        document.addEventListener('click', (event) => {
-            if (!userMenuButton.contains(event.target)) {
+    // Toggle mejorado para el menú desplegable con debug
+document.addEventListener('DOMContentLoaded', function() {
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+    
+    console.log('Elementos del menú:', {userMenuButton, userMenu});
+    
+    if (userMenuButton && userMenu) {
+        userMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            console.log('Botón de menú clickeado');
+            
+            // Alternar visibilidad
+            const isHidden = userMenu.classList.contains('hidden');
+            console.log('Menú actualmente oculto:', isHidden);
+            
+            if (isHidden) {
+                userMenu.classList.remove('hidden');
+                userMenu.style.display = 'block';
+                console.log('Menú mostrado');
+            } else {
                 userMenu.classList.add('hidden');
+                userMenu.style.display = 'none';
+                console.log('Menú ocultado');
             }
         });
+        
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (userMenu && !userMenu.classList.contains('hidden')) {
+                if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                    userMenu.style.display = 'none';
+                    console.log('Menú cerrado por click fuera');
+                }
+            }
+        });
+        
+        // Prevenir que el formulario de logout cierre muy rápido
+        const logoutForm = userMenu.querySelector('form');
+        if (logoutForm) {
+            logoutForm.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('Clic en formulario de logout');
+            });
+        }
+    } else {
+        console.error('No se encontraron elementos del menú de usuario');
+    }
+});
 
-        // Toggle para los submenús - Versión mejorada para mantener hermanos abiertos
+    // Función para cerrar otros menús (si existen)
+function closeAllOtherMenus(currentMenu) {
+    // Cerrar submenús de ventas, gastos, etc.
+    document.querySelectorAll('.submenu').forEach(menu => {
+        if (!menu.contains(currentMenu)) {
+            menu.classList.add('hidden');
+        }
+    });
+    
+    // Revertir flechas de otros menús
+    document.querySelectorAll('.menu-toggle .arrow').forEach(arrow => {
+        if (!arrow.closest('.menu-toggle').contains(currentMenu)) {
+            arrow.classList.remove('rotate-180');
+        }
+    });
+}
+
+      
+
     const menuToggles = document.querySelectorAll('.menu-toggle');
     menuToggles.forEach((toggle) => {
         toggle.addEventListener('click', (e) => {

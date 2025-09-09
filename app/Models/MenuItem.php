@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class MenuItem extends Model
 {
@@ -12,7 +13,7 @@ class MenuItem extends Model
     protected $fillable = ['name', 'description', 
     'price', 'image', 
     'category_id','stock','min_stock',
-        'stock_type','stock_unit'];
+        'stock_type','stock_unit','manage_inventory'];
 
     // Relación con la categoría
     public function category()
@@ -24,7 +25,7 @@ class MenuItem extends Model
     {
         return $this->hasMany(InventoryMovement::class);
     }
-    public function updateStock($quantity, $movementType, $notes = null)
+    public function updateStock($quantity, $movementType, $notes = null,$userId = null)
     {
         $oldStock = $this->stock;
         
@@ -33,10 +34,20 @@ class MenuItem extends Model
             : $this->stock - $quantity;
             
         $this->save();
+        $currentUserId = null;
+         if ($userId) {
+        // Si se proporciona un userId específico
+            $currentUserId = $userId;
+        } elseif (function_exists('auth') && auth() && auth()->check()) {
+        // Si auth() está disponible y hay usuario autenticado
+            $currentUserId = auth()->id();
+        }
 
+        // Usar el userId proporcionado o el usuario autenticado
+       // $currentUserId = $userId ?? (auth()->check() ? auth()->id() : null);
         // Registrar movimiento
         return $this->inventoryMovements()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $currentUserId,
             'movement_type' => $movementType,
             'quantity' => $quantity,
             'old_stock' => $oldStock,

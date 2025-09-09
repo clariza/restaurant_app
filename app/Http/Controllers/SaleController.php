@@ -6,6 +6,7 @@ use App\Models\SaleItem;
 use App\Models\MenuItem;
 use App\Models\InventoryMovement;
 use App\Models\Table;
+use App\Models\DeliveryService;
 use App\Models\PettyCash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;

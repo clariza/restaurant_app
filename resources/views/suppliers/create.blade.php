@@ -12,15 +12,19 @@
             <input type="text" name="name" id="name" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
         </div>
         <div class="mb-4">
+            <label for="nit" class="block text-sm font-medium text-[var(--table-data-color)]">NIT</label>
+            <input type="text" name="nit" id="nit" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
+        </div>
+        <div class="mb-4">
             <label for="contact" class="block text-sm font-medium text-[var(--table-data-color)]">Contacto</label>
             <input type="text" name="contact" id="contact" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
         </div>
         <div class="mb-4">
-            <label for="phone" class="block text-sm font-medium text-[var(--table-data-color)]">Telefono</label>
+            <label for="phone" class="block text-sm font-medium text-[var(--table-data-color)]">Teléfono</label>
             <input type="text" name="phone" id="phone" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
         </div>
         <div class="mb-4">
-            <label for="address" class="block text-sm font-medium text-[var(--table-data-color)]">Direccion</label>
+            <label for="address" class="block text-sm font-medium text-[var(--table-data-color)]">Dirección</label>
             <input type="text" name="address" id="address" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
         </div>
         <div class="flex justify-end">

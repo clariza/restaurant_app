@@ -180,19 +180,19 @@
                          
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
-                            <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
-              @if($item->stock <= 0) bg-gray-500 text-white
-              @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
-              @else bg-green-500 text-white @endif">
-              @if($item->stock_type == 'discrete')
+    @if($item->manage_inventory)
+        <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
+            @if($item->stock <= 0) bg-gray-500 text-white
+            @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
+            @else bg-green-500 text-white @endif">
+            @if($item->stock_type == 'discrete')
                 {{ (int)$item->stock }} UNI
             @else
                 {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
             @endif
-
-                            </span>
-            
-                        </div>
+        </span>
+    @endif
+</div>
 
                         <!-- Imagen responsiva -->
                         <img alt="{{ $item->name }}" 
@@ -218,13 +218,14 @@
         'stock' => $item->stock,
         'stock_type' => $item->stock_type,
         'stock_unit' => $item->stock_unit,
-        'min_stock' => $item->min_stock
+        'min_stock' => $item->min_stock,
+        'manage_inventory' => $item->manage_inventory
     ]) }})" 
     class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
-           @if($item->stock <= 0) opacity-50 cursor-not-allowed @endif"
-    @if($item->stock <= 0) disabled @endif>
-        Agregar
-    </button>
+           @if($item->manage_inventory && $item->stock <= 0) opacity-50 cursor-not-allowed @endif"
+@if($item->manage_inventory && $item->stock <= 0) disabled @endif>
+    Agregar
+</button>
                         </div>
                     </div>
                 @endforeach
@@ -1096,47 +1097,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
         // Función para agregar ítems al pedido
 function addToOrder(item) {
-    // Verificar si hay stock disponible
-    const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-    if (!menuItem) return;
-     const currentStock = parseInt(menuItem.dataset.stock) || 0;
-    if (currentStock <= 0) {
-        alert('No hay suficiente stock disponible');
-        return;
+    // Only check stock if inventory management is enabled
+    if (item.manage_inventory) {
+        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+        if (!menuItem) return;
+        
+        const currentStock = parseInt(menuItem.dataset.stock) || 0;
+        if (currentStock <= 0) {
+            alert('No hay suficiente stock disponible');
+            return;
+        }
+        
+        // Reduce stock visually only if inventory is managed
+        const newStock = currentStock - 1;
+        updateStockBadge(item.id, newStock, parseInt(menuItem.dataset.minStock), 
+                        menuItem.dataset.stockType, menuItem.dataset.stockUnit, item.manage_inventory);
     }
-     // Reducir el stock visualmente
-    const newStock = currentStock - 1;
-    updateStockBadge(item.id, newStock, parseInt(menuItem.dataset.minStock), menuItem.dataset.stockType, menuItem.dataset.stockUnit);
 
-    // // Bloquear si ya se procesó el pago
-    // if (paymentProcessed) {
-    //     alert('No se pueden agregar ítems después de procesar el pago');
-    //     return;
-    // }
-    // const itemElement = document.querySelector(`[data-item-id="${item.id}"]`);
-    // if (!itemElement) return;
-    //         // Verificar stock disponible
-    // //const stockElement = document.querySelector(`[data-item-id="${item.id}"] .stock-badge`);
-    // item.price = parseFloat(item.price);
-    // // Obtener el elemento del menú correspondiente
-    // const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-
-    //   if (menuItem) {
-
-    //     const currentStock = parseInt(menuItem.dataset.stock) || 0;
-    //     const minStock = parseInt(menuItem.dataset.minStock) || 0;
-    //     const stockType = menuItem.dataset.stockType;
-    //     const stockUnit = menuItem.dataset.stockUnit;
-       
-    //     const newStock = currentStock - 1;
-
-
-    //     updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
-    //   }
-
-    
-   
-    // 7. Actualizar el pedido en localStorage (código existente)
     let order = JSON.parse(localStorage.getItem('order')) || [];
    
      // Verificar si el ítem ya está en el pedido

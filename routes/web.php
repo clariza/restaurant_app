@@ -101,6 +101,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // Rutas para compras (solo admin)
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
+    // Ruta para cambio masivo de estado
+     Route::post('/tables/bulk-change-state', [TableController::class, 'bulkChangeState'])
+         ->name('tables.bulk-change-state');
+    
+    // Ruta para obtener estadísticas (opcional)
+    Route::get('/tables/stats', [TableController::class, 'getTablesStats'])
+         ->name('tables.stats');
 });
 
 // Rutas para Table
@@ -158,3 +165,7 @@ Route::get('/inventory/movements', [InventoryController::class, 'movements'])->n
 Route::get('/inventory/{id}/movements', [InventoryController::class, 'itemMovements'])->name('inventory.item-movements');
 // En routes/api.php
 Route::post('/check-stock', [SaleController::class, 'checkStock']);
+
+// Rutas para el cambio de estado de mesas
+Route::post('/tables/{id}/change-availability', [TableController::class, 'changeAvailability'])->name('tables.change-availability');
+Route::get('/tables/{id}/status', [TableController::class, 'getTableStatus'])->name('tables.status');

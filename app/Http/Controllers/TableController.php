@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\PettyCash;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Log;
 class TableController extends Controller
 {
     /**
@@ -142,7 +143,135 @@ class TableController extends Controller
             ], 500);
         }
     }
+
     
+/**
+ * Cambiar el estado de disponibilidad de una mesa
+ */
+public function changeAvailability(Request $request, $id)
+{
+    try {
+        $table = Table::findOrFail($id);
+        
+        // Cambiar entre Disponible y No Disponible
+        $newState = $table->state === 'Disponible' ? 'No Disponible' : 'Disponible';
+        
+        $table->update(['state' => $newState]);
+
+        return response()->json([
+            'success' => true,
+            'new_state' => $newState,
+            'message' => 'Estado de mesa actualizado correctamente'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cambiar el estado de la mesa'
+        ], 500);
+    }
+}
+
+/**
+ * Obtener el estado actual de una mesa
+ */
+public function getTableStatus($id)
+{
+    try {
+        $table = Table::findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'state' => $table->state
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener el estado de la mesa'
+        ], 500);
+    }
+}
+public function bulkChangeState(Request $request)
+{
+    try {
+        // Validar el estado recibido
+        $request->validate([
+            'state' => 'required|in:' . implode(',', Table::$validStates)
+        ]);
+
+        $newState = $request->input('state');
+        
+        // Obtener todas las mesas
+        $tables = Table::all();
+        
+        if ($tables->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay mesas registradas en el sistema'
+            ], 404);
+        }
+        
+        // Actualizar todas las mesas al nuevo estado
+        $updatedCount = Table::query()->update(['state' => $newState]);
+        
+        // Log de la operación (opcional)
+        //\Illuminate\Support\Facades\Log::info("Estado de todas las mesas cambiado a: {$newState} por usuario: " . auth()->user()->name ?? 'Sistema');
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Estado de todas las mesas actualizado correctamente",
+            'new_state' => $newState,
+            'updated_count' => $updatedCount,
+            'tables' => Table::all(['id', 'number', 'state'])
+        ]);
+        
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Estado inválido. Los estados permitidos son: ' . implode(', ', Table::$validStates),
+            'errors' => $e->errors()
+        ], 422);
+        
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Error al cambiar estado masivo de mesas: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor al actualizar las mesas'
+        ], 500);
+    }
+}
+
+// También puedes agregar un método para obtener estadísticas de mesas
+public function getTablesStats()
+{
+    try {
+        $stats = Table::selectRaw('state, COUNT(*) as count')
+                     ->groupBy('state')
+                     ->get()
+                     ->pluck('count', 'state')
+                     ->toArray();
+        
+        // Asegurar que todos los estados aparezcan, incluso si tienen 0 mesas
+        $allStats = [];
+        foreach (Table::$validStates as $state) {
+            $allStats[$state] = $stats[$state] ?? 0;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'stats' => $allStats,
+            'total' => Table::count()
+        ]);
+        
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Error al obtener estadísticas de mesas: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener estadísticas'
+        ], 500);
+    }
+}
     
 
 }

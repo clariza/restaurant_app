@@ -11,17 +11,17 @@ class Table extends Model
     protected $table = 'tables'; 
 
     protected $fillable = [
-        'number', // Número de la mesa
-        'state', // Estado de la mesa
+        'number', 
+        'state', 
     ];
      protected $attributes = [
         'state' => 'Disponible',
     ];
 
     protected $casts = [
-        'number' => 'integer', // Asegura que el número sea un entero
+        'number' => 'integer', 
     ];
-    public static $validStates = ['Disponible', 'Ocupada', 'Reservada'];
+     public static $validStates = ['Disponible', 'No Disponible', 'Ocupada', 'Reservada'];
     
     public function scopeAvailable($query)
     {
@@ -32,7 +32,10 @@ class Table extends Model
     {
         return $this->state === 'Disponible';
     }
-    
+    public function isUnavailable()
+    {
+        return $this->state === 'No Disponible';
+    }
     public function isOccupied()
     {
         return $this->state === 'Ocupada';
@@ -41,5 +44,23 @@ class Table extends Model
     public function isReserved()
     {
         return $this->state === 'Reservada';
+    }
+    // Nuevo método para cambio masivo
+    public static function bulkUpdateState($newState)
+    {
+        if (!in_array($newState, self::$validStates)) {
+            throw new \InvalidArgumentException("Estado inválido: {$newState}");
+        }
+        
+        return self::query()->update(['state' => $newState]);
+    }
+    
+    // Método para obtener conteos por estado
+    public static function getStateCounts()
+    {
+        return self::selectRaw('state, COUNT(*) as count')
+                  ->groupBy('state')
+                  ->pluck('count', 'state')
+                  ->toArray();
     }
 }
