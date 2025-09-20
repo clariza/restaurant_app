@@ -1,43 +1,319 @@
+@import './utilities/variables.css';
+@import './utilities/animations.css';
+@import './utilities/utilities.css';
+
+/* Componentes */
+
+@import './components/sidebar.css';
+@import './components/header.css';
+@import './components/filters.css';
+@import './components/payment-modal.css';
+
+/* Layouts */
+@import './layouts/app.css';
+@import './layouts/login.css';
+@import './layouts/order-details.css';
+
+
+/* ---- Tailwind después de imports ---- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    --primary-color: #203363;
-    --secondary-color: #6380a6;
-    --tertiary-color: #a4b6ce;
-    --background-color: #fafafa;
-    --table-data-color: #7c7b90;
+/* Utilidades personalizadas de Tailwind */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-md {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+}
+/* Estilos base */
+#mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background-color: #203363;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
 }
 
-/* Estilos para ocultar/mostrar submenús */
-.submenu {
-    display: none;
-    transition: all 0.3s ease;
+#mobile-menu.show {
+    transform: translateX(0);
+}
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    line-height: 1.5;
+}
+/* Filtros de órdenes*/
+.order-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-.submenu.active {
-    display: block;
+.filter-btn {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: 1px solid;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    min-width: 120px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    border-color: var(--tertiary-color);
+}
+.filter-btn:hover {
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    transform: translateY(-2px);
+}
+/* Badge de contador */
+.filter-badge {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    margin-right: 0.5rem;
 }
 
-/* Rotación de la flecha */
-.rotate-180 {
-    transform: rotate(180deg);
+/* Estado activo */
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+/* Colores específicos para cada tipo de filtro */
+.filter-all .filter-badge {
+    background-color: var(--primary-color);
+    color: var(--white);
 }
 
-/* Estilos para el menú desplegable del perfil */
-.profile-dropdown {
-    display: none;
+.filter-dine-in .filter-badge {
+    background-color: var(--yellow);
+    color: var(--primary-color);
+}
+
+.filter-take-away .filter-badge {
+    background-color: var(--green);
+    color: var(--white);
+}
+
+.filter-pickup .filter-badge {
+    background-color: var(--blue);
+    color: var(--white);
+}
+
+.filter-proforma .filter-badge {
+    background-color: var(--red);
+    color: var(--white);
+}
+
+/* Efecto hover con colores específicos */
+.filter-dine-in:hover {
+    background-color: rgba(255, 209, 102, 0.1);
+    border-color: var(--yellow);
+}
+
+.filter-take-away:hover {
+    background-color: rgba(6, 214, 160, 0.1);
+    border-color: var(--green);
+}
+
+.filter-pickup:hover {
+    background-color: rgba(17, 138, 178, 0.1);
+    border-color: var(--blue);
+}
+
+.filter-proforma:hover {
+    background-color: rgba(239, 71, 111, 0.1);
+    border-color: var(--red);
+}
+
+/* Estado activo con colores específicos */
+.filter-dine-in.active {
+    background-color: var(--yellow);
+    color: var(--primary-color);
+}
+
+.filter-take-away.active {
+    background-color: var(--green);
+}
+
+.filter-pickup.active {
+    background-color: var(--blue);
+}
+
+.filter-proforma.active {
+    background-color: var(--red);
+}
+  /* Estilos para los inputs del modal */
+    .modal input[type="text"] {
+    width: 100%;
+    padding: 8px; /* Reducir el padding */
+    font-size: 14px; /* Reducir el tamaño de la fuente */
+    border: 2px solid var(--tertiary-color); /* Borde más suave */
+    border-radius: 6px; /* Bordes redondeados */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
+    outline: none; /* Eliminar el outline predeterminado */
+    }
+
+/* Estilo cuando el input está enfocado */
+    .modal input[type="text"]:focus {
+    border-color: var(--primary-color); /* Cambiar el color del borde al enfocar */
+    box-shadow: 0 0 6px rgba(32, 51, 99, 0.2); /* Sombra suave al enfocar */
+    }
+
+    /* Estilos para los labels */
+    .modal label {
+        font-size: 13px; /* Reducir el tamaño de fuente para los labels */
+        color: var(--table-data-color); /* Color del texto */
+        margin-bottom: 6px; /* Reducir el espaciado inferior */
+        display: block; /* Asegurar que estén en una línea separada */
+    }
+    /* Estilos para el total de ventas en efectivo */
+    .total-efectivo {
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    /* Estilos para los labels */
+    .modal label {
+        font-size: 13px; /* Reducir el tamaño de fuente para los labels */
+        color: var(--table-data-color); /* Color del texto */
+        margin-bottom: 6px; /* Reducir el espaciado inferior */
+        display: block; /* Asegurar que estén en una línea separada */
+        text-align: start; /* Alinear texto al inicio */
+    }
+
+    /* Estilos para el total de ventas en efectivo */
+    .total-efectivo {
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    /* Diseño de dos columnas para el modal */
+    .modal-grid {
+        display: grid;
+        grid-template-columns: 60% 40%; /* Tabla más grande, inputs más pequeños */
+        gap: 20px;
+    }
+
+    /* Estilos para el contenedor de los inputs */
+    .input-container {
+        width: 90%; /* 10% más pequeño que la tabla de denominaciones */
+        margin-left: auto; /* Centrar el contenedor */
+        margin-right: auto; /* Centrar el contenedor */
+    }
+
+    /* Alinear horizontalmente los inputs y labels */
+    .input-row {
+        display: flex;
+        gap: 10px; /* Espaciado entre elementos */
+        align-items: flex-start; /* Alinear verticalmente al inicio */
+        margin-bottom: 12px; /* Espaciado entre filas */
+    }
+
+    /* Estilos para los grupos de inputs */
+    .input-group {
+        flex: 1; /* Distribuir el espacio equitativamente */
+    }
+
+    /* Alinear verticalmente el texto de las celdas de la tabla */
+    table td {
+        vertical-align: top; /* Alinear contenido al inicio */
+    }
+    .input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    }
+
+    .input-label {
+        font-size: 14px; 
+        color: #4a5568; 
+        margin-bottom: 6px;
+        width: 100%; 
+        text-align: start;
+    }
+
+.modal-input {
+    width: 100%; /* Asegura que los inputs ocupen todo el ancho disponible */
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid #cbd5e0;
+    border-radius: 6px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 6px rgba(66, 153, 225, 0.2);
+}
+
+#user-menu {
+    z-index: 1000; 
     position: absolute;
     right: 0;
     top: 100%;
-    background-color: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    z-index: 10;
+    display: none;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+#user-menu:not(.hidden) {
+    display: block !important;
+}
+/* Fix para submenús */
+.submenu {
+    transition: all 0.3s ease;
 }
 
-.profile-dropdown.active {
-    display: block;
+.submenu.hidden {
+    display: none !important;
 }
+
+.arrow {
+    transition: transform 0.3s ease;
+}
+
+.arrow.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Asegurar z-index correcto */
+#user-menu {
+    z-index: 9999;
+}
+
+
+
+
+
+/* body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    line-height: 1.5;
+} */

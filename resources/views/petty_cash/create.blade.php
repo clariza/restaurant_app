@@ -163,9 +163,6 @@
            // alert('get here');
             // Verificar si el enlace coincide con alguna ruta bloqueada
             const shouldBlock = blockedRoutes.some(route => {
-                console.log(route);
-                console.log('ya noo');
-                console.log(link.href);
                 // Comprobar si la URL del enlace contiene la ruta
                 return link.href.includes(route);
             });

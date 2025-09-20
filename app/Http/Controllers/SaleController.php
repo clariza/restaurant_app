@@ -226,7 +226,7 @@ public function dashboard()
     if ($tables->isEmpty()) {
         dd('No hay mesas en la base de datos');
     } else {
-        dd($tables); // Verifica si $tables contiene datos
+        dd($tables); 
     }
     return view('layouts.order-details', compact('tables', 'deliveryServices'));
 }

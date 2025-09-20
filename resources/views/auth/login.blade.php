@@ -6,23 +6,23 @@
     <title>Login</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+      @vite(['resources/css/app.css'])
     <style>
         body {
-            background-color: #203363;
+            background-color: #203363; /* Color de fondo igual al botón */
             color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 20px;
-            background: #ffffff;
+            background-color: #ffffff;
+            padding: 2rem;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #203363;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
         .form-control {
             margin-bottom: 15px;
@@ -38,6 +38,14 @@
         }
         .alert {
             margin-bottom: 20px;
+        }
+        h2 {
+            color: #203363;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            color: #203363;
         }
     </style>
 </head>
