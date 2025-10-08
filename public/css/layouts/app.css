@@ -1,0 +1,28 @@
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #fafafa;
+}
+
+.main-content {
+    margin-left: 16rem;
+    flex: 1;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}

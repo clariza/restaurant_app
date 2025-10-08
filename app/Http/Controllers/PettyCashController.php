@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\PettyCash;
+use App\Models\User;
 use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,40 +12,76 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class PettyCashController extends Controller
 {
     // Mostrar la lista de cierres de caja chica
-public function index()
-{
-    // Obtener la última caja chica abierta
-    $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
+     public function index(Request $request)
+    {
+        // Obtener la última caja chica abierta
+        $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
 
-    // Calcular el total de gastos asociados a la caja chica abierta
-    $totalExpenses = $openPettyCash ? $openPettyCash->expenses()->sum('amount') : 0;
+        // Calcular el total de gastos asociados a la caja chica abierta
+        $totalExpenses = $openPettyCash ? $openPettyCash->expenses()->sum('amount') : 0;
 
-    // Obtener el total de ventas por tipo de pago asociados a la caja chica abierta
-    $totalSalesQR = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'QR')->sum('total') : 0;
-    $totalSalesCard = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Tarjeta')->sum('total') : 0;
-    $totalSalesCash = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Efectivo')->sum('total') : 0;
+        // Obtener el total de ventas por tipo de pago asociados a la caja chica abierta
+        $totalSalesQR = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'QR')->sum('total') : 0;
+        $totalSalesCard = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Tarjeta')->sum('total') : 0;
+        $totalSalesCash = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Efectivo')->sum('total') : 0;
 
-    // Obtener el valor de total_sales_cash de la última caja abierta
-    $totalSalesCashFromDB = $openPettyCash ? $openPettyCash->total_sales_cash : 0;
+        // Obtener el valor de total_sales_cash de la última caja abierta
+        $totalSalesCashFromDB = $openPettyCash ? $openPettyCash->total_sales_cash : 0;
 
-    // Calcular el total de ventas (sin incluir el monto inicial)
-    $totalSales = $totalSalesQR + $totalSalesCard + $totalSalesCash;
+        // Calcular el total de ventas (sin incluir el monto inicial)
+        $totalSales = $totalSalesQR + $totalSalesCard + $totalSalesCash;
 
-    // Obtener todas las cajas chicas
-    $pettyCashes = PettyCash::orderBy('date', 'desc')->get();
-    $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-    
-    return view('petty_cash.index', compact(
-        'pettyCashes',
-        'totalExpenses',
-        'totalSalesQR',
-        'totalSalesCard',
-        'totalSalesCash',
-        'totalSalesCashFromDB',
-        'totalSales',
-        'hasOpenPettyCash'
-    ));
-}
+        // Query base con relación al usuario
+        $query = PettyCash::with('user');
+
+        // Aplicar filtros
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Búsqueda por texto
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('notes', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Obtener todas las cajas chicas con filtros aplicados
+        $pettyCashes = $query->orderBy('date', 'desc')->get();
+        
+        // Obtener todos los usuarios para el select
+        $users = User::select('id', 'name')->orderBy('name')->get();
+        
+        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+        
+        return view('petty_cash.index', compact(
+            'pettyCashes',
+            'totalExpenses',
+            'totalSalesQR',
+            'totalSalesCard',
+            'totalSalesCash',
+            'totalSalesCashFromDB',
+            'totalSales',
+            'hasOpenPettyCash',
+            'users'
+        ));
+    }
 
     // Mostrar el formulario para crear un nuevo cierre de caja chica
     public function create()
@@ -62,16 +99,17 @@ public function index()
     public function store(Request $request)
     {
         $request->validate([
-            'notes' => 'nullable|string', // Solo validamos las notas ahora
+            'notes' => 'nullable|string', 
         ]);
         
         // Crear la nueva caja chica con monto inicial 0
         PettyCash::create([
-            'initial_amount' => 0, // Establecemos monto inicial en 0
-            'current_amount' => 0, // También el monto actual en 0
+            'initial_amount' => 0, 
+            'current_amount' => 0, 
             'date' => now()->toDateString(),
             'notes' => $request->notes,
             'status' => 'open',
+            'user_id' => auth()->id(), 
         ]);
     
         return redirect()->route('menu.index')->with('success', 'Caja chica abierta correctamente.');
@@ -198,16 +236,16 @@ public function index()
         }
     }
     
-public function print(PettyCash $pettyCash)
-{
-    // Obtener los datos necesarios para el reporte
-    $data = [
-        'pettyCash' => $pettyCash,
-        'date' => now()->format('d/m/Y'),
-        'totalSales' => $pettyCash->total_sales_cash + $pettyCash->total_sales_qr + $pettyCash->total_sales_card,
-        'totalExpenses' => $pettyCash->total_expenses,
-        'user' => auth()->user(), // O el vendedor asociado a esta caja chica
-        'salesByPaymentMethod' => [
+    public function print(PettyCash $pettyCash)
+    {
+
+        $data = [
+            'pettyCash' => $pettyCash,
+            'date' => now()->format('d/m/Y'),
+            'totalSales' => $pettyCash->total_sales_cash + $pettyCash->total_sales_qr + $pettyCash->total_sales_card,
+            'totalExpenses' => $pettyCash->total_expenses,
+            'user' => auth()->user(), 
+            'salesByPaymentMethod' => [
             'Efectivo' => $pettyCash->total_sales_cash,
             'QR' => $pettyCash->total_sales_qr,
             'Tarjeta' => $pettyCash->total_sales_card

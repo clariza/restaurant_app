@@ -1,0 +1,45 @@
+/* resources/css/utilities/utilities.css */
+/* Estilos para ocultar/mostrar submenús */
+.submenu {
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.submenu.active {
+    display: block;
+}
+
+/* Estilos para el menú desplegable del perfil */
+.profile-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 10;
+}
+
+.profile-dropdown.active {
+    display: block;
+}
+
+/* Estilos para títulos y encabezados */
+.section-title {
+    @apply text-xl font-bold mb-4 text-[var(--primary-color)];
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}

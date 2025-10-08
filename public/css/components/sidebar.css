@@ -1,0 +1,14 @@
+/* Sidebar fijo */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem; /* 64/4 = 16rem */
+    background-color: #203363;
+    color: white;
+    overflow-y: auto;
+    z-index: 40;
+    transition: transform 0.3s ease;
+    transform: translateX(0);
+}

@@ -1,0 +1,15 @@
+/* Transiciones suaves para interacciones */
+button, input, select, .card, .menu-item {
+    transition: all 0.25s ease;
+}
+
+/* Efectos hover consistentes */
+button:hover, .card:hover, .menu-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Rotación de la flecha */
+.rotate-180 {
+    transform: rotate(180deg);
+}

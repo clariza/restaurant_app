@@ -601,13 +601,166 @@
     border-bottom: 1px solid #e9ecef;
     padding-bottom: 0.25rem;
 }
+  /* Estilos para el panel de filtros */
+    .filters-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
 
+.filters-grid {
+    display: grid;
+    grid-template-columns: 200px 180px 200px 200px auto;
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+
+.filters-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+    .btn-filter {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+    .btn-filter:hover {
+        background-color: #2563eb;
+    }
+
+    .btn-filter:hover {
+    background-color: #2563eb;
+}
+
+.btn-clear {
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: background-color 0.2s;
+}
+.btn-clear:hover {
+    background-color: #4b5563;
+    color: white;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filters-actions {
+        justify-content: stretch;
+    }
+    
+    .btn-filter,
+    .btn-clear {
+        flex: 1;
+        justify-content: center;
+    }
+}
     
 </style>
 
 <div class="p-6 bg-white rounded-lg shadow-md">
-    <h2 class="text-xl font-bold mb-4 text-[#203363]">Cierres de Caja Chica</h2>
+    <h2 class="text-xl font-bold mb-4 text-[#203363]">Lista de Cierres</h2>
+    <!-- Panel de Filtros -->
+    <div class="filters-panel">
+    <form method="GET" action="{{ route('petty-cash.index') }}">
+        <div class="filters-grid">
+            <!-- Filtro por Usuario/Cajero -->
+            <div class="filter-group">
+                <label for="user_id">Cajero</label>
+                <select id="user_id" name="user_id">
+                    <option value="">Todos los cajeros</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}" 
+                                {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                            {{ $user->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
+            <!-- Filtro por Estado -->
+            <div class="filter-group">
+                <label for="status">Estado</label>
+                <select id="status" name="status">
+                    <option value="">Todos los estados</option>
+                    <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Abierta</option>
+                    <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Cerrada</option>
+                </select>
+            </div>
+
+            <!-- Fecha desde -->
+            <div class="filter-group">
+                <label for="date_from">Fecha desde</label>
+                <input type="date" id="date_from" name="date_from" 
+                       value="{{ request('date_from') }}">
+            </div>
+
+            <!-- Fecha hasta -->
+            <div class="filter-group">
+                <label for="date_to">Fecha hasta</label>
+                <input type="date" id="date_to" name="date_to" 
+                       value="{{ request('date_to') }}">
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="filters-actions">
+                <button type="submit" class="btn-filter">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <a href="{{ route('petty-cash.index') }}" class="btn-clear">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </div>
+        </div>
+    </form>
+    </div>
     <!-- Mensajes de alerta -->
     @if (session('warning'))
         <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">

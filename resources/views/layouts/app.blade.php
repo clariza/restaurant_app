@@ -14,11 +14,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Toastify CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
      <!-- Estilos propios -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-   
-     @vite(['resources/js/app.js','resources/css/app.css'])
-
+    <link rel="stylesheet" href="/css/components/buttons.css">
+    <link rel="stylesheet" href="/css/components/filters.css">
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/components/payment-modal.css">
+    <link rel="stylesheet" href="/css/components/sidebar.css">
+    <link rel="stylesheet" href="/css/layouts/app.css">
+    <link rel="stylesheet" href="/css/layouts/login.css">
+    <link rel="stylesheet" href="/css/layouts/order-details.css">
+    <link rel="stylesheet" href="/css/utilities/animations.css">
+    <link rel="stylesheet" href="/css/utilities/utilities.css">
+    <link rel="stylesheet" href="/css/utilities/variables.css">
+    <link rel="stylesheet" href="/css/app.css">
+    
 </head>
 
 <body class="bg-[#fafafa]">
@@ -234,6 +245,7 @@
         </nav>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/app.js"></script> 
     @stack('scripts')
 </body>
 </html>

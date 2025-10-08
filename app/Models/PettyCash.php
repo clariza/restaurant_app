@@ -16,6 +16,7 @@ class PettyCash extends Model
         'date',
         'notes',
         'status',
+        'user_id', 
         'total_sales_cash', 
         'total_sales_qr',   
         'total_sales_card', 
@@ -27,12 +28,18 @@ class PettyCash extends Model
         'date' => 'date',
         'closed_at' => 'datetime',
     ];
-      // Relación con los gastos
-      public function expenses()
-      {
-          return $this->hasMany(Expense::class);
-      }
-      // En el modelo PettyCash
+     // Relación con el usuario (cajero)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Relación con los gastos
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+    // En el modelo PettyCash
     public function sales()
     {
         return $this->hasMany(Sale::class,'petty_cash_id');

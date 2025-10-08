@@ -1,4 +1,4 @@
-import './bootstrap';
+// import '../../resources/js/bootstrap';
 
 console.log('app.js cargado'); 
 
@@ -282,6 +282,7 @@ window.addEventListener('load', function() {
 
 // Exponer función handleLogout globalmente si es necesaria
 window.handleLogout = handleLogout;// Inicializar cuando el DOM esté listo
+window.initializeApp = initializeApp;
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
