@@ -5,6 +5,7 @@ use App\Models\MenuItem;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
+use Illuminate\Support\Facades\Storage;
 class ItemsController extends Controller
 {
     /**
@@ -40,17 +41,37 @@ class ItemsController extends Controller
              'name' => 'required|string',
              'description' => 'nullable|string',
              'price' => 'required|numeric',
-             'image' => 'nullable|string',
+             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|url|max:500',
              'category_id' => 'required|exists:categories,id',
          ]);
  
-         $data = $request->all();
-         if ($request->hasFile('image')) {
-             $data['image'] = $request->file('image')->store('items', 'public');
-         }
- 
-         MenuItem::create($data);
-         return redirect()->route('items.index')->with('success', 'Producto creado correctamente.');
+         $data = $request->only([
+            'name',
+            'description',
+            'price',
+            'category_id',
+        ]);
+        
+        $imagePath = null;
+
+        if ($request->hasFile('image_file')) {
+            $imagePath = $request->file('image_file')->store('items', 'public');
+        } 
+        // Si no hay archivo, usar URL
+        elseif ($request->filled('image_url')) {
+            $imagePath = $request->image_url;
+        }
+
+        
+        $data['image'] = $imagePath;
+
+        // Convertir manage_inventory a booleano
+        $data['manage_inventory'] = $request->has('manage_inventory') ? true : false;
+
+        MenuItem::create($data);
+        
+        return redirect()->route('items.index')->with('success', 'Producto creado correctamente.');
      }
 
    // Mostrar detalles de un producto
@@ -76,15 +97,46 @@ class ItemsController extends Controller
            'price' => 'required|numeric',
            'image' => 'nullable|string',
            'category_id' => 'required|exists:categories,id',
+           'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+           'image_url' => 'nullable|url|max:500',
        ]);
 
-       $data = $request->all();
-       if ($request->hasFile('image')) {
-           $data['image'] = $request->file('image')->store('items', 'public');
+        $data = $request->only([
+           'name',
+           'description',
+           'price',
+           'category_id',
+       ]);
+
+          // Manejo de la imagen
+       $imagePath = $item->image; // Mantener imagen actual por defecto
+       
+       // Si se subió un nuevo archivo
+       if ($request->hasFile('image_file')) {
+           // Eliminar imagen anterior si era un archivo local
+           if ($item->image && !filter_var($item->image, FILTER_VALIDATE_URL)) {
+               Storage::disk('public')->delete($item->image);
+           }
+           $imagePath = $request->file('image_file')->store('items', 'public');
+       } 
+       // Si se proporcionó una nueva URL
+       elseif ($request->filled('image_url')) {
+           // Eliminar imagen anterior si era un archivo local
+           if ($item->image && !filter_var($item->image, FILTER_VALIDATE_URL)) {
+               Storage::disk('public')->delete($item->image);
+           }
+           $imagePath = $request->image_url;
        }
 
+       $data['image'] = $imagePath;
+
+       // Convertir manage_inventory a booleano
+       $data['manage_inventory'] = $request->has('manage_inventory') ? true : false;
+
        $item->update($data);
+       
        return redirect()->route('items.index')->with('success', 'Producto actualizado correctamente.');
+       
    }
 
    public function search(Request $request)
@@ -108,10 +160,16 @@ class ItemsController extends Controller
         }));
     }
 
-   // Eliminar un producto
+ 
    public function destroy(MenuItem $item)
    {
+         // Eliminar imagen si es un archivo local
+       if ($item->image && !filter_var($item->image, FILTER_VALIDATE_URL)) {
+           Storage::disk('public')->delete($item->image);
+       }
+       
        $item->delete();
+       
        return redirect()->route('items.index')->with('success', 'Producto eliminado correctamente.');
    }
 }

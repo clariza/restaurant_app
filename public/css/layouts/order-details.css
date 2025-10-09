@@ -1,0 +1,213 @@
+/* Estilos para el panel de orden */
+#order-panel {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+#order-panel.locked {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.locked .btn-action {
+    background-color: #cccccc !important;
+    cursor: not-allowed;
+}
+
+/* Tipos de pedido */
+.order-type-btn {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.order-type-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+/* Contenedor scroll */
+.scroll-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#order-details {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-bottom: 12px;
+}
+
+/* Detalles de items */
+.order-item {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8fafc;
+    border-radius: 0.375rem;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Notas */
+.notes-container {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.notes-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--table-data-color);
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.notes-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    outline: none;
+    background-color: white;
+    resize: vertical;
+}
+
+.notes-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(32, 51, 99, 0.1);
+}
+
+.notes-counter {
+    font-size: 0.75rem;
+    color: #718096;
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+.notes-examples {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-top: 0.25rem;
+}
+
+.notes-examples span {
+    display: inline-block;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.notes-examples span:hover {
+    color: var(--primary-color);
+}
+
+/* Botones */
+.buttons-container {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    background: white;
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Configuración de mesa */
+.table-config-link {
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.table-config-link:hover {
+    text-decoration: none;
+}
+
+/* Estados de mesa */
+.state-available {
+    color: #10B981;
+}
+
+.state-unavailable {
+    color: #EF4444;
+}
+
+.state-occupied {
+    color: #F59E0B;
+}
+
+.state-reserved {
+    color: #8B5CF6;
+}
+
+/* Botón cambiar estado de todas las mesas */
+#change-all-tables-availability {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+#change-all-tables-availability:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+    transform: translateY(-1px);
+}
+
+#change-all-tables-availability:active {
+    transform: translateY(0);
+    background-color: #fde8e8;
+}
+
+#change-all-tables-availability:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background-color: #fef2f2;
+    color: #fca5a5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #order-panel {
+        position: relative;
+        height: 70vh;
+        width: 100%;
+    }
+    
+    .buttons-container {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 0.75rem 0;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+    
+    #order-details {
+        max-height: 40vh;
+    }
+    
+    .table-config-link {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}

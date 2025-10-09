@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            //
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->boolean('manage_inventory')->default(false)->after('stock_unit');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            //
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->dropColumn('manage_inventory');
         });
     }
 };

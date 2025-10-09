@@ -212,11 +212,11 @@
 
                             <!-- Botón "Agregar" -->
                             <button onclick="addToOrder({{ json_encode([
-        'id' => $item->id,
-        'name' => $item->name,
-        'price' => $item->price,
-        'stock' => $item->stock,
-        'stock_type' => $item->stock_type,
+                                'id' => $item->id,
+                                'name' => $item->name,
+                                'price' => $item->price,
+                                'stock' => $item->stock,
+                            'stock_type' => $item->stock_type,
         'stock_unit' => $item->stock_unit,
         'min_stock' => $item->min_stock,
         'manage_inventory' => $item->manage_inventory
@@ -1130,60 +1130,10 @@ function addToOrder(item) {
 
             // Actualizar la vista de order-details
             updateOrderDetails();
-            showOrderPanel();
+            //showOrderPanel();
         }
 
-        // Función para actualizar la vista de order-details
-        function updateOrderDetails() {
-            const order = JSON.parse(localStorage.getItem('order')) || [];
-            const orderDetails = document.getElementById('order-details');
 
-            if (orderDetails) {
-                // Limpiar el contenido actual
-                orderDetails.innerHTML = '';
-
-                // Agregar cada ítem al pedido
-                order.forEach(item => {
-                    // Convertir item.price a número si es una cadena
-                    const price = parseFloat(item.price);
-
-                    const itemElement = document.createElement('div');
-                    itemElement.className = 'flex justify-between items-center mb-2';
-                    itemElement.innerHTML = `
-                        <p>${item.name} (x${item.quantity})</p>
-                        <p>$${(price * item.quantity).toFixed(2)}</p>
-                    `;
-                    orderDetails.appendChild(itemElement);
-                });
-
-                // Calcular y mostrar el subtotal, impuesto y total
-                const subtotal = order.reduce((sum, item) => {
-                    const price = parseFloat(item.price); // Convertir item.price a número
-                    return sum + price * item.quantity;
-                }, 0);
-
-                const taxRate = 0.10; // 10% de impuesto
-                const tax = subtotal * taxRate;
-                const total = subtotal + tax;
-
-                const totalsElement = document.createElement('div');
-                totalsElement.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <p>Subtotal</p>
-                        <p>$${subtotal.toFixed(2)}</p>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <p>Impuesto</p>
-                        <p>$${tax.toFixed(2)}</p>
-                    </div>
-                    <div class="flex justify-between items-center font-bold text-lg text-[#203363]">
-                        <p>Total</p>
-                        <p>$${total.toFixed(2)}</p>
-                    </div>
-                `;
-                orderDetails.appendChild(totalsElement);
-            }
-        }
         function goBack() {
         // Aquí puedes implementar la lógica para volver atrás
         // Por ejemplo, recargar la página del menú:

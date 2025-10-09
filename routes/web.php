@@ -110,8 +110,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
          ->name('tables.stats');
 });
 
-// Rutas para Table
-Route::resource('tables', TableController::class);
 
 // Rutas para Producto (MenuItem)
 Route::resource('items', ItemsController::class);
@@ -154,7 +152,7 @@ Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'conver
     ->middleware('auth')
     ->name('proformas.convert');
 // Agrega esta ruta
-Route::get('/menu/available', [TableController::class, 'available'])->name('tables.available');
+Route::get('/tables/available', [TableController::class, 'available'])->name('tables.available');
 Route::post('/tables/{table}/state', [TableController::class, 'updateState'])
     ->name('tables.update-state');
 Route::post('/settings/update', [SettingController::class, 'update'])->name('settings.update');
@@ -169,3 +167,6 @@ Route::post('/check-stock', [SaleController::class, 'checkStock']);
 // Rutas para el cambio de estado de mesas
 Route::post('/tables/{id}/change-availability', [TableController::class, 'changeAvailability'])->name('tables.change-availability');
 Route::get('/tables/{id}/status', [TableController::class, 'getTableStatus'])->name('tables.status');
+
+// Rutas para Table
+Route::resource('tables', TableController::class);

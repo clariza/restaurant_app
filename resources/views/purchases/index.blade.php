@@ -33,59 +33,6 @@
             <!-- <span class="absolute bottom-0 left-0 w-10 h-1 bg-[var(--primary-color)] rounded"></span> -->
         </h1>
     </div>
-    
-    <div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-md p-6 w-full max-w-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold text-[var(--primary-color)]">Crear Producto</h1>
-                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addProductForm" action="{{ route('purchases.store') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-lg">
-                @csrf
-                <div class="mb-4">
-                    <label for="modal-name" class="block text-sm font-medium text-[var(--table-data-color)]">Nombre <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="modal-name" required
-                           class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm">
-                </div>
-                <div class="mb-4">
-                    <label for="modal-description" class="block text-sm font-medium text-[var(--table-data-color)]">Descripción</label>
-                    <textarea name="description" id="modal-description"
-                              class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="modal-price" class="block text-sm font-medium text-[var(--table-data-color)]">Precio <span class="text-red-500">*</span></label>
-                    <input type="number" step="0.01" name="price" id="modal-price" required
-                           class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm">
-                </div>
-                <div class="mb-4">
-                    <label for="modal-category_id" class="block text-sm font-medium text-[var(--table-data-color)]">Categoría <span class="text-red-500">*</span></label>
-                    <select name="category_id" id="modal-category_id" required
-                            class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm">
-                        <option value="">Seleccione una categoría</option>
-                        @foreach($categorias as $categoria)
-                            <option value="{{ $categoria->id }}">{{ $categoria->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="modal-image" class="block text-sm font-medium text-[var(--table-data-color)]">Imagen</label>
-                    <input type="text" name="modal-image" id="modal-name" required
-                           class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm">
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" id="cancelAddProduct" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition duration-200">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg hover:bg-[var(--secondary-color)] transition duration-200">
-                        <i class="fas fa-save mr-2"></i>Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
   
     <!-- Formulario de compra -->
     <form action="{{ route('purchases.store') }}" method="POST" id="purchase-form" class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)] p-6">
@@ -145,9 +92,6 @@
         <!-- Sección de productos -->
         <div class="border border-[var(--primary-color)] rounded-md p-4 mb-6">
             <div class="flex flex-col md:flex-row items-center md:items-stretch justify-between gap-4 mb-4">
-                <button type="button" class="bg-[var(--primary-color)] hover:bg-[var(--primary-light)] text-white text-sm font-normal px-4 py-2 rounded transition duration-200">
-                    Importar productos
-                </button>
                 <div class="flex items-center border border-[var(--gray-light)] rounded flex-grow max-w-lg relative" id="search-container">
     <button type="button" class="px-3 text-[var(--text-light)] hover:text-[var(--text-color)] focus:outline-none transition duration-200">
         <i class="fas fa-search"></i>
@@ -157,10 +101,10 @@
        autocomplete="off">
     <div id="search-results" class="absolute z-20 top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md hidden max-h-60 overflow-y-auto border border-gray-200"></div>
 </div>
-                <button type="button" id="add-new-product-btn" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] text-sm font-normal flex items-center space-x-1 transition duration-200">
+                <a href="{{ route('items.create') }}" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] text-sm font-normal flex items-center space-x-1 transition duration-200">
                     <i class="fas fa-plus"></i>
                     <span>Agregar nuevo producto</span>
-                </button>
+                </a>
             </div>
 
             <table class="w-full border-collapse border border-[var(--gray-light)] text-xs text-white mb-4">

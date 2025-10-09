@@ -1,25 +1,3 @@
-@import './utilities/variables.css';
-@import './utilities/animations.css';
-@import './utilities/utilities.css';
-
-/* Componentes */
-
-@import './components/sidebar.css';
-@import './components/header.css';
-@import './components/filters.css';
-@import './components/payment-modal.css';
-
-/* Layouts */
-@import './layouts/app.css';
-@import './layouts/login.css';
-@import './layouts/order-details.css';
-
-
-/* ---- Tailwind después de imports ---- */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Utilidades personalizadas de Tailwind */
 @layer utilities {
   .text-shadow {
