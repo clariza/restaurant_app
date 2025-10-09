@@ -806,7 +806,7 @@
                     <!-- Notas para Recoger (solo para "Recoger") -->
                     <div class="delivery-selection hidden" id="modal-pickup-notes">
                         <h4>
-                           <i class="fas fa-clipboard"></i>
+                                                        <i class="fas fa-clipboard"></i>
                             Notas del Pedido
                         </h4>
                         <textarea 
@@ -871,7 +871,6 @@
 
         // Funciones básicas del modal
         function openPaymentModal() {
-  
             console.log('🚀 Abriendo modal de pagos...');
 
             const modal = document.getElementById('payment-modal');
@@ -907,47 +906,45 @@
             }
         }
 
-        // function updateModalSectionsVisibility() {
-          
-        //     const tableSelection = document.getElementById('modal-table-selection');
-        //     const deliverySelection = document.getElementById('modal-delivery-selection');
-        //     const pickupNotes = document.getElementById('modal-pickup-notes');
+        function updateModalSectionsVisibility() {
+            const tableSelection = document.getElementById('modal-table-selection');
+            const deliverySelection = document.getElementById('modal-delivery-selection');
+            const pickupNotes = document.getElementById('modal-pickup-notes');
             
-        //     console.log('🔄 Actualizando visibilidad en modal, tipo:', window.paymentModalState.selectedOrderType);
+            console.log('🔄 Actualizando visibilidad en modal, tipo:', window.paymentModalState.selectedOrderType);
             
-        //     // Ocultar todas las secciones primero
-        //     if (tableSelection) tableSelection.classList.add('hidden');
-        //     if (deliverySelection) deliverySelection.classList.add('hidden');
-        //     if (pickupNotes) pickupNotes.classList.add('hidden');
+            // Ocultar todas las secciones primero
+            if (tableSelection) tableSelection.classList.add('hidden');
+            if (deliverySelection) deliverySelection.classList.add('hidden');
+            if (pickupNotes) pickupNotes.classList.add('hidden');
             
-        //     // Mostrar secciones según el tipo de pedido
-        //     switch(window.paymentModalState.selectedOrderType) {
-        //         case 'comer-aqui':
-        //             if (tableSelection) {
-        //                 console.log('✅ Mostrando selección de mesas en modal');
-        //                 tableSelection.classList.remove('hidden');
-        //                 loadModalTables();
-        //             }
-        //             break;
+            // Mostrar secciones según el tipo de pedido
+            switch(window.paymentModalState.selectedOrderType) {
+                case 'comer-aqui':
+                    if (tableSelection) {
+                        console.log('✅ Mostrando selección de mesas en modal');
+                        tableSelection.classList.remove('hidden');
+                        loadModalTables();
+                    }
+                    break;
                     
-        //         case 'para-llevar':
-        //             console.log('Para llevar');
-        //             if (deliverySelection) {
-        //                 console.log('✅ Mostrando selección de delivery en modal');
-        //                 deliverySelection.classList.remove('hidden');
-        //                 loadDeliveryServices();
-        //             }
-        //             break;
+                case 'para-llevar':
+                    if (deliverySelection) {
+                        console.log('✅ Mostrando selección de delivery en modal');
+                        deliverySelection.classList.remove('hidden');
+                        loadDeliveryServices();
+                    }
+                    break;
                     
-        //         case 'recoger':
-        //             if (pickupNotes) {
-        //                 console.log('✅ Mostrando notas para recoger en modal');
-        //                 pickupNotes.classList.remove('hidden');
-        //                 loadPickupNotes();
-        //             }
-        //             break;
-        //     }
-        // }
+                case 'recoger':
+                    if (pickupNotes) {
+                        console.log('✅ Mostrando notas para recoger en modal');
+                        pickupNotes.classList.remove('hidden');
+                        loadPickupNotes();
+                    }
+                    break;
+            }
+        }
         
         function updateTableSelectionVisibility() {
             const tableSelection = document.getElementById('table-selection');
