@@ -170,3 +170,6 @@ Route::get('/tables/{id}/status', [TableController::class, 'getTableStatus'])->n
 
 // Rutas para Table
 Route::resource('tables', TableController::class);
+// Rutas de mesas
+Route::post('/tables/bulk-state', [TableController::class, 'bulkChangeState'])->name('tables.bulk-state');
+Route::get('/tables/stats', [TableController::class, 'getTablesStats'])->name('tables.stats');
