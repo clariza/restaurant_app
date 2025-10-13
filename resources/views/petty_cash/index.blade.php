@@ -11,42 +11,42 @@
         gap: 4px;
         transition: all 0.2s ease;
     }
-    
+
     .btn-view {
         background-color: #3b82f6;
         color: white;
         border: 1px solid #2563eb;
     }
-    
+
     .btn-edit {
         background-color: #10b981;
         color: white;
         border: 1px solid #059669;
     }
-    
+
     .btn-delete {
         background-color: #ef4444;
         color: white;
         border: 1px solid #dc2626;
     }
-    
+
     .btn-close {
         background-color: #8b5cf6;
         color: white;
         border: 1px solid #7c3aed;
     }
-    
+
     .btn-print {
         background-color: #6b7280;
         color: white;
         border: 1px solid #4b5563;
     }
-    
+
     .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Resto de estilos... */
     .input-group {
         display: flex;
@@ -54,20 +54,21 @@
         align-items: flex-start;
         width: 100%;
     }
+
     .input-group label {
-    font-size: 0.875rem;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
 
-.input-group input {
-    padding: 0.75rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-}
+    .input-group input {
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
 
-   /* Estilos mejorados para el modal */
+    /* Estilos mejorados para el modal */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -91,32 +92,38 @@
 
     .modal-container {
         background-color: white;
-        border-radius: 0.75rem; /* Bordes más redondeados */
+        border-radius: 0.75rem;
+        /* Bordes más redondeados */
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         width: 90%;
-        max-width: 900px; /* Un poco más ancho */
+        max-width: 900px;
+        /* Un poco más ancho */
         max-height: 90vh;
         overflow-y: auto;
         transform: translateY(20px);
         transition: transform 0.3s ease;
-        padding: 2rem; /* Padding interno general */
+        padding: 2rem;
+        /* Padding interno general */
     }
 
     .modal-overlay.active .modal-container {
         transform: translateY(0);
     }
 
-       .modal-header {
-        padding: 1.5rem 0; /* Más espacio en el header */
+    .modal-header {
+        padding: 1.5rem 0;
+        /* Más espacio en el header */
         border-bottom: 1px solid #e5e7eb;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem; /* Separación del contenido */
+        margin-bottom: 1.5rem;
+        /* Separación del contenido */
     }
 
     .modal-title {
-        font-size: 1.5rem; /* Título más grande */
+        font-size: 1.5rem;
+        /* Título más grande */
         font-weight: 600;
         color: #1f2937;
     }
@@ -124,7 +131,8 @@
     .modal-close {
         background: none;
         border: none;
-        font-size: 1.75rem; /* Icono de cerrar más grande */
+        font-size: 1.75rem;
+        /* Icono de cerrar más grande */
         color: #6b7280;
         cursor: pointer;
         transition: color 0.2s;
@@ -139,75 +147,86 @@
     .modal-content {
         display: flex;
         flex-direction: column;
-        gap: 2rem; /* Más espacio entre secciones */
+        gap: 2rem;
+        /* Más espacio entre secciones */
     }
+
     .closure-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
     }
+
     .section-container {
         padding: 1.5rem;
-    background-color: #f8fafc;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 1rem;
-}
-.denominations-section {
-    display: flex;
-    flex-direction: column;
-}
-.denomination-input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.25rem;
-    text-align: center;
-}
-.total-row {
-    background-color: #f1f5f9;
-    font-weight: 500;
-}
-.table-container {
-    overflow-x: auto;
-}
-.denominations-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+        background-color: #f8fafc;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
 
-.denominations-table th {
-    background-color: #f1f5f9;
-    padding: 0.75rem;
-    font-weight: 500;
-    color: #334155;
-}
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
 
-.denominations-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
-}
+    .denominations-section {
+        display: flex;
+        flex-direction: column;
+    }
 
-.denominations-table tr:last-child td {
-    border-bottom: none;
-}
-.closure-form-section {
-    display: flex;
-    flex-direction: column;
-}
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
+    .denomination-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.25rem;
+        text-align: center;
+    }
+
+    .total-row {
+        background-color: #f1f5f9;
+        font-weight: 500;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .denominations-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .denominations-table th {
+        background-color: #f1f5f9;
+        padding: 0.75rem;
+        font-weight: 500;
+        color: #334155;
+    }
+
+    .denominations-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .denominations-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .closure-form-section {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
 
     .modal-grid {
         display: grid;
@@ -215,7 +234,7 @@
         gap: 1.5rem;
     }
 
-      /* Estilos mejorados para la sección de gastos */
+    /* Estilos mejorados para la sección de gastos */
     .expenses-section {
         margin-bottom: 1.5rem;
     }
@@ -226,10 +245,13 @@
         align-items: center;
         margin-bottom: 0.5rem;
     }
+
     .expense-actions {
-    flex: 0 0 auto;
-    width: 40px; /* Ancho fijo para el botón de eliminar */
+        flex: 0 0 auto;
+        width: 40px;
+        /* Ancho fijo para el botón de eliminar */
     }
+
     .expenses-container {
         display: flex;
         flex-direction: column;
@@ -237,16 +259,18 @@
     }
 
     .expense-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-    width: 100%;
-}
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        width: 100%;
+    }
+
     .expense-field {
-    flex: 1;
-    min-width: 0; /* Previene que los campos se salgan del contenedor */
-}
+        flex: 1;
+        min-width: 0;
+        /* Previene que los campos se salgan del contenedor */
+    }
 
     .expense-input-container {
         flex: 1;
@@ -254,32 +278,34 @@
     }
 
     .expense-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-.form-actions {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: flex-end;
-}
-.save-btn {
-    background-color: #10b981;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
 
-.save-btn:hover {
-    background-color: #059669;
-}
+    .form-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .save-btn {
+        background-color: #10b981;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .save-btn:hover {
+        background-color: #059669;
+    }
 
     .expense-input:focus {
         outline: none;
@@ -303,22 +329,22 @@
     }
 
     .remove-expense-btn {
-    background-color: #fee2e2;
-    color: #dc2626;
-    border: none;
-    border-radius: 4px;
-    padding: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 36px;
-    width: 36px;
-    transition: background-color 0.2s;
-}
+        background-color: #fee2e2;
+        color: #dc2626;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        width: 36px;
+        transition: background-color 0.2s;
+    }
 
     .remove-expense-btn:hover {
-    background-color: #fecaca;
+        background-color: #fecaca;
     }
 
     /* Estilos minimalistas para el modal */
@@ -480,301 +506,488 @@
     }
 
     .denomination-input {
-    width: 70px;
-    text-align: center;
-}
+        width: 70px;
+        text-align: center;
+    }
 
-.expense-row {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    align-items: center;
-}
+    .expense-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        align-items: center;
+    }
 
-/* Asegurar que los inputs personalizados mantengan el estilo sm */
-.expense-input, .denomination-input {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    height: calc(1.5em + 0.5rem + 2px); /* Igual que Bootstrap sm */
-}
-/* Estilos para la sección de Conteo de Efectivo */
-.denominations-section .table-container {
-    margin-top: 0.5rem;
-}
-
-.denominations-table {
-    width: 100%;
-    font-size: 0.875rem; /* Tamaño sm */
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.denominations-table th {
-    background-color: #f8f9fa;
-    padding: 0.375rem 0.5rem; /* Padding sm */
-    font-weight: 500;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.denominations-table td {
-    padding: 0.375rem 0.5rem; /* Padding sm */
-    vertical-align: middle;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.denomination-input {
-    width: 70px;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem; /* Tamaño sm */
-    text-align: center;
-    height: calc(1.5em + 0.5rem + 2px); /* Altura sm de Bootstrap */
-    border: 1px solid #ced4da;
-    border-radius: 0.2rem;
-}
-
-.denominations-table .text-right {
-    text-align: right;
-}
-
-.total-row {
-    background-color: #f8f9fa;
-    font-weight: 500;
-}
-
-/* Estilos para la sección de Resumen de Cierre */
-.closure-form-section .input-group {
-    margin-bottom: 0.75rem;
-}
-
-.closure-form-section label {
-    font-size: 0.875rem; /* Tamaño sm */
-    color: #6c757d;
-    margin-bottom: 0.25rem;
-    display: block;
-}
-
-.closure-form-section .form-control {
-    font-size: 0.875rem; /* Tamaño sm */
-    padding: 0.25rem 0.5rem; /* Padding sm */
-    height: calc(1.5em + 0.5rem + 2px); /* Altura sm de Bootstrap */
-}
-
-.closure-form-section .form-control[readonly] {
-    background-color: #f8f9fa;
-}
-
-/* Estilos para los botones en el resumen */
-.form-actions {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.save-btn {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.875rem; /* Tamaño sm */
-}
-
-/* Estilos responsivos */
-@media (max-width: 768px) {
+    /* Asegurar que los inputs personalizados mantengan el estilo sm */
+    .expense-input,
     .denomination-input {
-        width: 60px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        height: calc(1.5em + 0.5rem + 2px);
+        /* Igual que Bootstrap sm */
     }
-    
-    .denominations-table th, 
+
+    /* Estilos para la sección de Conteo de Efectivo */
+    .denominations-section .table-container {
+        margin-top: 0.5rem;
+    }
+
+    .denominations-table {
+        width: 100%;
+        font-size: 0.875rem;
+        /* Tamaño sm */
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .denominations-table th {
+        background-color: #f8f9fa;
+        padding: 0.375rem 0.5rem;
+        /* Padding sm */
+        font-weight: 500;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
     .denominations-table td {
-        padding: 0.25rem 0.375rem;
+        padding: 0.375rem 0.5rem;
+        /* Padding sm */
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
     }
-}
 
-/* Ajustes para mantener consistencia con Bootstrap sm */
-.section-container {
-    padding: 1rem;
-}
+    .denomination-input {
+        width: 70px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        /* Tamaño sm */
+        text-align: center;
+        height: calc(1.5em + 0.5rem + 2px);
+        /* Altura sm de Bootstrap */
+        border: 1px solid #ced4da;
+        border-radius: 0.2rem;
+    }
 
-.section-title {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    margin-bottom: 0.75rem;
-    color: #495057;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 0.25rem;
-}
-  /* Estilos para el panel de filtros */
+    .denominations-table .text-right {
+        text-align: right;
+    }
+
+    .total-row {
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+
+    /* Estilos para la sección de Resumen de Cierre */
+    .closure-form-section .input-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .closure-form-section label {
+        font-size: 0.875rem;
+        /* Tamaño sm */
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .closure-form-section .form-control {
+        font-size: 0.875rem;
+        /* Tamaño sm */
+        padding: 0.25rem 0.5rem;
+        /* Padding sm */
+        height: calc(1.5em + 0.5rem + 2px);
+        /* Altura sm de Bootstrap */
+    }
+
+    .closure-form-section .form-control[readonly] {
+        background-color: #f8f9fa;
+    }
+
+    /* Estilos para los botones en el resumen */
+    .form-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .save-btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        /* Tamaño sm */
+    }
+
+    /* Estilos responsivos */
+    @media (max-width: 768px) {
+        .denomination-input {
+            width: 60px;
+        }
+
+        .denominations-table th,
+        .denominations-table td {
+            padding: 0.25rem 0.375rem;
+        }
+    }
+
+    /* Tablets pequeñas (hasta 768px) */
+    @media (max-width: 768px) {
+        .filters-panel {
+            padding: 1rem;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+            gap: 0.875rem;
+        }
+
+        .filters-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 0.625rem;
+        }
+
+        .btn-filter,
+        .btn-clear {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Móviles pequeños (hasta 480px) */
+    @media (max-width: 480px) {
+        .filters-panel {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters-grid {
+            gap: 0.75rem;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.4rem 0.625rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-filter,
+        .btn-clear {
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+        }
+    }
+
+    /* Asegurar que ningún elemento se desborde */
+    .filters-panel * {
+        box-sizing: border-box;
+    }
+
+    /* Animación suave al cargar */
     .filters-panel {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.filters-grid {
-    display: grid;
-    grid-template-columns: 200px 180px 200px 200px auto;
-    gap: 1rem;
-    align-items: end;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-group label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.25rem;
-}
-
-.filter-group select,
-.filter-group input {
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-}
-
-.filters-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-    .btn-filter {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: background-color 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-    .btn-filter:hover {
-        background-color: #2563eb;
+        animation: slideDown 0.3s ease-out;
     }
 
-    .btn-filter:hover {
-    background-color: #2563eb;
-}
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
 
-.btn-clear {
-    background-color: #6b7280;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    transition: background-color 0.2s;
-}
-.btn-clear:hover {
-    background-color: #4b5563;
-    color: white;
-}
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-/* Responsive para pantallas pequeñas */
-@media (max-width: 768px) {
+    .filter-group input:invalid {
+        border-color: #f87171;
+    }
+
+    /* Indicador de carga */
+    .btn-filter.loading {
+        position: relative;
+        pointer-events: none;
+    }
+
+    .btn-filter.loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .btn-filter:disabled,
+    .btn-clear:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Ajustes para mantener consistencia con Bootstrap sm */
+    .section-container {
+        padding: 1rem;
+    }
+
+    .section-title {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: #495057;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 0.25rem;
+    }
+
+    /* Estilos para el panel de filtros */
+    .filters-panel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
     .filters-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
+        align-items: end;
     }
-    
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+
+    .filter-group label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    /* Asegurar que los selects no se desborden */
+    .filter-group select {
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        background-color: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
     .filters-actions {
-        justify-content: stretch;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
     }
-    
+
+    /* Estilos para botones */
     .btn-filter,
     .btn-clear {
-        flex: 1;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        gap: 0.375rem;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        text-decoration: none;
+        box-sizing: border-box;
     }
-}
-    
+
+    .btn-filter {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+    .btn-filter:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-clear {
+        background-color: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-clear:hover {
+        background-color: #4b5563;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    }
+
+    /* Tablets grandes (hasta 1200px) */
+    @media (max-width: 1200px) {
+        .filters-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .filters-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    /* Tablets (hasta 1024px) */
+    @media (max-width: 1024px) {
+        .filters-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Responsive para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .filters-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .filters-actions {
+            justify-content: stretch;
+        }
+
+        .btn-filter,
+        .btn-clear {
+            flex: 1;
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="p-6 bg-white rounded-lg shadow-md">
     <h2 class="text-xl font-bold mb-4 text-[#203363]">Lista de Cierres</h2>
     <!-- Panel de Filtros -->
     <div class="filters-panel">
-    <form method="GET" action="{{ route('petty-cash.index') }}">
-        <div class="filters-grid">
-            <!-- Filtro por Usuario/Cajero -->
-            <div class="filter-group">
-                <label for="user_id">Cajero</label>
-                <select id="user_id" name="user_id">
-                    <option value="">Todos los cajeros</option>
-                    @foreach($users as $user)
-                        <option value="{{ $user->id }}" 
-                                {{ request('user_id') == $user->id ? 'selected' : '' }}>
+        <form method="GET" action="{{ route('petty-cash.index') }}" id="filtersForm">
+            <div class="filters-grid">
+                <!-- Filtro por Usuario/Cajero -->
+                <div class="filter-group">
+                    <label for="user_id">Cajero</label>
+                    <select id="user_id" name="user_id">
+                        <option value="">Todos los cajeros</option>
+                        @foreach($users as $user)
+                        <option value="{{ $user->id }}"
+                            {{ request('user_id') == $user->id ? 'selected' : '' }}>
                             {{ $user->name }}
                         </option>
-                    @endforeach
-                </select>
-            </div>
+                        @endforeach
+                    </select>
+                </div>
 
-            <!-- Filtro por Estado -->
-            <div class="filter-group">
-                <label for="status">Estado</label>
-                <select id="status" name="status">
-                    <option value="">Todos los estados</option>
-                    <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Abierta</option>
-                    <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Cerrada</option>
-                </select>
-            </div>
+                <!-- Filtro por Estado -->
+                <div class="filter-group">
+                    <label for="status">Estado</label>
+                    <select id="status" name="status">
+                        <option value="">Todos los estados</option>
+                        <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>
+                            Abierta
+                        </option>
+                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>
+                            Cerrada
+                        </option>
+                    </select>
+                </div>
 
-            <!-- Fecha desde -->
-            <div class="filter-group">
-                <label for="date_from">Fecha desde</label>
-                <input type="date" id="date_from" name="date_from" 
-                       value="{{ request('date_from') }}">
-            </div>
+                <!-- Fecha desde -->
+                <div class="filter-group">
+                    <label for="date_from">Fecha desde</label>
+                    <input type="date"
+                        id="date_from"
+                        name="date_from"
+                        value="{{ request('date_from') }}"
+                        max="{{ date('Y-m-d') }}">
+                </div>
 
-            <!-- Fecha hasta -->
-            <div class="filter-group">
-                <label for="date_to">Fecha hasta</label>
-                <input type="date" id="date_to" name="date_to" 
-                       value="{{ request('date_to') }}">
-            </div>
+                <!-- Fecha hasta -->
+                <div class="filter-group">
+                    <label for="date_to">Fecha hasta</label>
+                    <input type="date"
+                        id="date_to"
+                        name="date_to"
+                        value="{{ request('date_to') }}"
+                        max="{{ date('Y-m-d') }}">
+                </div>
 
-            <!-- Botones de acción -->
-            <div class="filters-actions">
-                <button type="submit" class="btn-filter">
-                    <i class="fas fa-filter"></i> Filtrar
-                </button>
-                <a href="{{ route('petty-cash.index') }}" class="btn-clear">
-                    <i class="fas fa-times"></i> Limpiar
-                </a>
+                <!-- Botones de acción -->
+                <div class="filters-actions">
+                    <button type="submit" class="btn-filter" id="btnFilter">
+                        <i class="fas fa-filter"></i>
+                        <span>Filtrar</span>
+                    </button>
+                    <a href="{{ route('petty-cash.index') }}" class="btn-clear">
+                        <i class="fas fa-times"></i>
+                        <span>Limpiar</span>
+                    </a>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
     </div>
     <!-- Mensajes de alerta -->
     @if (session('warning'))
-        <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('warning') }}</span>
-            <button onclick="closeOpenPettyCash()" class="ml-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
-                Cerrar caja abierta
-            </button>
-        </div>
+    <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{ session('warning') }}</span>
+        <button onclick="closeOpenPettyCash()" class="ml-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+            Cerrar caja abierta
+        </button>
+    </div>
     @endif
 
     @if (session('error'))
-        <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
+    <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{ session('error') }}</span>
+    </div>
     @endif
 
     <!-- Tabla de cierres -->
@@ -801,37 +1014,37 @@
                         </span>
                     </td>
                     <td class="p-2 text-left space-x-1">
-                        <a href="{{ route('petty-cash.show', $pettyCash) }}" 
-                           class="btn-action btn-view">
+                        <a href="{{ route('petty-cash.show', $pettyCash) }}"
+                            class="btn-action btn-view">
                             <i class="fas fa-eye"></i> Ver
                         </a>
-                        <a href="{{ route('petty-cash.edit', $pettyCash) }}" 
-                           class="btn-action btn-edit">
+                        <a href="{{ route('petty-cash.edit', $pettyCash) }}"
+                            class="btn-action btn-edit">
                             <i class="fas fa-edit"></i> Editar
                         </a>
                         <form action="{{ route('petty-cash.destroy', $pettyCash) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" 
-                                    class="btn-action btn-delete"
-                                    onclick="return confirm('¿Estás seguro de eliminar esta caja chica?')">
+                            <button type="submit"
+                                class="btn-action btn-delete"
+                                onclick="return confirm('¿Estás seguro de eliminar esta caja chica?')">
                                 <i class="fas fa-trash"></i> Eliminar
                             </button>
                         </form>
                         @if ($pettyCash->status === 'open')
-                            <button onclick="openModal('{{ $pettyCash->id }}')" 
-                                    class="btn-action btn-close">
-                                <i class="fas fa-lock"></i> Cerrar
-                            </button>
+                        <button onclick="openModal('{{ $pettyCash->id }}')"
+                            class="btn-action btn-close">
+                            <i class="fas fa-lock"></i> Cerrar
+                        </button>
                         @endif
                     </td>
                     <td class="p-2 text-left">
                         @if ($pettyCash->status === 'closed')
-                            <a href="{{ route('petty-cash.print', $pettyCash) }}" 
-                               target="_blank"
-                               class="btn-action btn-print">
-                                <i class="fas fa-print"></i> PDF
-                            </a>
+                        <a href="{{ route('petty-cash.print', $pettyCash) }}"
+                            target="_blank"
+                            class="btn-action btn-print">
+                            <i class="fas fa-print"></i> PDF
+                        </a>
                         @endif
                     </td>
                 </tr>
@@ -858,30 +1071,30 @@
             <div class="expenses-section">
                 <div class="expenses-header">
                     <h4 class="font-medium">Registro de Gastos</h4>
-                    
-<button type="button" class="btn btn-secondary btn-sm add-expense-btn">
-    <i class="fas fa-plus mr-1"></i> Agregar Gasto
-</button>
+
+                    <button type="button" class="btn btn-secondary btn-sm add-expense-btn">
+                        <i class="fas fa-plus mr-1"></i> Agregar Gasto
+                    </button>
                 </div>
-                
+
                 <div class="expenses-container" id="expensesContainer">
                     <!-- Fila de gasto inicial -->
                     <div class="expense-row">
-<div class="expense-field">
-    <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-</div>
-<div class="expense-field">
-        <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-    </div>
-    <div class="expense-field">
-        <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
-    </div>
-    <div class="expense-actions">
-        <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
-            <i class="fas fa-trash"></i>
-        </button>
-    </div>
-</div>
+                        <div class="expense-field">
+                            <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
+                        </div>
+                        <div class="expense-field">
+                            <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
+                        </div>
+                        <div class="expense-field">
+                            <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
+                        </div>
+                        <div class="expense-actions">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -905,8 +1118,8 @@
                                     <tr>
                                         <td class="text-left">${{ number_format($denominacion, 2) }}</td>
                                         <td>
-                                            <input type="number" min="0" class="form-control form-control-sm denomination-input" 
-           data-denominacion="{{ $denominacion }}" placeholder="0">
+                                            <input type="number" min="0" class="form-control form-control-sm denomination-input"
+                                                data-denominacion="{{ $denominacion }}" placeholder="0">
                                         </td>
                                         <td class="text-right">
                                             <span class="subtotal">$0.00</span>
@@ -931,32 +1144,32 @@
                         <h4 class="section-title">Resumen de Cierre</h4>
                         <div class="form-grid">
                             <div class="input-group mb-2">
-    <label for="total-gastos" class="small">Total Gastos</label>
-    <input type="number" id="total-gastos" class="form-control form-control-sm" 
-           value="0" step="0.01" readonly>
-</div>
+                                <label for="total-gastos" class="small">Total Gastos</label>
+                                <input type="number" id="total-gastos" class="form-control form-control-sm"
+                                    value="0" step="0.01" readonly>
+                            </div>
 
-<div class="input-group mb-2">
-    <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
-    <input type="number" id="ventas-efectivo" class="form-control form-control-sm" 
-           value="0" step="0.01" readonly>
-</div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
+                                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
+                                    value="0" step="0.01" readonly>
+                            </div>
 
-<div class="input-group mb-2">
-    <label for="ventas-qr" class="small">Ventas QR</label>
-    <input type="number" id="ventas-qr" class="form-control form-control-sm" 
-           value="{{ $totalSalesQR }}" step="0.01">
-</div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-qr" class="small">Ventas QR</label>
+                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                                    value="{{ $totalSalesQR }}" step="0.01">
+                            </div>
 
-<div class="input-group mb-2">
-    <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
-    <input type="number" id="ventas-tarjeta" class="form-control form-control-sm" 
-           value="{{ $totalSalesCard }}" step="0.01">
-</div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
+                                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
+                                    value="{{ $totalSalesCard }}" step="0.01">
+                            </div>
                             <div class="form-actions">
                                 <button type="button" class="btn btn-primary btn-sm save-btn">
-    <i class="fas fa-save mr-1"></i> Guardar Cierre
-</button>
+                                    <i class="fas fa-save mr-1"></i> Guardar Cierre
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -978,12 +1191,12 @@
 </form>
 
 <script>
-   // Función para abrir el modal con el ID correcto
+    // Función para abrir el modal con el ID correcto
     function openModal(id) {
         const modal = document.getElementById('modal');
         modal.classList.add('active');
         document.getElementById('petty_cash_id').value = id;
-        
+
         // Resetear los inputs al abrir el modal
         document.querySelectorAll('.contar-input').forEach(input => {
             input.value = '';
@@ -994,7 +1207,7 @@
         document.getElementById('total').textContent = '$0.00';
         document.getElementById('ventas-efectivo').value = '0';
         document.getElementById('total-gastos').value = '0';
-        
+
         // Limpiar gastos excepto el primero
         const expensesContainer = document.getElementById('expensesContainer');
         while (expensesContainer.children.length > 1) {
@@ -1010,7 +1223,7 @@
     // Función para agregar nuevo gasto en fila
     function addExpense() {
         const expensesContainer = document.getElementById('expensesContainer');
-        
+
         const newExpenseRow = document.createElement('div');
         newExpenseRow.className = 'expense-row';
         newExpenseRow.innerHTML = `
@@ -1027,7 +1240,7 @@
                 <i class="fas fa-trash"></i>
             </button>
         `;
-        
+
         expensesContainer.appendChild(newExpenseRow);
     }
 
@@ -1058,13 +1271,13 @@
             const denominacion = parseFloat(input.getAttribute('data-denominacion'));
             const cantidad = parseFloat(input.value) || 0;
             const subtotal = denominacion * cantidad;
-            
+
             const subtotalElement = input.closest('tr').querySelector('.subtotal');
             subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-            
+
             total += subtotal;
         });
-        
+
         document.getElementById('total').textContent = `$${total.toFixed(2)}`;
         document.getElementById('ventas-efectivo').value = total.toFixed(2);
         document.getElementById('total_sales_cash').value = total.toFixed(2);
@@ -1082,11 +1295,11 @@
     }
 
     function addExpense() {
-    const expensesContainer = document.getElementById('expensesContainer');
-    
-    const newExpenseRow = document.createElement('div');
-    newExpenseRow.className = 'expense-row';
-    newExpenseRow.innerHTML = `
+        const expensesContainer = document.getElementById('expensesContainer');
+
+        const newExpenseRow = document.createElement('div');
+        newExpenseRow.className = 'expense-row';
+        newExpenseRow.innerHTML = `
         <div class="expense-field">
             <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
         </div>
@@ -1103,9 +1316,9 @@
             </button>
         </div>
     `;
-    
-    expensesContainer.appendChild(newExpenseRow);
-}
+
+        expensesContainer.appendChild(newExpenseRow);
+    }
 
     // Eliminar gasto
     function removeExpense(button) {
@@ -1151,7 +1364,7 @@
             const name = card.querySelector('input[name="expense_name[]"]').value;
             const description = card.querySelector('input[name="expense_description[]"]').value;
             const amount = card.querySelector('input[name="expense_amount[]"]').value;
-            
+
             if (name && amount) {
                 expenses.push({
                     name: name,
@@ -1169,59 +1382,59 @@
 
         // Enviar el formulario
         fetch("{{ route('petty-cash.save-closure') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                petty_cash_id: pettyCashId,
-                total_sales_cash: totalSalesCash,
-                total_sales_qr: totalSalesQR,
-                total_sales_card: totalSalesCard,
-                total_expenses: totalExpenses,
-                expenses: expenses
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    petty_cash_id: pettyCashId,
+                    total_sales_cash: totalSalesCash,
+                    total_sales_qr: totalSalesQR,
+                    total_sales_card: totalSalesCard,
+                    total_expenses: totalExpenses,
+                    expenses: expenses
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Cierre guardado correctamente');
-                window.location.reload();
-            } else {
-                alert('Error: ' + (data.message || 'No se pudo guardar el cierre'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al enviar el formulario');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Cierre guardado correctamente');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo guardar el cierre'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al enviar el formulario');
+            });
     }
 
     // Cerrar todas las cajas abiertas
     function closeOpenPettyCash() {
         if (confirm('¿Estás seguro de cerrar todas las cajas chicas abiertas?')) {
             fetch("{{ route('petty-cash.close-all-open') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + (data.message || 'No se pudieron cerrar las cajas'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al cerrar las cajas');
-            });
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'No se pudieron cerrar las cajas'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cerrar las cajas');
+                });
         }
     }
 
@@ -1230,7 +1443,7 @@
         document.querySelectorAll('.contar-input').forEach(input => {
             input.addEventListener('input', calcularTotal);
         });
-        
+
         // Escuchar cambios en los inputs de gastos
         document.addEventListener('input', function(e) {
             if (e.target && e.target.matches('input[name="expense_amount[]"]')) {
