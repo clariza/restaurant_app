@@ -301,7 +301,133 @@ window.addEventListener('load', function() {
 
 // Exponer función handleLogout globalmente si es necesaria
 window.handleLogout = handleLogout;
-
+// Manejo del menú móvil
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+    
+    // Toggle del menú móvil
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (window.innerWidth < 768) {
+                // Para móviles, usar el mobile-menu
+                if (mobileMenu) {
+                    mobileMenu.classList.toggle('show');
+                    if (mobileOverlay) {
+                        mobileOverlay.classList.toggle('active');
+                    }
+                }
+                // También toggle del sidebar normal por si acaso
+                if (sidebar) {
+                    sidebar.classList.toggle('show');
+                }
+            } else {
+                // Para tablets, usar el sidebar
+                if (sidebar) {
+                    sidebar.classList.toggle('show');
+                }
+            }
+        });
+    }
+    
+    // Cerrar menú al hacer click en el overlay
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', function() {
+            if (mobileMenu) {
+                mobileMenu.classList.remove('show');
+            }
+            if (sidebar) {
+                sidebar.classList.remove('show');
+            }
+            mobileOverlay.classList.remove('active');
+        });
+    }
+    
+    // Manejo de submenús
+    const menuToggles = document.querySelectorAll('.menu-toggle');
+    menuToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const menuType = this.getAttribute('data-menu');
+            const submenu = document.getElementById(`${menuType}-submenu`);
+            const arrow = this.querySelector('.arrow');
+            
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+                if (arrow) {
+                    arrow.classList.toggle('rotate-180');
+                }
+            }
+        });
+    });
+    
+    // Manejo del menú de usuario
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+    
+    if (userMenuButton && userMenu) {
+        userMenuButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+        
+        // Cerrar el menú al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (!userMenuButton.contains(e.target) && !userMenu.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Botones de agregar gasto
+    const addExpenseButtons = document.querySelectorAll('.add-expense-btn');
+    addExpenseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (typeof addExpense === 'function') {
+                addExpense();
+            }
+        });
+    });
+    
+    // Botones de guardar cierre
+    const saveButtons = document.querySelectorAll('.save-btn');
+    saveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (typeof saveClosure === 'function') {
+                saveClosure();
+            }
+        });
+    });
+    
+    // Inputs de denominaciones
+    const denominationInputs = document.querySelectorAll('.denomination-input');
+    denominationInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (typeof calcularTotal === 'function') {
+                calcularTotal();
+            }
+        });
+    });
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modal');
+            if (modal && modal.classList.contains('active')) {
+                if (typeof closeModal === 'function') {
+                    closeModal();
+                }
+            }
+        }
+    });
+});
 
 // document.addEventListener('DOMContentLoaded', function() {
 //     const userMenuButton = document.getElementById('user-menu-button');

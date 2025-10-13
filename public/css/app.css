@@ -1,14 +1,171 @@
 /* Utilidades personalizadas de Tailwind */
 @layer utilities {
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text-shadow-md {
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-  }
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-shadow-md {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
 }
-/* Estilos base */
+
+/* Sidebar fijo en desktop */
+.sidebar {
+    position: fixed;
+    top: 64px; /* Altura del header (h-16 = 4rem = 64px) */
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    overflow-y: auto;
+    z-index: 40;
+}
+
+/* .main-content {
+    margin-left: 16rem;
+    padding-top: 0;
+    min-height: calc(100vh - 64px);
+} */
+
+/* Mobile menu */
+#mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background-color: #203363;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: 1px solid;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    min-width: 120px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    border-color: var(--tertiary-color);
+}
+
+.filter-btn:hover {
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    transform: translateY(-2px);
+}
+
+/* Badge de contador */
+.filter-badge {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    margin-right: 0.5rem;
+}
+
+/* Estado activo */
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+/* Colores específicos para cada tipo de filtro */
+.filter-all .filter-badge {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.filter-take-away .filter-badge {
+    background-color: var(--green);
+    color: var(--white);
+}
+
+.filter-proforma .filter-badge {
+    background-color: var(--red);
+    color: var(--white);
+}
+
+/* Efecto hover con colores específicos */
+.filter-dine-in:hover {
+    background-color: rgba(255, 209, 102, 0.1);
+    border-color: var(--yellow);
+}
+
+.filter-take-away:hover {
+    background-color: rgba(6, 214, 160, 0.1);
+    border-color: var(--green);
+}
+
+.filter-take-away.active {
+    background-color: var(--green);
+}
+
+/* Utilidades personalizadas de Tailwind */
+@layer utilities {
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-shadow-md {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+}
+/* Fix para el header y sidebar */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Sidebar fijo en desktop */
+.sidebar {
+    position: fixed;
+    top: 64px;
+    /* Altura del header (h-16 = 4rem = 64px) */
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    overflow-y: auto;
+    z-index: 40;
+}
+
+/* Main content con margen para el sidebar */
+.main-content {
+    margin-left: 16rem;
+    padding-top: 0;
+    min-height: calc(100vh - 64px);
+}
+
+/* Mobile menu */
 #mobile-menu {
     position: fixed;
     top: 0;
@@ -24,13 +181,49 @@
 #mobile-menu.show {
     transform: translateX(0);
 }
-body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color);
-    background-color: var(--background-color);
-    line-height: 1.5;
+
+/* Overlay para mobile */
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
-/* Filtros de órdenes*/
+
+.mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive para tablets y móviles */
+@media (max-width: 767px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 50;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Filtros de órdenes */
 .order-filters {
     display: flex;
     flex-wrap: wrap;
@@ -56,11 +249,13 @@ body {
     color: var(--primary-color);
     border-color: var(--tertiary-color);
 }
+
 .filter-btn:hover {
     --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
     transform: translateY(-2px);
 }
+
 /* Badge de contador */
 .filter-badge {
     width: 1.5rem;
@@ -80,6 +275,219 @@ body {
     color: var(--white);
     border-color: var(--primary-color);
 }
+
+/* Colores específicos para cada tipo de filtro */
+.filter-all .filter-badge {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.filter-dine-in .filter-badge {
+    background-color: var(--yellow);
+    color: var(--primary-color);
+}
+
+.filter-pickup .filter-badge {
+    background-color: var(--blue);
+    color: var(--white);
+}
+
+.filter-pickup:hover {
+    background-color: rgba(17, 138, 178, 0.1);
+    border-color: var(--blue);
+}
+
+.filter-proforma:hover {
+    background-color: rgba(239, 71, 111, 0.1);
+    border-color: var(--red);
+}
+
+/* Estado activo con colores específicos */
+.filter-dine-in.active {
+    background-color: var(--yellow);
+    color: var(--primary-color);
+}
+.filter-pickup.active {
+    background-color: var(--blue);
+}
+
+.filter-proforma.active {
+    background-color: var(--red);
+}
+
+/* Estilos para los inputs del modal */
+.modal input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid var(--tertiary-color);
+    border-radius: 6px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+/* Estilo cuando el input está enfocado */
+.modal input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 6px rgba(32, 51, 99, 0.2);
+}
+
+
+/* Utilidades personalizadas de Tailwind */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-md {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Estilos base */
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    line-height: 1.5;
+}
+
+/* Fix para el header y sidebar */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Sidebar fijo en desktop */
+.sidebar {
+    position: fixed;
+    top: 64px; /* Altura del header (h-16 = 4rem = 64px) */
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    overflow-y: auto;
+    z-index: 40;
+}
+
+/* Main content con margen para el sidebar */
+.main-content {
+    margin-left: 16rem;
+    padding-top: 0;
+    min-height: calc(100vh - 64px);
+}
+
+/* Mobile menu */
+#mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background-color: #203363;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+#mobile-menu.show {
+    transform: translateX(0);
+}
+
+/* Overlay para mobile */
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive para tablets y móviles */
+@media (max-width: 767px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 50;
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Filtros de órdenes */
+.order-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: 1px solid;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    min-width: 120px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    border-color: var(--tertiary-color);
+}
+
+.filter-btn:hover {
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    transform: translateY(-2px);
+}
+
+/* Badge de contador */
+.filter-badge {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    margin-right: 0.5rem;
+}
+
+/* Estado activo */
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
 /* Colores específicos para cada tipo de filtro */
 .filter-all .filter-badge {
     background-color: var(--primary-color);
@@ -144,100 +552,88 @@ body {
 .filter-proforma.active {
     background-color: var(--red);
 }
-  /* Estilos para los inputs del modal */
-    .modal input[type="text"] {
+
+/* Estilos para los inputs del modal */
+.modal input[type="text"] {
     width: 100%;
-    padding: 8px; /* Reducir el padding */
-    font-size: 14px; /* Reducir el tamaño de la fuente */
-    border: 2px solid var(--tertiary-color); /* Borde más suave */
-    border-radius: 6px; /* Bordes redondeados */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
-    outline: none; /* Eliminar el outline predeterminado */
-    }
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid var(--tertiary-color);
+    border-radius: 6px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
 
 /* Estilo cuando el input está enfocado */
-    .modal input[type="text"]:focus {
-    border-color: var(--primary-color); /* Cambiar el color del borde al enfocar */
-    box-shadow: 0 0 6px rgba(32, 51, 99, 0.2); /* Sombra suave al enfocar */
-    }
+.modal input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 6px rgba(32, 51, 99, 0.2);
+}
 
-    /* Estilos para los labels */
-    .modal label {
-        font-size: 13px; /* Reducir el tamaño de fuente para los labels */
-        color: var(--table-data-color); /* Color del texto */
-        margin-bottom: 6px; /* Reducir el espaciado inferior */
-        display: block; /* Asegurar que estén en una línea separada */
-    }
-    /* Estilos para el total de ventas en efectivo */
-    .total-efectivo {
-        font-size: 16px;
-        font-weight: bold;
-        color: var(--primary-color);
-    }
-    /* Estilos para los labels */
-    .modal label {
-        font-size: 13px; /* Reducir el tamaño de fuente para los labels */
-        color: var(--table-data-color); /* Color del texto */
-        margin-bottom: 6px; /* Reducir el espaciado inferior */
-        display: block; /* Asegurar que estén en una línea separada */
-        text-align: start; /* Alinear texto al inicio */
-    }
+/* Estilos para los labels */
+.modal label {
+    font-size: 13px;
+    color: var(--table-data-color);
+    margin-bottom: 6px;
+    display: block;
+    text-align: start;
+}
 
-    /* Estilos para el total de ventas en efectivo */
-    .total-efectivo {
-        font-size: 16px;
-        font-weight: bold;
-        color: var(--primary-color);
-    }
+.total-efectivo {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
 
-    /* Diseño de dos columnas para el modal */
-    .modal-grid {
-        display: grid;
-        grid-template-columns: 60% 40%; /* Tabla más grande, inputs más pequeños */
-        gap: 20px;
-    }
+/* Diseño de dos columnas para el modal */
+.modal-grid {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 20px;
+}
 
-    /* Estilos para el contenedor de los inputs */
-    .input-container {
-        width: 90%; /* 10% más pequeño que la tabla de denominaciones */
-        margin-left: auto; /* Centrar el contenedor */
-        margin-right: auto; /* Centrar el contenedor */
-    }
 
-    /* Alinear horizontalmente los inputs y labels */
-    .input-row {
-        display: flex;
-        gap: 10px; /* Espaciado entre elementos */
-        align-items: flex-start; /* Alinear verticalmente al inicio */
-        margin-bottom: 12px; /* Espaciado entre filas */
-    }
+/* Estilos para el contenedor de los inputs */
+.input-container {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
 
-    /* Estilos para los grupos de inputs */
-    .input-group {
-        flex: 1; /* Distribuir el espacio equitativamente */
-    }
+/* Alinear horizontalmente los inputs y labels */
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
 
-    /* Alinear verticalmente el texto de las celdas de la tabla */
-    table td {
-        vertical-align: top; /* Alinear contenido al inicio */
-    }
-    .input-group {
+
+
+/* Alinear verticalmente el texto de las celdas de la tabla */
+table td {
+    vertical-align: top;
+    /* Alinear contenido al inicio */
+}
+
+.input-group {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
-    }
+}
 
-    .input-label {
-        font-size: 14px; 
-        color: #4a5568; 
-        margin-bottom: 6px;
-        width: 100%; 
-        text-align: start;
-    }
+.input-label {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 6px;
+    width: 100%;
+    text-align: start;
+}
 
 .modal-input {
-    width: 100%; /* Asegura que los inputs ocupen todo el ancho disponible */
+    width: 100%;
     padding: 8px;
     font-size: 14px;
     border: 2px solid #cbd5e0;
@@ -251,8 +647,9 @@ body {
     box-shadow: 0 0 6px rgba(66, 153, 225, 0.2);
 }
 
+/* User menu */
 #user-menu {
-    z-index: 1000; 
+    z-index: 1000;
     position: absolute;
     right: 0;
     top: 100%;
@@ -260,9 +657,12 @@ body {
     opacity: 1 !important;
     visibility: visible !important;
 }
+
+
 #user-menu:not(.hidden) {
     display: block !important;
 }
+
 /* Fix para submenús */
 .submenu {
     transition: all 0.3s ease;
@@ -280,18 +680,43 @@ body {
     transform: rotate(180deg);
 }
 
-/* Asegurar z-index correcto */
-#user-menu {
-    z-index: 9999;
+/* Responsive para tablets y móviles */
+@media (max-width: 767px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 50;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
+/* Scrollbar personalizado para sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
 
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
 
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
 
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
 
-/* body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color);
-    background-color: var(--background-color);
-    line-height: 1.5;
-} */
