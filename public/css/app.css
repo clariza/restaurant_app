@@ -12,12 +12,20 @@
 /* Sidebar fijo en desktop */
 .sidebar {
     position: fixed;
-    top: 64px; /* Altura del header (h-16 = 4rem = 64px) */
+    top: 64px;
+    /* Altura del header (h-16 = 4rem = 64px) */
     left: 0;
     bottom: 0;
     width: 16rem;
     overflow-y: auto;
     z-index: 40;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: 64px;
 }
 
 /* .main-content {
@@ -139,6 +147,7 @@
         text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 }
+
 /* Fix para el header y sidebar */
 header {
     position: sticky;
@@ -307,6 +316,7 @@ header {
     background-color: var(--yellow);
     color: var(--primary-color);
 }
+
 .filter-pickup.active {
     background-color: var(--blue);
 }
@@ -335,13 +345,13 @@ header {
 
 /* Utilidades personalizadas de Tailwind */
 @layer utilities {
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text-shadow-md {
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-  }
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-shadow-md {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
 }
 
 /* Estilos base */
@@ -362,13 +372,28 @@ header {
 /* Sidebar fijo en desktop */
 .sidebar {
     position: fixed;
-    top: 64px; /* Altura del header (h-16 = 4rem = 64px) */
+    top: 64px;
+    /* Altura del header (h-16 = 4rem = 64px) */
     left: 0;
     bottom: 0;
     width: 16rem;
     overflow-y: auto;
     z-index: 40;
 }
+
+.sidebar-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    /* SIN padding-top aquí */
+}
+
+.sidebar-divider {
+    height: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0;
+}
+
 
 /* Main content con margen para el sidebar */
 .main-content {
@@ -408,6 +433,19 @@ header {
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
 .mobile-overlay.active {
     opacity: 1;
     visibility: visible;
@@ -424,11 +462,11 @@ header {
         transition: transform 0.3s ease;
         z-index: 50;
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
         width: 100%;
@@ -680,27 +718,6 @@ table td {
     transform: rotate(180deg);
 }
 
-/* Responsive para tablets y móviles */
-@media (max-width: 767px) {
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 50;
-    }
-
-    .sidebar.show {
-        transform: translateX(0);
-    }
-
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-    }
-}
 
 /* Scrollbar personalizado para sidebar */
 .sidebar::-webkit-scrollbar {
@@ -719,4 +736,3 @@ table td {
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
 }
-

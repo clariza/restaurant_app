@@ -1,3 +1,9 @@
+:root {
+    --primary-color: #203363;
+    --white: #ffffff;
+    --text-color: #333333;
+    --background-color: #fafafa;
+}
 
 /* Estilos base */
 body {
@@ -13,11 +19,7 @@ body {
     min-height: 100vh;
     position: relative;
 } */
-.main-content {
-    margin-left: 16rem;
-    padding-top: 0;
-    min-height: calc(100vh - 64px);
-}
+
 /* Responsive */
 /* Responsive para tablets y móviles */
 @media (max-width: 767px) {
@@ -30,21 +32,22 @@ body {
         transition: transform 0.3s ease;
         z-index: 50;
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
         width: 100%;
     }
 }
+
 @media (min-width: 768px) {
     body {
         overflow-x: hidden;
     }
-    
+
     .main-content {
         overflow-x: auto;
     }

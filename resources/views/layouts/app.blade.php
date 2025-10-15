@@ -36,23 +36,23 @@
 <body class="bg-[#fafafa]">
 
     <!-- En la sección del header dentro de app.blade.php -->
-    <header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
-        <!-- Logo y nombre de la aplicación a la izquierda -->
+     <header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
+        <!-- Logo y nombre de la aplicación -->
         <div class="flex items-center justify-between w-64 bg-[#203363] h-16 relative">
-            <!-- Botón del menú (posición absoluta a la izquierda) -->
+            <!-- Botón del menú móvil -->
             <button id="menu-toggle" class="text-[#b6e0f6] focus:outline-none absolute left-4 sm:hidden">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
 
-            <!-- Contenedor centrado para logo y texto -->
+            <!-- Logo centrado -->
             <div class="flex items-center justify-center w-full">
                 <img alt="Logo" class="h-10 w-10" src="https://static.vecteezy.com/system/resources/previews/000/656/554/original/restaurant-badge-and-logo-good-for-print-vector.jpg" />
                 <span class="text-xl font-bold text-[#b6e0f6] hidden sm:block ml-2">Miquna</span>
             </div>
         </div>
-        <!-- Área de usuario/login a la derecha -->
-        <div class="flex items-center space-x-4">
 
+        <!-- Área de usuario -->
+        <div class="flex items-center space-x-4">
             <button class="text-gray-600 hover:text-[#203363] relative">
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
@@ -61,30 +61,27 @@
             <!-- Menú de usuario -->
             <div class="relative ml-4 px-4">
                 <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md hover:bg-gray-100 transition-colors">
-                    <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, {{ Auth::user()->name }}</span>
+                    <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, Usuario</span>
                     <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
                         <img src="https://www.gravatar.com/avatar/default?s=200&d=mp" alt="User Avatar" class="h-full w-full object-cover">
                     </div>
                 </button>
 
-                <!-- Menú desplegable mejorado -->
+                <!-- Menú desplegable -->
                 <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden border border-gray-200" style="z-index: 1000;">
-                    <form action="{{ route('logout') }}" method="POST" class="w-full">
-                        @csrf
-                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                        </button>
-                    </form>
+                    <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                    </button>
                 </div>
             </div>
         </div>
     </header>
-
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar (Visible en tablets y pantallas más grandes) -->
         <div class="bg-[#203363] w-64 min-h-screen hidden sm:block shadow-md sidebar">
-            <div class="px-4 pt-1 pb-4">
-                <div class="h-16 border-b border-gray-800"></div>
+            <div class="sidebar-divider"></div>
+  <!-- Contenido del sidebar -->
+            <div class="sidebar-content">                
                 <nav class="mt-4 space-y-1">
                     <!-- Dashboard -->
                     <a class="flex items-center text-[#ffffff] bg-[#47517c] p-2 rounded-md" href="{{ route('admin.dashboard') }}">
@@ -187,6 +184,7 @@
                     </div>
                     @endunless
                 </nav>
+            
             </div>
         </div>
         <!-- Overlay para menú móvil -->
