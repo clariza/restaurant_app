@@ -41,13 +41,147 @@
         color: white;
         border: 1px solid #4b5563;
     }
-
+    .btn-excel {
+        background-color: #10b981;
+        color: white;
+        border: 1px solid #059669;
+    }
+    .btn-pdf {
+        background-color: #ef4444;
+        color: white;
+        border: 1px solid #dc2626;
+    }
     .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+    .reports-section {
+    background: linear-gradient(135deg, #203363 0%, #2d4a8a 100%);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(32, 51, 99, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+.reports-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+}
+    .reports-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 2;
+}
+    .reports-header i {
+    font-size: 1.5rem;
+    color: #ffd166; /* Amarillo de acento */
+    background: rgba(255, 209, 102, 0.1);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+    
+    .reports-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+    
+    .reports-description {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    position: relative;
+    z-index: 2;
+}
+    
+    .reports-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .btn-report {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+.btn-report::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+.btn-report:hover::before {
+    left: 100%;
+}
+    .btn-report-excel {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+    
+   .btn-report-excel:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+    color: white;
+}
+.btn-report-excel:hover,
+.btn-report-pdf:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
 
-    /* Resto de estilos... */
+    
+    ..btn-report-pdf {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+    
+    .btn-report-pdf:hover {
+        background-color: #ef4444;
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    ..btn-report i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+.btn-report:hover i {
+    transform: scale(1.1);
+}
     .input-group {
         display: flex;
         flex-direction: column;
@@ -93,17 +227,14 @@
     .modal-container {
         background-color: white;
         border-radius: 0.75rem;
-        /* Bordes más redondeados */
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         width: 90%;
         max-width: 900px;
-        /* Un poco más ancho */
         max-height: 90vh;
         overflow-y: auto;
         transform: translateY(20px);
         transition: transform 0.3s ease;
         padding: 2rem;
-        /* Padding interno general */
     }
 
     .modal-overlay.active .modal-container {
@@ -112,18 +243,15 @@
 
     .modal-header {
         padding: 1.5rem 0;
-        /* Más espacio en el header */
         border-bottom: 1px solid #e5e7eb;
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
-        /* Separación del contenido */
     }
 
     .modal-title {
         font-size: 1.5rem;
-        /* Título más grande */
         font-weight: 600;
         color: #1f2937;
     }
@@ -132,7 +260,6 @@
         background: none;
         border: none;
         font-size: 1.75rem;
-        /* Icono de cerrar más grande */
         color: #6b7280;
         cursor: pointer;
         transition: color 0.2s;
@@ -148,7 +275,6 @@
         display: flex;
         flex-direction: column;
         gap: 2rem;
-        /* Más espacio entre secciones */
     }
 
     .closure-grid {
@@ -249,7 +375,6 @@
     .expense-actions {
         flex: 0 0 auto;
         width: 40px;
-        /* Ancho fijo para el botón de eliminar */
     }
 
     .expenses-container {
@@ -269,7 +394,6 @@
     .expense-field {
         flex: 1;
         min-width: 0;
-        /* Previene que los campos se salgan del contenedor */
     }
 
     .expense-input-container {
@@ -347,164 +471,6 @@
         background-color: #fecaca;
     }
 
-    /* Estilos minimalistas para el modal */
-    .modal-overlay {
-        background-color: rgba(0, 0, 0, 0.4);
-    }
-
-    .modal-container {
-        background-color: #f8fafc;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        max-width: 900px;
-        padding: 1.5rem;
-    }
-
-    .modal-header {
-        padding: 0.5rem 0 1rem 0;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 1rem;
-    }
-
-    .modal-title {
-        font-size: 1.25rem;
-        color: #1e293b;
-        font-weight: 500;
-    }
-
-    .modal-close {
-        color: #64748b;
-        font-size: 1.5rem;
-    }
-
-    /* Estilos compactos para inputs */
-    .input-group {
-        margin-bottom: 0.75rem;
-    }
-
-    .input-group label {
-        font-size: 0.75rem;
-        color: #64748b;
-        margin-bottom: 0.25rem;
-        display: block;
-    }
-
-    .input-group input {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.25rem;
-        width: 100%;
-        background-color: white;
-        transition: border-color 0.2s;
-    }
-
-    .input-group input:focus {
-        outline: none;
-        border-color: #93c5fd;
-        box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.2);
-    }
-
-    /* Estilos para la tabla de denominaciones */
-    .denominations-table {
-        font-size: 0.875rem;
-    }
-
-    .denominations-table th,
-    .denominations-table td {
-        padding: 0.5rem;
-    }
-
-    .denomination-input {
-        padding: 0.25rem 0.5rem;
-        width: 60px;
-        text-align: center;
-        font-size: 0.875rem;
-    }
-
-    /* Estilos compactos para gastos */
-    .expense-row {
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-        align-items: center;
-    }
-
-    .expense-field {
-        flex: 1;
-    }
-
-    .expense-input {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        width: 100%;
-    }
-
-    .remove-expense-btn {
-        padding: 0.5rem;
-        color: #ef4444;
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-
-    .add-expense-btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        background-color: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.25rem;
-    }
-
-    /* Estilos para botones */
-    .save-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        background-color: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 0.25rem;
-    }
-
-    /* Layout mejorado */
-    .closure-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .section-container {
-        background-color: white;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .section-title {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #334155;
-        margin-bottom: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* Efectos hover minimalistas */
-    .save-btn:hover {
-        background-color: #2563eb;
-    }
-
-    .add-expense-btn:hover {
-        background-color: #f1f5f9;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .closure-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
     .denomination-input {
         width: 70px;
         text-align: center;
@@ -517,16 +483,13 @@
         align-items: center;
     }
 
-    /* Asegurar que los inputs personalizados mantengan el estilo sm */
     .expense-input,
     .denomination-input {
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
         height: calc(1.5em + 0.5rem + 2px);
-        /* Igual que Bootstrap sm */
     }
 
-    /* Estilos para la sección de Conteo de Efectivo */
     .denominations-section .table-container {
         margin-top: 0.5rem;
     }
@@ -534,7 +497,6 @@
     .denominations-table {
         width: 100%;
         font-size: 0.875rem;
-        /* Tamaño sm */
         border-collapse: separate;
         border-spacing: 0;
     }
@@ -542,7 +504,6 @@
     .denominations-table th {
         background-color: #f8f9fa;
         padding: 0.375rem 0.5rem;
-        /* Padding sm */
         font-weight: 500;
         text-align: left;
         border-bottom: 1px solid #dee2e6;
@@ -550,7 +511,6 @@
 
     .denominations-table td {
         padding: 0.375rem 0.5rem;
-        /* Padding sm */
         vertical-align: middle;
         border-bottom: 1px solid #dee2e6;
     }
@@ -559,10 +519,8 @@
         width: 70px;
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
-        /* Tamaño sm */
         text-align: center;
         height: calc(1.5em + 0.5rem + 2px);
-        /* Altura sm de Bootstrap */
         border: 1px solid #ced4da;
         border-radius: 0.2rem;
     }
@@ -576,14 +534,12 @@
         font-weight: 500;
     }
 
-    /* Estilos para la sección de Resumen de Cierre */
     .closure-form-section .input-group {
         margin-bottom: 0.75rem;
     }
 
     .closure-form-section label {
         font-size: 0.875rem;
-        /* Tamaño sm */
         color: #6c757d;
         margin-bottom: 0.25rem;
         display: block;
@@ -591,18 +547,14 @@
 
     .closure-form-section .form-control {
         font-size: 0.875rem;
-        /* Tamaño sm */
         padding: 0.25rem 0.5rem;
-        /* Padding sm */
         height: calc(1.5em + 0.5rem + 2px);
-        /* Altura sm de Bootstrap */
     }
 
     .closure-form-section .form-control[readonly] {
         background-color: #f8f9fa;
     }
 
-    /* Estilos para los botones en el resumen */
     .form-actions {
         margin-top: 1rem;
         display: flex;
@@ -612,10 +564,8 @@
     .save-btn {
         padding: 0.25rem 0.75rem;
         font-size: 0.875rem;
-        /* Tamaño sm */
     }
 
-    /* Estilos responsivos */
     @media (max-width: 768px) {
         .denomination-input {
             width: 60px;
@@ -625,10 +575,7 @@
         .denominations-table td {
             padding: 0.25rem 0.375rem;
         }
-    }
 
-    /* Tablets pequeñas (hasta 768px) */
-    @media (max-width: 768px) {
         .filters-panel {
             padding: 1rem;
         }
@@ -649,9 +596,25 @@
             width: 100%;
             justify-content: center;
         }
+
+        .closure-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .reports-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 2;
+}
+
+        .btn-report {
+            width: 100%;
+            justify-content: center;
+        }
     }
 
-    /* Móviles pequeños (hasta 480px) */
     @media (max-width: 480px) {
         .filters-panel {
             padding: 0.75rem;
@@ -679,13 +642,13 @@
         }
     }
 
-    /* Asegurar que ningún elemento se desborde */
-    .filters-panel * {
-        box-sizing: border-box;
-    }
-
-    /* Animación suave al cargar */
     .filters-panel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         animation: slideDown 0.3s ease-out;
     }
 
@@ -694,7 +657,6 @@
             opacity: 0;
             transform: translateY(-10px);
         }
-
         to {
             opacity: 1;
             transform: translateY(0);
@@ -705,7 +667,6 @@
         border-color: #f87171;
     }
 
-    /* Indicador de carga */
     .btn-filter.loading {
         position: relative;
         pointer-events: none;
@@ -739,7 +700,6 @@
         transform: none;
     }
 
-    /* Ajustes para mantener consistencia con Bootstrap sm */
     .section-container {
         padding: 1rem;
     }
@@ -751,16 +711,6 @@
         color: #495057;
         border-bottom: 1px solid #e9ecef;
         padding-bottom: 0.25rem;
-    }
-
-    /* Estilos para el panel de filtros */
-    .filters-panel {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .filters-grid {
@@ -783,7 +733,6 @@
         max-width: 100%;
     }
 
-    /* Asegurar que los selects no se desborden */
     .filter-group select {
         max-width: 100%;
         overflow: hidden;
@@ -815,7 +764,6 @@
         align-items: center;
     }
 
-    /* Estilos para botones */
     .btn-filter,
     .btn-clear {
         padding: 0.5rem 1rem;
@@ -848,17 +796,6 @@
     .btn-clear {
         background-color: #6b7280;
         color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        font-size: 0.875rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        transition: background-color 0.2s;
     }
 
     .btn-clear:hover {
@@ -868,7 +805,6 @@
         box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
     }
 
-    /* Tablets grandes (hasta 1200px) */
     @media (max-width: 1200px) {
         .filters-grid {
             grid-template-columns: repeat(3, 1fr);
@@ -880,14 +816,12 @@
         }
     }
 
-    /* Tablets (hasta 1024px) */
     @media (max-width: 1024px) {
         .filters-grid {
             grid-template-columns: repeat(2, 1fr);
         }
     }
 
-    /* Responsive para pantallas pequeñas */
     @media (max-width: 768px) {
         .filters-grid {
             grid-template-columns: 1fr;
@@ -908,6 +842,33 @@
 
 <div class="p-6 bg-white rounded-lg shadow-md">
     <h2 class="text-xl font-bold mb-4 text-[#203363]">Lista de Cierres</h2>
+    
+    <!-- Sección de Reportes -->
+    <div class="reports-section">
+        <div class="reports-header">
+            <i class="fas fa-chart-bar"></i>
+            <h3>Reportes de Caja Chica</h3>
+        </div>
+        <p class="reports-description">
+            Genere reportes completos de caja chica en formato Excel o PDF. Los filtros aplicados se incluirán en los reportes.
+        </p>
+        <div class="reports-buttons">
+            <a href="{{ route('petty-cash.export.excel', request()->query()) }}" 
+               class="btn-report btn-report-excel"
+               title="Descargar reporte en Excel">
+                <i class="fas fa-file-excel"></i>
+                <span>Exportar a Excel</span>
+            </a>
+            <a href="{{ route('petty-cash.export.pdf', request()->query()) }}" 
+               class="btn-report btn-report-pdf"
+               target="_blank"
+               title="Descargar reporte en PDF">
+                <i class="fas fa-file-pdf"></i>
+                <span>Exportar a PDF</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Panel de Filtros -->
     <div class="filters-panel">
         <form method="GET" action="{{ route('petty-cash.index') }}" id="filtersForm">
@@ -974,6 +935,7 @@
             </div>
         </form>
     </div>
+
     <!-- Mensajes de alerta -->
     @if (session('warning'))
     <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
@@ -990,12 +952,19 @@
     </div>
     @endif
 
+    @if (session('success'))
+    <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{ session('success') }}</span>
+    </div>
+    @endif
+
     <!-- Tabla de cierres -->
     <div class="mt-4 overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-gray-100">
                     <th class="p-2 text-left">Fecha</th>
+                    <th class="p-2 text-left">Cajero</th>
                     <th class="p-2 text-right">Monto Actual</th>
                     <th class="p-2 text-left">Estado</th>
                     <th class="p-2 text-left">Acciones</th>
@@ -1003,9 +972,10 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($pettyCashes as $pettyCash)
+                @forelse ($pettyCashes as $pettyCash)
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-2 text-left">{{ $pettyCash->date }}</td>
+                    <td class="p-2 text-left">{{ $pettyCash->user->name ?? 'N/A' }}</td>
                     <td class="p-2 text-right">${{ number_format($totalSales - $totalExpenses, 2) }}</td>
                     <td class="p-2 text-left">
                         <span class="px-2 py-1 rounded-full text-xs 
@@ -1048,10 +1018,23 @@
                         @endif
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="6" class="p-4 text-center text-gray-500">
+                        No se encontraron registros de caja chica
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
+
+    <!-- Paginación -->
+    @if($pettyCashes->hasPages())
+    <div class="mt-4">
+        {{ $pettyCashes->appends(request()->query())->links() }}
+    </div>
+    @endif
 </div>
 
 <!-- Modal de cierre -->
@@ -1071,8 +1054,7 @@
             <div class="expenses-section">
                 <div class="expenses-header">
                     <h4 class="font-medium">Registro de Gastos</h4>
-
-                    <button type="button" class="btn btn-secondary btn-sm add-expense-btn">
+                    <button type="button" class="btn btn-secondary btn-sm add-expense-btn" onclick="addExpense()">
                         <i class="fas fa-plus mr-1"></i> Agregar Gasto
                     </button>
                 </div>
@@ -1118,7 +1100,7 @@
                                     <tr>
                                         <td class="text-left">${{ number_format($denominacion, 2) }}</td>
                                         <td>
-                                            <input type="number" min="0" class="form-control form-control-sm denomination-input"
+                                            <input type="number" min="0" class="form-control form-control-sm denomination-input contar-input"
                                                 data-denominacion="{{ $denominacion }}" placeholder="0">
                                         </td>
                                         <td class="text-right">
@@ -1167,7 +1149,7 @@
                                     value="{{ $totalSalesCard }}" step="0.01">
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn btn-primary btn-sm save-btn">
+                                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
                                     <i class="fas fa-save mr-1"></i> Guardar Cierre
                                 </button>
                             </div>
@@ -1187,7 +1169,6 @@
     <input type="hidden" name="total_sales_qr" id="total_sales_qr">
     <input type="hidden" name="total_sales_card" id="total_sales_card">
     <input type="hidden" name="total_expenses" id="total_expenses">
-    <!-- Campos para gastos dinámicos se agregarán con JavaScript -->
 </form>
 
 <script>
@@ -1227,18 +1208,20 @@
         const newExpenseRow = document.createElement('div');
         newExpenseRow.className = 'expense-row';
         newExpenseRow.innerHTML = `
-            <div class="expense-input-container">
-                <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
+            <div class="expense-field">
+                <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
             </div>
-            <div class="expense-input-container">
-                <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
+            <div class="expense-field">
+                <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
             </div>
-            <div class="expense-input-container">
-                <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
+            <div class="expense-field">
+                <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
             </div>
-            <button type="button" class="remove-expense-btn" onclick="removeExpense(this)">
-                <i class="fas fa-trash"></i>
-            </button>
+            <div class="expense-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         `;
 
         expensesContainer.appendChild(newExpenseRow);
@@ -1258,7 +1241,6 @@
         }
     }
 
-
     // Función para cerrar el modal
     function closeModal() {
         document.getElementById('modal').classList.remove('active');
@@ -1273,12 +1255,12 @@
             const subtotal = denominacion * cantidad;
 
             const subtotalElement = input.closest('tr').querySelector('.subtotal');
-            subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+            subtotalElement.textContent = `${subtotal.toFixed(2)}`;
 
             total += subtotal;
         });
 
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('total').textContent = `${total.toFixed(2)}`;
         document.getElementById('ventas-efectivo').value = total.toFixed(2);
         document.getElementById('total_sales_cash').value = total.toFixed(2);
     }
@@ -1292,50 +1274,6 @@
         document.getElementById('total-gastos').value = total.toFixed(2);
         document.getElementById('total_expenses').value = total.toFixed(2);
         return total;
-    }
-
-    function addExpense() {
-        const expensesContainer = document.getElementById('expensesContainer');
-
-        const newExpenseRow = document.createElement('div');
-        newExpenseRow.className = 'expense-row';
-        newExpenseRow.innerHTML = `
-        <div class="expense-field">
-            <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-        </div>
-        <div class="expense-field">
-            <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-        </div>
-        <div class="expense-field">
-            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" 
-                   name="expense_amount[]" oninput="calculateTotalExpenses()">
-        </div>
-        <div class="expense-actions">
-            <button type="button" class="remove-expense-btn" onclick="removeExpense(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-
-        expensesContainer.appendChild(newExpenseRow);
-    }
-
-    // Eliminar gasto
-    function removeExpense(button) {
-        const expenseCard = button.closest('.expense-card');
-        if (document.getElementById('expensesContainer').children.length > 1) {
-            expenseCard.remove();
-            calculateTotalExpenses();
-            // Renumerar los gastos restantes
-            document.querySelectorAll('.expense-card h4').forEach((header, index) => {
-                header.textContent = `Gasto #${index + 1}`;
-            });
-        } else {
-            // Si es el último, solo limpiar los campos
-            const inputs = expenseCard.querySelectorAll('input');
-            inputs.forEach(input => input.value = '');
-            calculateTotalExpenses();
-        }
     }
 
     // Guardar el cierre
@@ -1360,10 +1298,10 @@
 
         // Recopilar datos de gastos
         const expenses = [];
-        document.querySelectorAll('.expense-card').forEach((card, index) => {
-            const name = card.querySelector('input[name="expense_name[]"]').value;
-            const description = card.querySelector('input[name="expense_description[]"]').value;
-            const amount = card.querySelector('input[name="expense_amount[]"]').value;
+        document.querySelectorAll('.expense-row').forEach((row, index) => {
+            const name = row.querySelector('input[name="expense_name[]"]').value;
+            const description = row.querySelector('input[name="expense_description[]"]').value;
+            const amount = row.querySelector('input[name="expense_amount[]"]').value;
 
             if (name && amount) {
                 expenses.push({
@@ -1373,12 +1311,6 @@
                 });
             }
         });
-
-        // Configurar los datos del formulario
-        document.getElementById('total_sales_cash').value = totalSalesCash;
-        document.getElementById('total_sales_qr').value = totalSalesQR;
-        document.getElementById('total_sales_card').value = totalSalesCard;
-        document.getElementById('total_expenses').value = totalExpenses;
 
         // Enviar el formulario
         fetch("{{ route('petty-cash.save-closure') }}", {

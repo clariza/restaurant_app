@@ -173,3 +173,6 @@ Route::resource('tables', TableController::class);
 // Rutas de mesas
 Route::post('/tables/bulk-state', [TableController::class, 'bulkChangeState'])->name('tables.bulk-state');
 Route::get('/tables/stats', [TableController::class, 'getTablesStats'])->name('tables.stats');
+// Agregar estas rutas en tu archivo web.php
+Route::get('/petty-cash/export/excel', [PettyCashController::class, 'exportExcel'])->name('petty-cash.export.excel');
+Route::get('/petty-cash/export/pdf', [PettyCashController::class, 'exportPdf'])->name('petty-cash.export.pdf');

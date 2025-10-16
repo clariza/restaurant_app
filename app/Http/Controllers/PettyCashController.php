@@ -1,18 +1,21 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Sale;
 use App\Models\PettyCash;
 use App\Models\User;
 use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PettyCashExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PettyCashController extends Controller
 {
     // Mostrar la lista de cierres de caja chica
-     public function index(Request $request)
+    public function index(Request $request)
     {
         // Obtener la última caja chica abierta
         $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
@@ -54,22 +57,22 @@ class PettyCashController extends Controller
         // Búsqueda por texto
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('notes', 'LIKE', "%{$search}%")
-                  ->orWhereHas('user', function($userQuery) use ($search) {
-                      $userQuery->where('name', 'LIKE', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'LIKE', "%{$search}%");
+                    });
             });
         }
 
         // Obtener todas las cajas chicas con filtros aplicados
-        $pettyCashes = $query->orderBy('date', 'desc')->get();
-        
+        $pettyCashes = $query->orderBy('date', 'desc')->paginate(10);
+
         // Obtener todos los usuarios para el select
         $users = User::select('id', 'name')->orderBy('name')->get();
-        
+
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        
+
         return view('petty_cash.index', compact(
             'pettyCashes',
             'totalExpenses',
@@ -87,31 +90,31 @@ class PettyCashController extends Controller
     public function create()
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-    
+
         if (PettyCash::where('status', 'open')->exists()) {
             return redirect()->route('menu.index');
         }
 
-        return view('petty_cash.create',compact('hasOpenPettyCash')); 
+        return view('petty_cash.create', compact('hasOpenPettyCash'));
     }
 
     // Guardar un nuevo cierre de caja chica
     public function store(Request $request)
     {
         $request->validate([
-            'notes' => 'nullable|string', 
+            'notes' => 'nullable|string',
         ]);
-        
+
         // Crear la nueva caja chica con monto inicial 0
         PettyCash::create([
-            'initial_amount' => 0, 
-            'current_amount' => 0, 
+            'initial_amount' => 0,
+            'current_amount' => 0,
             'date' => now()->toDateString(),
             'notes' => $request->notes,
             'status' => 'open',
-            'user_id' => auth()->id(), 
+            'user_id' => auth()->id(),
         ]);
-    
+
         return redirect()->route('menu.index')->with('success', 'Caja chica abierta correctamente.');
     }
 
@@ -141,7 +144,7 @@ class PettyCashController extends Controller
 
         return redirect()->route('petty-cash.index')->with('success', 'Cierre de caja chica actualizado correctamente.');
     }
-    
+
 
     // Eliminar un cierre de caja chica
     public function destroy(PettyCash $pettyCash)
@@ -159,22 +162,22 @@ class PettyCashController extends Controller
             'total_sales_card' => 'required|numeric|min:0',
             'total_expenses' => 'required|numeric|min:0',
         ]);
-    
+
         try {
             DB::beginTransaction();
-    
+
             $pettyCash = PettyCash::findOrFail($request->petty_cash_id);
-            
+
             if ($pettyCash->status !== 'open') {
                 return response()->json([
                     'success' => false,
                     'message' => 'La caja chica ya está cerrada'
                 ], 400);
             }
-    
+
             $totalSales = $request->total_sales_cash + $request->total_sales_qr + $request->total_sales_card;
             $totalGeneral = $totalSales - $request->total_expenses;
-    
+
             $pettyCash->update([
                 'total_sales_cash' => $request->total_sales_cash,
                 'total_sales_qr' => $request->total_sales_qr,
@@ -185,15 +188,14 @@ class PettyCashController extends Controller
                 'closed_at' => now(),
                 'status' => 'closed',
             ]);
-    
+
             DB::commit();
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cierre de caja guardado correctamente',
                 'data' => $pettyCash
             ]);
-    
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -235,7 +237,7 @@ class PettyCashController extends Controller
             return redirect()->route('petty-cash.index')->with('error', 'Hubo un error al verificar las cajas chicas abiertas.');
         }
     }
-    
+
     public function print(PettyCash $pettyCash)
     {
 
@@ -244,15 +246,71 @@ class PettyCashController extends Controller
             'date' => now()->format('d/m/Y'),
             'totalSales' => $pettyCash->total_sales_cash + $pettyCash->total_sales_qr + $pettyCash->total_sales_card,
             'totalExpenses' => $pettyCash->total_expenses,
-            'user' => auth()->user(), 
+            'user' => auth()->user(),
             'salesByPaymentMethod' => [
-            'Efectivo' => $pettyCash->total_sales_cash,
-            'QR' => $pettyCash->total_sales_qr,
-            'Tarjeta' => $pettyCash->total_sales_card
-        ]
-    ];
+                'Efectivo' => $pettyCash->total_sales_cash,
+                'QR' => $pettyCash->total_sales_qr,
+                'Tarjeta' => $pettyCash->total_sales_card
+            ]
+        ];
 
-    $pdf = Pdf::loadView('petty_cash.print', $data);
-    return $pdf->stream('reporte-caja-chica-'.$pettyCash->date.'.pdf');
-}
+        $pdf = Pdf::loadView('petty_cash.print', $data);
+        return $pdf->stream('reporte-caja-chica-' . $pettyCash->date . '.pdf');
+    }
+    public function exportExcel(Request $request)
+    {
+        $filters = $this->getFilters($request);
+        $fileName = 'reporte_caja_chica_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new PettyCashExport($filters), $fileName);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $filters = $this->getFilters($request);
+        $pettyCashes = $this->getPettyCashesQuery($filters)->get();
+
+       // En PettyCashController - método exportPdf
+$pdf = Pdf::loadView('petty_cash.report-pdf', [
+    'pettyCashes' => $pettyCashes,
+    'filters' => $filters,
+    'totalSales' => $pettyCashes->sum('total_sales_cash'),
+    'totalExpenses' => $pettyCashes->sum('total_expenses')
+]);
+
+        return $pdf->download('reporte_caja_chica_' . date('Y-m-d_H-i-s') . '.pdf');
+    }
+
+    private function getFilters(Request $request)
+    {
+        return [
+            'user_id' => $request->input('user_id'),
+            'status' => $request->input('status'),
+            'date_from' => $request->input('date_from'),
+            'date_to' => $request->input('date_to'),
+        ];
+    }
+
+    private function getPettyCashesQuery($filters)
+    {
+        $query = PettyCash::with('user');
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('date', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('date', '<=', $filters['date_to']);
+        }
+
+        return $query->orderBy('date', 'desc');
+    }
 }
