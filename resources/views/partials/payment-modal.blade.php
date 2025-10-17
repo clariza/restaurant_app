@@ -1408,71 +1408,12 @@
         }
 
         // Funciones de métodos de pago
-        function addPaymentRow() {
-            const container = document.getElementById('payment-rows-container');
-            const rowId = `payment-row-${Date.now()}`;
-            
-            const row = document.createElement('div');
-            row.className = 'payment-row';
-            row.id = rowId;
-            row.innerHTML = `
-                <div class="payment-row-header">
-                    <span>Método de Pago ${container.children.length + 1}</span>
-                    <button class="payment-row-remove" onclick="removePaymentRow('${rowId}')">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="payment-form">
-                    <div class="form-group">
-                        <label class="form-label">Tipo de Pago</label>
-                        <select class="form-select payment-type" onchange="updatePaymentFields(this, '${rowId}')">
-                            <option value="efectivo">Efectivo</option>
-                            <option value="tarjeta">Tarjeta</option>
-                            <option value="transferencia">Transferencia</option>
-                            <option value="qr">QR</option>
-                        </select>
-                    </div>
-                    <div class="form-group full-width" id="transaction-field-${rowId}" style="display: none;">
-                        <label class="form-label">Número de Transacción</label>
-                        <input type="text" class="form-input transaction-number" placeholder="Ingrese el número de transacción">
-                    </div>
-                    <div class="payment-amounts">
-                        <div class="form-group">
-                            <label class="form-label">Total a Pagar</label>
-                            <input type="text" class="form-input total-amount" value="45.50" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Total Pagado</label>
-                            <input type="text" class="form-input total-paid" placeholder="0.00" oninput="calculateChange('${rowId}')">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Cambio</label>
-                            <input type="text" class="form-input change" value="0.00" readonly>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            container.appendChild(row);
-            window.paymentModalState.paymentRows.push(rowId);
-        }
-
+       
         function removePaymentRow(rowId) {
             const row = document.getElementById(rowId);
             if (row) {
                 row.remove();
                 window.paymentModalState.paymentRows = window.paymentModalState.paymentRows.filter(id => id !== rowId);
-            }
-        }
-
-        function updatePaymentFields(selectElement, rowId) {
-            const transactionField = document.getElementById(`transaction-field-${rowId}`);
-            const value = selectElement.value;
-            
-            if (value === 'tarjeta' || value === 'transferencia' || value === 'qr') {
-                transactionField.style.display = 'block';
-            } else {
-                transactionField.style.display = 'none';
             }
         }
 

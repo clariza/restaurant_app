@@ -194,6 +194,15 @@ function showPaymentModal() {
         return;
     }
 
+    // 🔥 NUEVO: Verificar tipo de pedido y mostrar advertencia si es "Recoger"
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+    if (orderType === 'Recoger') {
+        const confirmMessage = '⚠️ IMPORTANTE: Para pedidos "Recoger" solo están disponibles los métodos de pago:\n\n✓ QR\n✓ Transferencia Bancaria\n\n¿Desea continuar?';
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+    }
+
     // Usar la función del modal
     if (typeof openPaymentModal === 'function') {
         openPaymentModal();
@@ -582,6 +591,59 @@ function addPaymentRow() {
     // El Total a Pagar en la nueva fila será el cambio de la fila anterior (si existe)
     const totalToPay = lastChange > 0 ? lastChange : remainingTotal;
 
+    // 🔥 NUEVO: Obtener el tipo de pedido actual
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+    const isPickupOrder = orderType === 'Recoger';
+
+    // 🔥 NUEVO: Generar opciones de pago según el tipo de pedido
+    let paymentOptions = '';
+    let defaultSelected = false;
+
+    if (isPickupOrder) {
+        // ✅ SOLO QR y Transferencia para pedidos "Recoger"
+        if (!existingPaymentTypes.has('QR')) {
+            paymentOptions += `<option value="QR" class="payment-option" ${!defaultSelected ? 'selected' : ''}>QR</option>`;
+            defaultSelected = true;
+        }
+        if (!existingPaymentTypes.has('Transferencia')) {
+            paymentOptions += `<option value="Transferencia" class="payment-option" ${!defaultSelected ? 'selected' : ''}>Transferencia Bancaria</option>`;
+            defaultSelected = true;
+        }
+    } else {
+        // ✅ TODOS los métodos para "Comer aquí" y "Para llevar"
+        if (!existingPaymentTypes.has('Efectivo')) {
+            paymentOptions += `<option value="Efectivo" class="payment-option" ${!defaultSelected ? 'selected' : ''}>Efectivo</option>`;
+            defaultSelected = true;
+        }
+        if (!existingPaymentTypes.has('QR')) {
+            paymentOptions += `<option value="QR" class="payment-option" ${!defaultSelected ? 'selected' : ''}>QR</option>`;
+            if (!defaultSelected) defaultSelected = true;
+        }
+        if (!existingPaymentTypes.has('Tarjeta')) {
+            paymentOptions += `<option value="Tarjeta" class="payment-option" ${!defaultSelected ? 'selected' : ''}>Tarjeta</option>`;
+            if (!defaultSelected) defaultSelected = true;
+        }
+        if (!existingPaymentTypes.has('Transferencia')) {
+            paymentOptions += `<option value="Transferencia" class="payment-option" ${!defaultSelected ? 'selected' : ''}>Transferencia Bancaria</option>`;
+            if (!defaultSelected) defaultSelected = true;
+        }
+    }
+
+    // Validar que haya opciones disponibles
+    if (!paymentOptions) {
+        const availableMethods = isPickupOrder
+            ? 'QR y Transferencia Bancaria'
+            : 'Efectivo, QR, Tarjeta y Transferencia Bancaria';
+        alert(`No hay más métodos de pago disponibles. Métodos permitidos: ${availableMethods}`);
+        return;
+    }
+
+    // Determinar si mostrar el campo de transacción inicialmente
+    const firstPaymentType = paymentOptions.match(/value="([^"]+)"/)[1];
+    const showTransactionField = firstPaymentType === 'QR' ||
+        firstPaymentType === 'Tarjeta' ||
+        firstPaymentType === 'Transferencia';
+
     // Crear una nueva fila de pago
     const paymentRow = document.createElement('div');
     paymentRow.id = `payment-row-${paymentRowCounter}`;
@@ -589,14 +651,17 @@ function addPaymentRow() {
     paymentRow.innerHTML = `
         <div class="flex justify-between items-center payment-row-header">
             <div class="flex items-center space-x-2 payment-icons-container">
-                <span class="payment-icon hidden">
+                <span class="payment-icon hidden" data-type="QR">
                     <img src="{{ asset('images/codigo-qr.png') }}" alt="QR" class="w-5 h-5">
                 </span>
-                <span class="payment-icon hidden">
+                <span class="payment-icon hidden" data-type="Efectivo">
                     <img src="https://cdn-icons-png.flaticon.com/512/2704/2704714.png" alt="Efectivo" class="w-5 h-5">
                 </span>
-                <span class="payment-icon hidden">
+                <span class="payment-icon hidden" data-type="Tarjeta">
                     <img src="https://cdn-icons-png.flaticon.com/512/349/349221.png" alt="Tarjeta" class="w-5 h-5">
+                </span>
+                <span class="payment-icon hidden" data-type="Transferencia">
+                    <i class="fas fa-university text-blue-600 text-lg"></i>
                 </span>
             </div>
             <button onclick="removePaymentRow('${paymentRow.id}')" class="text-red-600 font-bold text-sm hover:text-red-800 transition-colors">✕</button>
@@ -605,15 +670,13 @@ function addPaymentRow() {
             <label class="input-label">Tipo de Pago:</label>
             <div class="select-container">
                 <select class="payment-type" onchange="updatePaymentFields(this, '${paymentRow.id}')">
-                    ${!existingPaymentTypes.has('Efectivo') ? '<option value="Efectivo" class="payment-option" selected>Efectivo</option>' : ''}
-                    ${!existingPaymentTypes.has('QR') ? '<option value="QR" class="payment-option">QR</option>' : ''}
-                    ${!existingPaymentTypes.has('Tarjeta') ? '<option value="Tarjeta" class="payment-option">Tarjeta</option>' : ''}
+                    ${paymentOptions}
                 </select>
             </div>
         </div>
-        <div id="transaction-field-${paymentRowCounter}" class="hidden">
+        <div id="transaction-field-${paymentRowCounter}" class="${showTransactionField ? '' : 'hidden'}">
             <label class="block text-sm text-[#203363] font-bold mb-1">Nro Transacción:</label>
-            <input type="text" class="transaction-number border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm" placeholder="Ingrese el número de transacción">
+            <input type="text" class="transaction-number border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm" placeholder="Ingrese el número de transacción" ${isPickupOrder ? 'required' : ''}>
         </div>
         <div class="flex justify-between space-x-4 payment-amount-group">
             <div class="flex-1 payment-amount-input input-with-icon">
@@ -643,6 +706,7 @@ function addPaymentRow() {
     // Actualizar campos según el tipo de pago seleccionado
     updatePaymentFields(paymentRow.querySelector('.payment-type'), paymentRow.id);
 }
+
 function updateScrollContainer() {
     const paymentRowsContainer = document.getElementById('payment-rows-container');
     const scrollableContainer = document.getElementById('payment-rows-scrollable');
@@ -678,18 +742,38 @@ function updatePaymentFields(selectElement, rowId) {
         // Verificar si ya existe un pago del tipo seleccionado
         if (existingPaymentTypes.has(selectedValue)) {
             alert(`Ya existe un pago de tipo ${selectedValue}. Seleccione otro tipo de pago.`);
-            selectElement.value = 'QR'; // Restablecer el valor por defecto
+
+            // Restablecer al primer valor disponible
+            const firstOption = selectElement.querySelector('option:not([disabled])');
+            if (firstOption) {
+                selectElement.value = firstOption.value;
+            }
             updatePaymentIcon(selectElement, rowId);
             return;
         }
 
         const transactionField = row.querySelector(`#transaction-field-${rowId.split('-')[2]}`);
+        const transactionInput = transactionField ? transactionField.querySelector('.transaction-number') : null;
 
-        // Mostrar u ocultar el campo "Nro Transacción"
-        if (selectedValue === 'QR' || selectedValue === 'Tarjeta') {
-            transactionField.classList.remove('hidden');
+        // Mostrar campo de transacción para QR, Tarjeta y Transferencia
+        if (selectedValue === 'QR' || selectedValue === 'Tarjeta' || selectedValue === 'Transferencia') {
+            if (transactionField) {
+                transactionField.classList.remove('hidden');
+            }
+
+            // Hacer obligatorio el campo si es un pedido "Recoger"
+            const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+            if (transactionInput) {
+                transactionInput.required = orderType === 'Recoger';
+            }
         } else {
-            transactionField.classList.add('hidden');
+            if (transactionField) {
+                transactionField.classList.add('hidden');
+            }
+            if (transactionInput) {
+                transactionInput.required = false;
+                transactionInput.value = ''; // Limpiar el valor
+            }
         }
 
         // Actualizar el ícono del tipo de pago
@@ -706,12 +790,11 @@ function updatePaymentIcon(selectElement, rowId) {
         icons.forEach(icon => icon.classList.add('hidden'));
 
         const selectedValue = selectElement.value;
-        if (selectedValue === 'QR') {
-            icons[0].classList.remove('hidden');
-        } else if (selectedValue === 'Efectivo') {
-            icons[1].classList.remove('hidden');
-        } else if (selectedValue === 'Tarjeta') {
-            icons[2].classList.remove('hidden');
+
+        // Buscar el ícono por el atributo data-type
+        const iconToShow = row.querySelector(`.payment-icon[data-type="${selectedValue}"]`);
+        if (iconToShow) {
+            iconToShow.classList.remove('hidden');
         }
     }
 }
@@ -842,28 +925,127 @@ function updateRemainingTotalAfterRemoval(removedAmount) {
  */
 function validatePayment() {
     const paymentRows = document.querySelectorAll('.payment-row');
-    let totalPaid = 0;
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+    const isPickupOrder = orderType === 'Recoger';
 
-    paymentRows.forEach(row => {
+    let totalPaid = 0;
+    const allowedMethods = isPickupOrder ? ['QR', 'Transferencia'] : ['Efectivo', 'QR', 'Tarjeta', 'Transferencia'];
+
+    for (let row of paymentRows) {
+        const paymentTypeSelect = row.querySelector('.payment-type');
+        const paymentType = paymentTypeSelect ? paymentTypeSelect.value : '';
         const totalPaidInput = row.querySelector('.total-paid');
         const paidValue = parseFloat(totalPaidInput.value);
+        const transactionInput = row.querySelector('.transaction-number');
 
-        if (isNaN(paidValue) || paidValue <= 0) {
-            alert('Por favor, ingrese un monto válido en todos los campos de "Total Pagado".');
+        // 🔥 VALIDACIÓN ESTRICTA: Verificar métodos permitidos según tipo de pedido
+        if (!allowedMethods.includes(paymentType)) {
+            const methodsList = allowedMethods.join(', ');
+            alert(`❌ Método de pago no permitido.\n\nPara pedidos "${orderType}" solo se permiten:\n${methodsList}`);
+            paymentTypeSelect.focus();
             return false;
         }
 
+        // Validar monto
+        if (isNaN(paidValue) || paidValue <= 0) {
+            alert('Por favor, ingrese un monto válido en todos los campos de "Total Pagado".');
+            totalPaidInput.focus();
+            return false;
+        }
+
+        // 🔥 VALIDACIÓN: Número de transacción obligatorio para pedidos "Recoger"
+        if (isPickupOrder && (paymentType === 'QR' || paymentType === 'Transferencia')) {
+            if (transactionInput) {
+                const transactionValue = transactionInput.value.trim();
+                if (!transactionValue) {
+                    alert(`❌ El número de transacción es OBLIGATORIO para pagos con ${paymentType} en pedidos "Recoger"`);
+                    transactionInput.focus();
+                    return false;
+                }
+
+                // Validar longitud mínima del número de transacción
+                if (transactionValue.length < 4) {
+                    alert(`❌ El número de transacción debe tener al menos 4 caracteres`);
+                    transactionInput.focus();
+                    return false;
+                }
+            }
+        }
+
         totalPaid += paidValue;
-    });
+    }
 
     const totalAmount = parseFloat(calcularTotal());
 
     if (totalPaid < totalAmount) {
-        alert(`El total pagado ($${totalPaid.toFixed(2)}) es menor al total del pedido ($${totalAmount.toFixed(2)}).`);
+        alert(`❌ El total pagado ($${totalPaid.toFixed(2)}) es menor al total del pedido ($${totalAmount.toFixed(2)}).`);
         return false;
     }
 
     return true;
+}
+function showPickupPaymentWarning() {
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+
+    // Eliminar advertencia existente primero
+    const existingWarning = document.getElementById('pickup-warning');
+    if (existingWarning) {
+        existingWarning.remove();
+    }
+
+    if (orderType === 'Recoger') {
+        const paymentSummary = document.querySelector('#payment-modal .payment-summary');
+        if (paymentSummary) {
+            const warningDiv = document.createElement('div');
+            warningDiv.id = 'pickup-warning';
+            warningDiv.style.cssText = `
+                background-color: #fef3c7;
+                border-left: 4px solid #f59e0b;
+                padding: 12px;
+                margin-bottom: 16px;
+                border-radius: 6px;
+                animation: slideInDown 0.4s ease-out;
+            `;
+            warningDiv.innerHTML = `
+                <div style="display: flex; align-items: start;">
+                    <i class="fas fa-exclamation-triangle" style="color: #d97706; margin-top: 2px; margin-right: 8px; font-size: 18px;"></i>
+                    <div>
+                        <p style="font-size: 14px; font-weight: 600; color: #92400e; margin: 0 0 4px 0;">
+                            Restricción de pago para "Recoger"
+                        </p>
+                        <p style="font-size: 12px; color: #b45309; margin: 0; line-height: 1.4;">
+                            Solo se permiten pagos mediante <strong>QR</strong> o <strong>Transferencia Bancaria</strong> para este tipo de pedido.
+                        </p>
+                        <p style="font-size: 11px; color: #b45309; margin: 6px 0 0 0; font-style: italic;">
+                            ℹ️ El número de transacción es obligatorio
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            // Insertar después del título pero antes del total
+            const summaryTitle = paymentSummary.querySelector('h3');
+            if (summaryTitle) {
+                summaryTitle.after(warningDiv);
+            } else {
+                paymentSummary.insertBefore(warningDiv, paymentSummary.firstChild);
+            }
+        }
+    }
+}
+function clearPaymentRestrictions() {
+    const warning = document.getElementById('pickup-warning');
+    if (warning) {
+        warning.remove();
+    }
+
+    // Limpiar todas las filas de pago existentes
+    const paymentRowsContainer = document.getElementById('payment-rows-container');
+    if (paymentRowsContainer) {
+        paymentRowsContainer.innerHTML = '';
+    }
+
+    paymentRowCounter = 0;
 }
 function loadCustomerDetails(paymentDetails = []) {
     const order = JSON.parse(localStorage.getItem('order')) || [];
@@ -2367,3 +2549,65 @@ document.addEventListener('keydown', function (e) {
         }
     }
 });
+const originalOpenPaymentModal = window.openPaymentModal;
+if (typeof originalOpenPaymentModal === 'function') {
+    window.openPaymentModal = function () {
+        // Limpiar restricciones anteriores
+        clearPaymentRestrictions();
+
+        // Llamar a la función original
+        originalOpenPaymentModal();
+
+        // Mostrar advertencia después de un pequeño delay
+        setTimeout(() => {
+            showPickupPaymentWarning();
+        }, 100);
+    };
+}
+
+// Escuchar cambios en el tipo de pedido para actualizar restricciones
+document.addEventListener('DOMContentLoaded', function () {
+    // Observar cambios en localStorage para tipo de pedido
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function (key, value) {
+        if (key === 'orderType') {
+            clearPaymentRestrictions();
+            console.log('🔄 Tipo de pedido cambiado a:', value);
+        }
+        originalSetItem.apply(this, arguments);
+    };
+});
+
+// ========== ESTILOS PARA LA ANIMACIÓN ==========
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    #pickup-warning {
+        animation: slideInDown 0.4s ease-out;
+    }
+    
+    .payment-type option:disabled {
+        color: #9ca3af;
+        font-style: italic;
+    }
+    
+    .transaction-number:required {
+        border-color: #f59e0b !important;
+    }
+    
+    .transaction-number:required:focus {
+        border-color: #d97706 !important;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1) !important;
+    }
+`;
+document.head.appendChild(style);

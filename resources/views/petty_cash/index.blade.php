@@ -56,14 +56,18 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .reports-section {
-    background: linear-gradient(135deg, #203363 0%, #2d4a8a 100%);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(32, 51, 99, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+    }
+    .reports-section:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .reports-section::before {
     content: '';
@@ -79,41 +83,43 @@
     .reports-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+    gap: 0.875rem;
+    margin-bottom: 0.5rem;
     position: relative;
     z-index: 2;
 }
     .reports-header i {
     font-size: 1.5rem;
-    color: #ffd166; /* Amarillo de acento */
-    background: rgba(255, 209, 102, 0.1);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.625rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
-    
-    .reports-header h3 {
-    font-size: 1.25rem;
+    .reports-section:hover .reports-header i {
+    background: #e5e7eb;
+    color: #374151;
+}
+   .reports-header h3 {
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #ffffff;
+    color: #111827;
     margin: 0;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: -0.01em;
 }
+
     
-    .reports-description {
-    color: rgba(255, 255, 255, 0.85);
+    ..reports-description {
+    color: #6b7280;
     font-size: 0.875rem;
-    margin-bottom: 1rem;
-    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
     position: relative;
     z-index: 2;
+    padding-left: 3rem;
 }
-    
-    .reports-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
+
+
     
     .btn-report {
     padding: 0.625rem 1.25rem;
@@ -143,16 +149,17 @@
 .btn-report:hover::before {
     left: 100%;
 }
-    .btn-report-excel {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+ .btn-report-excel {
+    background: #10b981;
     color: white;
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    border-color: #10b981;
 }
     
-   .btn-report-excel:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+.btn-report-excel:hover {
+    background: #059669;
+    border-color: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     color: white;
 }
 .btn-report-excel:hover,
@@ -161,27 +168,47 @@
 }
 
     
-    ..btn-report-pdf {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  .btn-report-pdf {
+    background: #ef4444;
     color: white;
-    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
 }
     
-    .btn-report-pdf:hover {
-        background-color: #ef4444;
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        color: white;
-    }
+.btn-report-pdf:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    color: white;
+}
     
-    ..btn-report i {
+.btn-report i {
     font-size: 1rem;
     transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 .btn-report:hover i {
     transform: scale(1.1);
 }
+.btn-report-alt {
+    background: #f9fafb;
+    color: #374151;
+    border-color: #e5e7eb;
+}
+.btn-report:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.btn-report:active {
+    transform: translateY(0);
+}
+.btn-report-alt:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #111827;
+}
+
     .input-group {
         display: flex;
         flex-direction: column;
@@ -600,20 +627,46 @@
         .closure-grid {
             grid-template-columns: 1fr;
         }
-
         .reports-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    position: relative;
-    z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 2;
+        padding-left: 3rem;
+        }
+    
+    }
+    @media (max-width: 768px) {
+    .reports-section {
+        padding: 1.5rem;
+    }
+
+    .reports-description,
+    .reports-buttons {
+        padding-left: 0;
+    }
+
+    .reports-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-report {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .reports-header h3 {
+        font-size: 1rem;
+    }
+
+    .reports-description {
+        font-size: 0.8125rem;
+        margin-bottom: 1rem;
+    }
 }
 
-        .btn-report {
-            width: 100%;
-            justify-content: center;
-        }
-    }
 
     @media (max-width: 480px) {
         .filters-panel {
@@ -837,6 +890,40 @@
             flex: 1;
             justify-content: center;
         }
+        .btn-report {
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+.btn-report::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+.btn-report:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+
+
     }
 </style>
 
