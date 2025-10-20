@@ -74,8 +74,8 @@
             <div class="hidden md:block md:col-span-2">Acciones</div>
         </div>
         
-        <!-- Cuerpo de la tabla -->
-        @forelse($orders->merge($proformas)->sortByDesc('created_at') as $record)
+        <!-- Cuerpo de la tabla - ORDEN ASCENDENTE -->
+        @forelse($orders->merge($proformas)->sortBy('created_at') as $record)
             @php
                 $isProforma = $record instanceof \App\Models\Proforma;
                 $badgeColor = $isProforma ? 'bg-[#EF476F]' : 'bg-[#203363]';
@@ -127,48 +127,48 @@
                     ${{ number_format($record->total, 2) }}
                 </div>
                 
-        <!-- Acciones (solo desktop) -->
-<div class="hidden md:flex md:col-span-2 space-x-2">
-    <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}" 
-       class="text-[#203363] hover:text-[#47517c] p-1"
-       title="Ver detalles">
-        <i class="fas fa-eye"></i>
-    </a>
-    
-    <button class="text-[#203363] hover:text-[#47517c] p-1"
-            onclick="printOrder('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $record->id }}')"
-            title="Imprimir">
-        <i class="fas fa-print"></i>
-    </button>
-    
-    @if($isProforma && $record->canBeConverted())
-        <button class="text-green-600 hover:text-green-800 p-1"
-                onclick="convertToOrder('{{ $record->id }}')"
-                title="Convertir a orden">
-            <i class="fas fa-exchange-alt"></i>
-        </button>
-    @endif
-</div>
+                <!-- Acciones (solo desktop) -->
+                <div class="hidden md:flex md:col-span-2 space-x-2">
+                    <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}" 
+                       class="text-[#203363] hover:text-[#47517c] p-1"
+                       title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    
+                    <button class="text-[#203363] hover:text-[#47517c] p-1"
+                            onclick="printOrder('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $record->id }}')"
+                            title="Imprimir">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    
+                    @if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted())
+                        <button class="text-green-600 hover:text-green-800 p-1"
+                                onclick="convertToOrder('{{ $record->id }}')"
+                                title="Convertir a orden">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    @endif
+                </div>
 
-<!-- Acciones móvil -->
-<div class="md:hidden col-span-12 mt-2 pt-2 border-t flex justify-end space-x-3">
-    <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}" 
-       class="text-[#203363] hover:text-[#47517c] text-sm flex items-center">
-        <i class="fas fa-eye mr-1"></i> Ver
-    </a>
-    
-    <button class="text-[#203363] hover:text-[#47517c] text-sm flex items-center"
-            onclick="printOrder('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $record->id }}')">
-        <i class="fas fa-print mr-1"></i> Imprimir
-    </button>
-    
-    @if($isProforma && $record->canBeConverted())
-        <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
-                onclick="convertToOrder('{{ $record->id }}')">
-            <i class="fas fa-exchange-alt mr-1"></i> Convertir
-        </button>
-    @endif
-</div>
+                <!-- Acciones móvil -->
+                <div class="md:hidden col-span-12 mt-2 pt-2 border-t flex justify-end space-x-3">
+                    <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}" 
+                       class="text-[#203363] hover:text-[#47517c] text-sm flex items-center">
+                        <i class="fas fa-eye mr-1"></i> Ver
+                    </a>
+                    
+                    <button class="text-[#203363] hover:text-[#47517c] text-sm flex items-center"
+                            onclick="printOrder('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $record->id }}')">
+                        <i class="fas fa-print mr-1"></i> Imprimir
+                    </button>
+                    
+                    @if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted())
+                        <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
+                                onclick="convertToOrder('{{ $record->id }}')">
+                            <i class="fas fa-exchange-alt mr-1"></i> Convertir
+                        </button>
+                    @endif
+                </div>
             </div>
         @empty
             <div class="p-8 text-center text-gray-500">
@@ -183,8 +183,8 @@
             <div class="p-4 border-t">
                 <div class="flex flex-col md:flex-row items-center justify-between">
                     <div class="mb-2 md:mb-0">
-                        Mostrando {{ $orders->firstItem() ?? $proformas->firstItem() }} a 
-                        {{ $orders->lastItem() ?? $proformas->lastItem() }} de 
+                        Mostrando {{ $orders->firstItem() ?? $proformas->firstItem() ?? 0 }} a 
+                        {{ $orders->lastItem() ?? $proformas->lastItem() ?? 0 }} de 
                         {{ $orders->total() + $proformas->total() }} registros
                     </div>
                     <div class="flex space-x-1">
@@ -238,56 +238,55 @@
     
     // Función para convertir proforma a orden
     function convertToOrder(proformaId) {
-    Swal.fire({
-        title: '¿Convertir proforma a orden?',
-        text: "Esta acción registrará la venta en la caja chica actual",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#203363',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, convertir',
-        cancelButtonText: 'Cancelar',
-        showLoaderOnConfirm: true,
-        preConfirm: () => {
-            return fetch(`/proformas/${proformaId}/convert`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .catch(error => {
-                Swal.showValidationMessage(
-                    `Error: ${error.message || 'Error en la solicitud'}`
-                );
-            });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            if (result.value.success) {
-                Swal.fire({
-                    title: '¡Conversión exitosa!',
-                    html: `Orden creada: <strong>${result.value.order_number}</strong>`,
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar'
-                }).then(() => {
-                    // Recargar la página para actualizar la lista
-                    window.location.reload();
+        Swal.fire({
+            title: '¿Convertir proforma a orden?',
+            text: "Esta acción registrará la venta en la caja chica actual",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#203363',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, convertir',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return fetch(`/proformas/${proformaId}/convert`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(
+                        `Error: ${error.message || 'Error en la solicitud'}`
+                    );
                 });
-            } else {
-                Swal.fire('Error', result.value.message, 'error');
             }
-        }
-    });
-}
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value.success) {
+                    Swal.fire({
+                        title: '¡Conversión exitosa!',
+                        html: `Orden creada: <strong>${result.value.order_number}</strong>`,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', result.value.message, 'error');
+                }
+            }
+        });
+    }
 </script>
 
 <style>

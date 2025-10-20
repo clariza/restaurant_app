@@ -6,6 +6,284 @@
     <title>Modal de Pagos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+             /* Estilos para el modal de configuración de mesas */
+        #tables-config-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1100 !important; 
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            backdrop-filter: blur(6px) !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            animation: modalFadeIn 0.3s ease-out !important;
+        }
+
+        #tables-config-modal.show {
+            display: flex !important;
+        }
+
+        .tables-config-container {
+            position: relative !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+            max-width: 500px !important;
+            width: 90% !important;
+            max-height: 85vh !important;
+            overflow: hidden !important;
+            z-index: 1101 !important;
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+
+        .tables-config-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 20px 24px !important;
+            background: #203363 !important;
+            color: white !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .tables-config-header h2 {
+            margin: 0 !important;
+            font-size: 1.4rem !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        .tables-config-close {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .tables-config-close:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: scale(1.05) !important;
+        }
+
+        .tables-config-content {
+            padding: 24px !important;
+            max-height: calc(85vh - 80px) !important;
+            overflow-y: auto !important;
+        }
+        .tables-config-content::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        .tables-config-content::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+        }
+
+        .tables-config-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 3px !important;
+        }
+
+        .toggle-container {
+            background: #f8fafc !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            margin-bottom: 24px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .toggle-container.active {
+            background: #f0f9ff !important;
+            border-color: #203363 !important;
+        }
+        .toggle-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            cursor: pointer !important;
+        }
+         .toggle-info {
+            flex: 1 !important;
+        }
+        .toggle-title {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: #203363 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .toggle-description {
+            font-size: 0.875rem !important;
+            color: #64748b !important;
+        }
+
+        .toggle-switch {
+            position: relative !important;
+            width: 56px !important;
+            height: 28px !important;
+            background: #cbd5e1 !important;
+            border-radius: 28px !important;
+            transition: background 0.3s ease !important;
+            cursor: pointer !important;
+        }
+
+        .toggle-switch::after {
+            content: '' !important;
+            position: absolute !important;
+            top: 2px !important;
+            left: 2px !important;
+            width: 24px !important;
+            height: 24px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            transition: transform 0.3s ease !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+         .toggle-input:checked + .toggle-switch {
+            background: #203363 !important;
+        }
+
+        .toggle-input:checked + .toggle-switch::after {
+            transform: translateX(28px) !important;
+        }
+
+        .toggle-input {
+            display: none !important;
+        }
+        .info-box {
+            background: #fef3c7 !important;
+            border-left: 4px solid #f59e0b !important;
+            padding: 16px !important;
+            border-radius: 8px !important;
+            margin-bottom: 20px !important;
+            display: none !important;
+        }
+
+        .info-box.show {
+            display: block !important;
+            animation: slideDown 0.3s ease-out !important;
+        }
+
+        .info-box-title {
+            font-weight: 600 !important;
+            color: #92400e !important;
+            margin-bottom: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .info-box-text {
+            font-size: 0.875rem !important;
+            color: #b45309 !important;
+            line-height: 1.5 !important;
+        }
+        .action-buttons {
+            display: flex !important;
+            gap: 12px !important;
+            margin-top: 24px !important;
+        }
+        .btn {
+            flex: 1 !important;
+            padding: 12px 20px !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+        .btn-cancel {
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+        }
+         .btn-cancel:hover {
+            background: #e2e8f0 !important;
+        }
+         .btn-save {
+            background: #203363 !important;
+            color: white !important;
+        }
+         .btn-save:hover {
+            background: #2d437c !important;
+            transform: translateY(-1px) !important;
+        }
+        .btn-save:disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+        .success-message {
+            background: #d1fae5 !important;
+            border: 1px solid #6ee7b7 !important;
+            color: #065f46 !important;
+            padding: 12px 16px !important;
+            border-radius: 8px !important;
+            margin-bottom: 16px !important;
+            display: none !important;
+            align-items: center !important;
+            gap: 10px !important;
+            animation: slideDown 0.3s ease-out !important;
+        }
+
+        .success-message.show {
+            display: flex !important;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .btn-loading {
+            pointer-events: none !important;
+            opacity: 0.7 !important;
+        }
+        .spinner {
+            animation: spin 1s linear infinite !important;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+           @media (max-width: 640px) {
+            .tables-config-container {
+                width: 95% !important;
+                margin: 10px !important;
+            }
+
+            .tables-config-header h2 {
+                font-size: 1.2rem !important;
+            }
+
+            .tables-config-content {
+                padding: 20px !important;
+            }
+
+            .action-buttons {
+                flex-direction: column !important;
+            }
+        }
         :root {
             --primary-color: #203363;
             --primary-hover: #2d437c;
@@ -736,6 +1014,97 @@
     {{-- <button onclick="openPaymentModal()" style="margin: 20px; padding: 10px 20px; background: #203363; color: white; border: none; border-radius: 5px; cursor: pointer;">
         Abrir Modal de Pagos
     </button> --}}
+    <div id="tables-config-modal" class="tables-config-modal">
+    <div class="tables-config-container">
+        <div class="tables-config-header">
+            <h2>
+                <i class="fas fa-table"></i>
+                Configuración de Mesas
+            </h2>
+            <button class="tables-config-close" onclick="closeTablesConfigModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="tables-config-content">
+            <!-- Mensaje de éxito -->
+            <div id="config-success-message" class="success-message">
+                <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                <span id="success-message-text">Configuración guardada exitosamente</span>
+            </div>
+
+            <!-- Toggle de habilitación de mesas -->
+            <div id="toggle-container" class="toggle-container">
+                <label class="toggle-label">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Gestión de Mesas</div>
+                        <div class="toggle-description">
+                            Habilita la asignación de pedidos a mesas específicas
+                        </div>
+                    </div>
+                    <input type="checkbox" id="tables-enabled-input" class="toggle-input">
+                    <div class="toggle-switch"></div>
+                </label>
+            </div>
+
+            <!-- Sección de gestión de mesas -->
+            <div id="tables-management-section" class="tables-section">
+                <div class="tables-section-header">
+                    <div class="tables-section-title">
+                        <i class="fas fa-cog"></i> Gestión de Mesas
+                    </div>
+                    <div class="state-badge" id="tables-count">0 mesas</div>
+                </div>
+
+                <!-- Acciones masivas -->
+                <div class="bulk-actions">
+                    <div class="bulk-actions-title">
+                        <i class="fas fa-sync-alt"></i>
+                        Cambiar Estado de Todas las Mesas
+                    </div>
+                    <div class="bulk-select-container">
+                        <select id="bulk-state-select" class="bulk-select">
+                            <option value="">Seleccione un estado</option>
+                            <option value="Disponible">✓ Disponible</option>
+                            <option value="Ocupada">● Ocupada</option>
+                            <option value="Reservada">◐ Reservada</option>
+                            <option value="No Disponible">✗ No Disponible</option>
+                        </select>
+                        <button class="bulk-apply-btn" onclick="applyBulkStateChange()">
+                            <i class="fas fa-check"></i>
+                            Aplicar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de mesas -->
+                <div id="tables-list" class="tables-list">
+                    <!-- Las mesas se cargarán dinámicamente aquí -->
+                </div>
+
+                <!-- Estado vacío -->
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="fas fa-table"></i>
+                    <p>No hay mesas configuradas</p>
+                    <small>Las mesas se crean desde la sección de configuración principal</small>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+                <button class="btn btn-cancel" onclick="closeTablesConfigModal()">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+                <button class="btn btn-save" id="save-tables-config" onclick="saveAllChanges()">
+                    <i class="fas fa-save"></i>
+                    Guardar Todos los Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div id="payment-modal" class="payment-modal hidden">
         <div class="payment-modal-overlay" onclick="closePaymentModal()"></div>
@@ -774,9 +1143,11 @@
                     <div class="table-selection hidden" id="modal-table-selection">
                         <h4>
                             <span>Selecciona una Mesa</span>
-                            <a href="{{ route('tables.index') }}" class="tables-config-btn" title="Configurar Mesas">
-                                <i class="fas fa-cog"></i>
-                            </a>
+                           <!-- ✅ AHORA (Funciona) -->
+   <button onclick="openTablesConfigModal()" class="tables-config-btn" type="button">
+       <i class="fas fa-cog"></i>
+       <span>Config</span>
+   </button>
                         </h4>
                         <div id="table-loading" class="hidden text-center py-4 text-gray-500">
                             <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -856,6 +1227,7 @@
     </div>
 
     <script>
+        let originalTablesEnabled = false;
         // Variables globales
         let currentStep = 1;
         let selectedOrderType = 'comer-aqui';
@@ -868,7 +1240,148 @@
             selectedTable: null,
             paymentRows: []
         };
-
+        // Abrir modal de configuración de mesas
+    function openTablesConfigModal() {
+        console.log('🔧 Abriendo modal de configuración de mesas...');
+    
+        const modal = document.getElementById('tables-config-modal');
+        if (!modal) {
+            console.error('❌ No se encontró el modal de configuración');
+            return;
+        }
+    
+    // Cargar el estado actual
+    loadCurrentTablesConfig();
+    
+    // Mostrar el modal
+    modal.classList.add('show');
+    
+    // Ocultar mensaje de éxito
+    document.getElementById('config-success-message').classList.remove('show');
+    
+    console.log('✅ Modal de configuración de mesas abierto');
+}
+// Cerrar modal de configuración de mesas
+function closeTablesConfigModal() {
+    const modal = document.getElementById('tables-config-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    console.log('✅ Modal de configuración cerrado');
+}
+async function loadCurrentTablesConfig() {
+    try {
+        // Obtener el estado desde window.tablesEnabled (ya disponible en el sistema)
+        const currentState = window.tablesEnabled || false;
+        
+        console.log('📋 Estado actual de mesas:', currentState);
+        
+        // Actualizar el toggle
+        const toggleInput = document.getElementById('tables-enabled-input');
+        const toggleContainer = document.getElementById('toggle-container');
+        const infoBox = document.getElementById('tables-info-box');
+        
+        if (toggleInput) {
+            toggleInput.checked = currentState;
+            originalTablesEnabled = currentState;
+            
+            // Actualizar clases visuales
+            if (currentState) {
+                toggleContainer.classList.add('active');
+                infoBox.classList.add('show');
+            } else {
+                toggleContainer.classList.remove('active');
+                infoBox.classList.remove('show');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error al cargar configuración:', error);
+    }
+}
+// Guardar configuración
+async function saveTablesConfig() {
+    const toggleInput = document.getElementById('tables-enabled-input');
+    const saveBtn = document.getElementById('save-tables-config');
+    const successMessage = document.getElementById('config-success-message');
+    
+    if (!toggleInput) return;
+    
+    const newState = toggleInput.checked;
+    
+    // Validar si hubo cambios
+    if (newState === originalTablesEnabled) {
+        console.log('ℹ️ No hay cambios que guardar');
+        closeTablesConfigModal();
+        return;
+    }
+    
+    // Mostrar estado de carga
+    const originalBtnText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Guardando...';
+    saveBtn.classList.add('btn-loading');
+    saveBtn.disabled = true;
+    
+    try {
+        console.log('💾 Guardando configuración:', newState);
+        
+        // Preparar datos para enviar
+        const formData = new FormData();
+        formData.append('tables_enabled', newState ? '1' : '0');
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || window.csrfToken);
+        
+        // Enviar al servidor
+        const response = await fetch('/settings/update', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Error al guardar la configuración');
+        }
+        
+        console.log('✅ Configuración guardada exitosamente');
+        
+        // Actualizar estado global
+        window.tablesEnabled = newState;
+        originalTablesEnabled = newState;
+        
+        // Mostrar mensaje de éxito
+        successMessage.classList.add('show');
+        
+        // Ocultar mensaje después de 2 segundos y cerrar modal
+        setTimeout(() => {
+            successMessage.classList.remove('show');
+            closeTablesConfigModal();
+            
+            // Recargar las mesas si están habilitadas y estamos en el modal de pago
+            if (newState && typeof loadModalTables === 'function') {
+                console.log('🔄 Recargando mesas en el modal de pago...');
+                loadModalTables();
+            }
+            
+            // Actualizar visibilidad de secciones en el modal de pago
+            if (typeof updateModalSectionsVisibility === 'function') {
+                updateModalSectionsVisibility();
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('❌ Error al guardar configuración:', error);
+        alert('Error: ' + error.message);
+    } finally {
+        // Restaurar botón
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.classList.remove('btn-loading');
+        saveBtn.disabled = false;
+    }
+}
         // Funciones básicas del modal
         function openPaymentModal() {
             console.log('🚀 Abriendo modal de pagos...');
@@ -1138,23 +1651,30 @@
         }
 
         function selectTable(tableElement) {
-            console.log('✅ Mesa seleccionada:', tableElement.dataset.tableNumber);
-            
-            // Deseleccionar mesa anterior
-            document.querySelectorAll('#payment-modal .table-btn.selected').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            // Seleccionar nueva mesa
-            tableElement.classList.add('selected');
-            window.paymentModalState.selectedTable = {
-                id: tableElement.dataset.tableId,
-                number: tableElement.dataset.tableNumber
-            };
-            
-            // Actualizar también localStorage para sincronizar con el sistema principal
-            localStorage.setItem('tableNumber', tableElement.dataset.tableId);
-        }
+    console.log('✅ Mesa seleccionada:', tableElement.dataset.tableNumber);
+    
+    // Deseleccionar mesa anterior
+    document.querySelectorAll('#payment-modal .table-btn.selected').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Seleccionar nueva mesa
+    tableElement.classList.add('selected');
+    
+    // Actualizar el estado global del modal
+    window.paymentModalState.selectedTable = {
+        id: tableElement.dataset.tableId,
+        number: tableElement.dataset.tableNumber
+    };
+    
+    // CRÍTICO: Actualizar localStorage inmediatamente
+    localStorage.setItem('tableNumber', tableElement.dataset.tableId);
+    
+    console.log('📋 Mesa guardada en localStorage:', {
+        id: tableElement.dataset.tableId,
+        number: tableElement.dataset.tableNumber
+    });
+}
 
         // Configurar botones de tipo de pedido
         function initializeModal() {
@@ -1281,61 +1801,71 @@
             console.log('✅ Modal sincronizado con sistema:', currentOrderType, '→', modalType);
         }
 
-        // Navegación entre pasos - FUNCIONAMIENTO DE TABS
         function goToStep(step) {
-            console.log('🚀 Intentando ir al paso:', step, 'Tipo actual:', window.paymentModalState.selectedOrderType);
+    console.log('🚀 Intentando ir al paso:', step, 'Tipo actual:', window.paymentModalState.selectedOrderType);
+    
+    // Validaciones antes de cambiar de paso
+    if (step === 2 && window.paymentModalState.currentStep === 1) {
+        const orderType = window.paymentModalState.selectedOrderType;
+        
+        if (orderType === 'comer-aqui') {
+            // CRÍTICO: Verificar que hay mesa seleccionada
+            const selectedTableBtn = document.querySelector('#payment-modal .table-btn.selected');
             
-            // Validaciones antes de cambiar de paso
-            if (step === 2 && window.paymentModalState.currentStep === 1) {
-                // Validar según el tipo de pedido
-                const orderType = window.paymentModalState.selectedOrderType;
-                
-                if (orderType === 'comer-aqui') {
-                    // Verificar que hay mesa seleccionada
-                    const selectedTableBtn = document.querySelector('#payment-modal .table-btn.selected');
-                    if (!selectedTableBtn) {
-                        alert('Por favor, selecciona una mesa para "Comer aquí"');
-                        return;
-                    }
-                    
-                    // Actualizar selectedTable
-                    window.paymentModalState.selectedTable = {
-                        id: selectedTableBtn.dataset.tableId,
-                        number: selectedTableBtn.dataset.tableNumber
-                    };
-                    localStorage.setItem('tableNumber', selectedTableBtn.dataset.tableId);
-                    
-                } else if (orderType === 'para-llevar') {
-                    // Verificar que hay servicio de delivery seleccionado
-                    const deliverySelect = document.getElementById('modal-delivery-service');
-                    if (!deliverySelect || !deliverySelect.value) {
-                        alert('Por favor, selecciona un servicio de delivery para "Para llevar"');
-                        return;
-                    }
-                    localStorage.setItem('deliveryService', deliverySelect.value);
-                }
-                // Para 'recoger' no hay validaciones adicionales
+            if (!selectedTableBtn) {
+                alert('Por favor, selecciona una mesa para "Comer aquí"');
+                return;
             }
             
-            // Cambiar al paso seleccionado
-            document.querySelectorAll('#payment-modal .step-content').forEach(content => {
-                content.classList.remove('active');
+            // IMPORTANTE: Obtener y guardar el ID correcto
+            const tableId = selectedTableBtn.dataset.tableId;
+            const tableNumber = selectedTableBtn.dataset.tableNumber;
+            
+            console.log('🔍 Validando mesa seleccionada:', {
+                id: tableId,
+                number: tableNumber
             });
-            document.querySelectorAll('#payment-modal .step-item').forEach(item => {
-                item.classList.remove('active');
-            });
             
-            const stepContent = document.getElementById(`step-${step}`);
-            const stepItem = document.querySelector(`#payment-modal .step-item[data-step="${step}"]`);
+            // Actualizar selectedTable con los valores correctos
+            window.paymentModalState.selectedTable = {
+                id: tableId,
+                number: tableNumber
+            };
             
-            if (stepContent) stepContent.classList.add('active');
-            if (stepItem) stepItem.classList.add('active');
+            // CRÍTICO: Guardar en localStorage
+            localStorage.setItem('tableNumber', tableId);
             
-            window.paymentModalState.currentStep = step;
-            updateStepNavigation();
+            console.log('✅ Mesa confirmada para paso 2:', localStorage.getItem('tableNumber'));
             
-            console.log('✅ Cambiado al paso:', step);
+        } else if (orderType === 'para-llevar') {
+            const deliverySelect = document.getElementById('modal-delivery-service');
+            if (!deliverySelect || !deliverySelect.value) {
+                alert('Por favor, selecciona un servicio de delivery para "Para llevar"');
+                return;
+            }
+            localStorage.setItem('deliveryService', deliverySelect.value);
         }
+    }
+    
+    // Cambiar al paso seleccionado
+    document.querySelectorAll('#payment-modal .step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.querySelectorAll('#payment-modal .step-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    const stepContent = document.getElementById(`step-${step}`);
+    const stepItem = document.querySelector(`#payment-modal .step-item[data-step="${step}"]`);
+    
+    if (stepContent) stepContent.classList.add('active');
+    if (stepItem) stepItem.classList.add('active');
+    
+    window.paymentModalState.currentStep = step;
+    updateStepNavigation();
+    
+    console.log('✅ Cambiado al paso:', step);
+}
 
         function nextStep() {
             if (window.paymentModalState.currentStep >= 2) return;
@@ -1495,6 +2025,42 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM cargado, modal listo para usar');
         });
+        document.addEventListener('DOMContentLoaded', function() {
+    const toggleInput = document.getElementById('tables-enabled-input');
+    const toggleContainer = document.getElementById('toggle-container');
+    const infoBox = document.getElementById('tables-info-box');
+    
+    if (toggleInput) {
+        toggleInput.addEventListener('change', function() {
+            console.log('🔄 Toggle cambiado:', this.checked);
+            
+            // Actualizar clases visuales
+            if (this.checked) {
+                toggleContainer.classList.add('active');
+                infoBox.classList.add('show');
+            } else {
+                toggleContainer.classList.remove('active');
+                infoBox.classList.remove('show');
+            }
+        });
+    }
+});
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('tables-config-modal');
+    if (e.target === modal) {
+        closeTablesConfigModal();
+    }
+});
+
+// Cerrar con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('tables-config-modal');
+        if (modal && modal.classList.contains('show')) {
+            closeTablesConfigModal();
+        }
+    }
+});
     </script>
 </body>
 </html>

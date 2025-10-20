@@ -43,9 +43,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'check.pettycash'])->group(function () {
     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
-       // Rutas para Delivery
+    // Rutas para Delivery
     Route::resource('deliveries', DeliveryServiceController::class);
-
 });
 
 
@@ -63,12 +62,12 @@ Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
 
 // Ruta para mostrar los detalles de las ventas
-Route::get('/ventas/{sale}', [SaleController::class, 'show'])->name('sales.show');
+Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
 
 Route::post('/sales', [SaleController::class, 'store'])
     ->middleware('api') // Usar el middleware 'api' en lugar de 'web'
     ->name('sales.store');
-    
+
 // Ruta para la vista de detalles del cliente
 Route::get('/customer-details', function () {
     return view('customer-details');
@@ -83,15 +82,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
-     // Rutas para la búsqueda de productos (Items)
+    // Rutas para la búsqueda de productos (Items)
     Route::get('/items/search', [ItemsController::class, 'search'])->name('items.search');
-      // Rutas para compras
+    // Rutas para compras
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchases', [PurchaseController::class, 'store'])
-    ->name('purchases.store');
-    
-      // Rutas para la búsqueda de productos
+        ->name('purchases.store');
+
+    // Rutas para la búsqueda de productos
     Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])
         ->name('purchases.searchProducts');
     Route::get('/purchases/product-details/{id}', [PurchaseController::class, 'getProductDetails'])
@@ -102,12 +101,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     // Ruta para cambio masivo de estado
-     Route::post('/tables/bulk-change-state', [TableController::class, 'bulkChangeState'])
-         ->name('tables.bulk-change-state');
-    
+    Route::post('/tables/bulk-change-state', [TableController::class, 'bulkChangeState'])
+        ->name('tables.bulk-change-state');
+
     // Ruta para obtener estadísticas (opcional)
     Route::get('/tables/stats', [TableController::class, 'getTablesStats'])
-         ->name('tables.stats');
+        ->name('tables.stats');
 });
 
 

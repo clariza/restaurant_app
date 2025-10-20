@@ -1087,17 +1087,46 @@ function loadCustomerDetails(paymentDetails = []) {
  */
 function generateTicketContent(dailyOrderNumber) {
     const order = JSON.parse(localStorage.getItem('order')) || [];
-    const orderType = document.getElementById('order-type')?.value || 'Comer aquí';
-    const tableNumber = orderType === 'Comer aquí' ?
-        (document.getElementById('table-number')?.value || '1') : '';
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+
+    // Obtener información de mesa
+    let tableNumber = '';
+    let tableDisplayText = '';
+
+    if (orderType === 'Comer aquí') {
+        const tableId = localStorage.getItem('tableNumber');
+        console.log('🔍 DEBUG Ticket - Generando ticket:', {
+            orderType,
+            tableId
+        });
+
+        if (tableId) {
+            if (window.paymentModalState?.selectedTable?.number) {
+                tableNumber = window.paymentModalState.selectedTable.number;
+                tableDisplayText = `Mesa ${tableNumber}`;
+                console.log('   - Table Number (paymentModalState):', tableNumber);
+            } else {
+                tableNumber = tableId;
+                tableDisplayText = `Mesa ${tableId}`;
+                console.log('   - Usando Table ID como fallback:', tableId);
+            }
+        } else {
+            console.warn('⚠️ No se encontró tableNumber en localStorage');
+            tableDisplayText = '';
+        }
+    }
 
     // Obtener servicio de delivery si el tipo es "Para llevar"
     const deliveryService = orderType === 'Para llevar' ?
-        (document.getElementById('delivery-service')?.value || '') : '';
+        (localStorage.getItem('deliveryService') || '') : '';
 
-    // Obtener todas las notas del contenedor
-    const orderNotes = document.getElementById('order-notes')?.value || '';
-    const proformaNotes = document.getElementById('proforma-notes')?.value || '';
+    // 🔥 NUEVO: Obtener notas de "Recoger" si el tipo es "Recoger"
+    const pickupNotes = orderType === 'Recoger' ?
+        (localStorage.getItem('pickupNotes') || '') : '';
+
+    // Obtener notas generales y de proforma
+    const orderNotes = localStorage.getItem('orderNotes') || '';
+    const proformaNotes = localStorage.getItem('proformaNotes') || '';
 
     const customerName = document.getElementById('customer-name')?.value || '';
     const sellerName = window.authUserName || 'Usuario';
@@ -1112,10 +1141,21 @@ function generateTicketContent(dailyOrderNumber) {
     const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
     const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    // Combinar todas las notas si existen
+    // 🔥 NUEVO: Combinar TODAS las notas según el tipo de pedido
     let allNotes = '';
     if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
-    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}`;
+    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+    if (pickupNotes && orderType === 'Recoger') {
+        allNotes += `Notas de Recoger: ${pickupNotes}`;
+    }
+
+    console.log('✅ Ticket generado con:', {
+        orderType,
+        tableId: localStorage.getItem('tableNumber'),
+        tableDisplay: tableDisplayText,
+        deliveryService,
+        pickupNotes: pickupNotes || 'Sin notas'
+    });
 
     return `
         <div class="header">
@@ -1134,7 +1174,12 @@ function generateTicketContent(dailyOrderNumber) {
         </div>
         <div class="divider"></div>
         
-        ${orderType ? `<div class="item-row"><span>Tipo:</span><span>${orderType} ${orderType === 'Comer aquí' && tableNumber ? 'Mesa ' + tableNumber : ''}${orderType === 'Para llevar' && deliveryService ? ' - ' + deliveryService : ''}</span></div>` : ''}
+        ${orderType ? `
+            <div class="item-row">
+                <span>Tipo:</span>
+                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
+            </div>
+        ` : ''}
         
         ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
         
@@ -1173,7 +1218,6 @@ function generateTicketContent(dailyOrderNumber) {
         </div>
     `;
 }
-
 /**
  * Muestra la vista previa de impresión
  */
@@ -1223,6 +1267,130 @@ function showPrintPreview(content) {
 
     // Bloquear el scroll del body cuando el modal está abierto
     document.body.style.overflow = 'hidden';
+}
+async function getTableNumberFromId(tableId) {
+    try {
+        const response = await fetch(`/tables/${tableId}/status`);
+        const data = await response.json();
+
+        if (data.success && data.table) {
+            return data.table.number;
+        }
+    } catch (error) {
+        console.error('Error al obtener número de mesa:', error);
+    }
+    return tableId; // Fallback al ID
+}
+async function generateTicketContentAsync(dailyOrderNumber) {
+    const order = JSON.parse(localStorage.getItem('order')) || [];
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
+
+    let tableNumber = '';
+    let tableDisplayText = '';
+
+    if (orderType === 'Comer aquí') {
+        const tableId = localStorage.getItem('tableNumber');
+
+        if (tableId) {
+            if (window.paymentModalState?.selectedTable?.number) {
+                tableNumber = window.paymentModalState.selectedTable.number;
+            } else {
+                tableNumber = await getTableNumberFromId(tableId);
+            }
+
+            tableDisplayText = `Mesa ${tableNumber}`;
+            console.log('✅ Mesa para ticket:', tableDisplayText);
+        }
+    }
+
+    const deliveryService = orderType === 'Para llevar' ?
+        (localStorage.getItem('deliveryService') || '') : '';
+
+    // 🔥 NUEVO: Obtener notas de "Recoger"
+    const pickupNotes = orderType === 'Recoger' ?
+        (localStorage.getItem('pickupNotes') || '') : '';
+
+    const orderNotes = localStorage.getItem('orderNotes') || '';
+    const proformaNotes = localStorage.getItem('proformaNotes') || '';
+    const customerName = document.getElementById('customer-name')?.value || '';
+    const sellerName = window.authUserName || 'Usuario';
+
+    const subtotal = order.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const tax = 0;
+    const total = subtotal + tax;
+
+    const now = new Date();
+    const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    // 🔥 NUEVO: Incluir notas de Recoger
+    let allNotes = '';
+    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+    if (pickupNotes && orderType === 'Recoger') {
+        allNotes += `Notas de Recoger: ${pickupNotes}`;
+    }
+
+    return `
+        <div class="header">
+            <div class="title">RESTAURANTE MIQUNA</div>
+            <div class="subtitle">${dateStr} ${timeStr}</div>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Vendedor:</span>
+            <span>${sellerName}</span>
+        </div>
+        <div class="item-row">
+            <span>Pedido:</span>
+            <span>${dailyOrderNumber}</span>
+        </div>
+        <div class="divider"></div>
+        
+        ${orderType ? `
+            <div class="item-row">
+                <span>Tipo:</span>
+                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
+            </div>
+        ` : ''}
+        
+        ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
+        
+        <div class="divider"></div>
+        
+        ${order.map(item => `
+            <div class="item-row">
+                <span>${item.quantity}x ${item.name.substring(0, 20)}</span>
+                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('')}
+        
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Subtotal:</span>
+            <span>$${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="item-row">
+            <span>Impuesto:</span>
+            <span>$${tax.toFixed(2)}</span>
+        </div>
+        <div class="item-row total-row">
+            <span>TOTAL:</span>
+            <span>$${total.toFixed(2)}</span>
+        </div>
+        
+        ${allNotes ? `
+            <div class="divider"></div>
+            <div class="notes">${allNotes}</div>
+        ` : ''}
+        
+        <div class="divider"></div>
+        <div class="footer">
+            ¡Gracias por su preferencia!
+        </div>
+    `;
 }
 /**
  * Cierra la vista previa de impresión
@@ -1285,10 +1453,13 @@ function confirmPrint() {
 
     closePrintPreview(true);
 }
-function showPrintConfirmation() {
-    return new Promise((resolve) => {
-        // Generar el contenido del ticket
-        const printContent = generateTicketContent();
+async function showPrintConfirmation(dailyOrderNumber) {
+    return new Promise(async (resolve) => {
+        // Generar el contenido del ticket (usar versión async si quieres)
+        const printContent = await generateTicketContentAsync(dailyOrderNumber);
+
+        // O usar la versión síncrona si paymentModalState siempre tiene el número
+        // const printContent = generateTicketContent(dailyOrderNumber);
 
         // Mostrar el modal de vista previa
         showPrintPreview(printContent);
@@ -1515,13 +1686,23 @@ async function processOrder() {
 
         let tableNumber = '';
         if (orderType === 'Comer aquí') {
-            // Solo validar mesa si tablesEnabled es true
             if (tablesEnabled) {
-                tableNumber = localStorage.getItem('tableNumber') ||
-                    document.getElementById('table-number')?.value || '';
+                tableNumber = localStorage.getItem('tableNumber');
+
+                console.log('🔍 DEBUG - Procesando orden:');
+                console.log('   - Tipo de pedido:', orderType);
+                console.log('   - Table Number (localStorage):', tableNumber);
+                console.log('   - PaymentModalState:', window.paymentModalState?.selectedTable);
+
 
                 if (!tableNumber) {
-                    throw new Error('Debe seleccionar una mesa para "Comer aquí"');
+                    // Fallback: intentar obtener de paymentModalState
+                    if (window.paymentModalState?.selectedTable?.id) {
+                        tableNumber = window.paymentModalState.selectedTable.id;
+                        console.log('   - Usando tableNumber de paymentModalState:', tableNumber);
+                    } else {
+                        throw new Error('Debe seleccionar una mesa para "Comer aquí"');
+                    }
                 }
 
                 // Actualizar estado de la mesa solo si está habilitado
@@ -1530,6 +1711,7 @@ async function processOrder() {
                     if (!result.success) {
                         throw new Error(result.error || 'Error al actualizar estado de mesa');
                     }
+                    console.log('✅ Estado de mesa actualizado correctamente');
                 } catch (error) {
                     console.error('Error al actualizar mesa:', error);
                     throw new Error(`No se pudo ocupar la mesa. ${error.message}`);
@@ -2470,7 +2652,13 @@ function setupCustomerDetailsObserver() {
     }
 }
 
-
+function debugTableSelection() {
+    console.log('🔍 DEBUG - Estado de selección de mesa:');
+    console.log('   - localStorage.tableNumber:', localStorage.getItem('tableNumber'));
+    console.log('   - paymentModalState:', window.paymentModalState?.selectedTable);
+    console.log('   - Mesa seleccionada en modal:', document.querySelector('#payment-modal .table-btn.selected')?.dataset);
+    console.log('   - Select principal:', document.getElementById('table-number')?.value);
+}
 
 function selectModalTable(tableElement) {
     console.log('✅ Mesa seleccionada en modal:', tableElement.dataset.tableNumber);
@@ -2483,13 +2671,36 @@ function selectModalTable(tableElement) {
     // Seleccionar nueva mesa
     tableElement.classList.add('selected');
 
-    // Actualizar el sistema principal también
+    // CRÍTICO: Obtener el ID correcto de la mesa
+    const tableId = tableElement.dataset.tableId;
+    const tableNumber = tableElement.dataset.tableNumber;
+
+    console.log('🔍 Datos de la mesa:', {
+        tableId: tableId,
+        tableNumber: tableNumber
+    });
+
+    // Actualizar localStorage con el ID correcto
+    localStorage.setItem('tableNumber', tableId);
+
+    // Actualizar el select principal si existe
     const tableSelect = document.getElementById('table-number');
     if (tableSelect) {
-        tableSelect.value = tableElement.dataset.tableId;
-        localStorage.setItem('tableNumber', tableElement.dataset.tableId);
+        tableSelect.value = tableId;
+        console.log('✅ Select principal actualizado a:', tableId);
     }
+
+    // Actualizar window.paymentModalState si existe
+    if (window.paymentModalState) {
+        window.paymentModalState.selectedTable = {
+            id: tableId,
+            number: tableNumber
+        };
+    }
+
+    console.log('📋 Mesa guardada - ID:', tableId, 'Número:', tableNumber);
 }
+
 // Cargar el estado al cambiar de mesa
 document.addEventListener('DOMContentLoaded', function () {
     const tableSelect = document.getElementById('table-number');
