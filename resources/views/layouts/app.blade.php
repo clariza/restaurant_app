@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Toastify CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Estilos propios -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -248,8 +250,64 @@
         </nav>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/app.js"></script>
-    @stack('scripts')
+
+<!-- ✅ Variables globales PRIMERO -->
+<script>
+    window.routes = {
+        tablesAvailable: "{{ route('tables.available') }}",
+        salesStore: "{{ route('sales.store') }}",
+        customerDetails: "{{ route('customer.details') }}",
+        menuIndex: "{{ route('menu.index') }}"
+    };
+    window.csrfToken = "{{ csrf_token() }}";
+    window.authUserName = "{{ Auth::user()->name ?? '' }}";
+    window.tablesEnabled = @json($settings->tables_enabled ?? false);
+    
+    console.log('🌍 Variables globales configuradas');
+</script>
+
+<!-- ✅ Cargar scripts en orden correcto -->
+<script src="{{ asset('js/order-details.js') }}" defer></script>
+<script src="{{ asset('js/payment-modal.js') }}" defer></script>
+<script src="{{ asset('js/app.js') }}" defer></script>
+<script src="{{ asset('js/init.js') }}" defer></script>
+
+<!-- ✅ Inicialización sin recargas -->
+<script>
+    let initAttempts = 0;
+    const MAX_ATTEMPTS = 3;
+
+    function ensureOrderSystemReady() {
+        console.log('🔍 Verificando sistema de pedidos... Intento:', initAttempts + 1);
+        
+        if (typeof window.updateOrderDetails === 'function') {
+            console.log('✅ updateOrderDetails está disponible');
+            window.updateOrderDetails();
+            return true;
+        } else {
+            initAttempts++;
+            
+            if (initAttempts < MAX_ATTEMPTS) {
+                console.warn('⚠️ updateOrderDetails NO disponible, reintentando...');
+                setTimeout(ensureOrderSystemReady, 500);
+            } else {
+                console.error('❌ Sistema de pedidos no disponible después de', MAX_ATTEMPTS, 'intentos');
+                // NO recargar - solo mostrar error
+                console.error('Por favor, verifica que order-details.js esté cargado correctamente');
+            }
+            return false;
+        }
+    }
+
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', ensureOrderSystemReady);
+    } else {
+        ensureOrderSystemReady();
+    }
+</script>
+
+@stack('scripts')
 </body>
 
 </html>

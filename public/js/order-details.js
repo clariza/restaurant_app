@@ -1,7 +1,157 @@
+console.log('📦 order-details.js iniciando carga...');
+
+// ✅ Variables únicas para order-details
 let paymentProcessed = false;
-let paymentRowCounter = 0;
 let currentPrintContent = '';
 
+
+
+console.log('📦 order-details.js: Funciones exportadas a window');
+if (typeof updateOrderDetails === 'undefined') {
+    window.updateOrderDetails = updateOrderDetails;
+}
+
+console.log('📦 order-details.js cargado COMPLETAMENTE');
+console.log('   - updateOrderDetails:', typeof window.updateOrderDetails);
+console.log('   - removeItem:', typeof window.removeItem);
+console.log('   - increaseItemQuantity:', typeof window.increaseItemQuantity);
+
+function checkOrderSystemReady() {
+    const requiredFunctions = [
+        'updateOrderDetails',
+        'initializeOrderSystem',
+        'removeItem',
+        'increaseItemQuantity',
+        'clearOrder'
+    ];
+
+    const missingFunctions = requiredFunctions.filter(fn => typeof window[fn] !== 'function');
+
+    if (missingFunctions.length > 0) {
+        console.error('❌ Funciones faltantes:', missingFunctions);
+        return false;
+    }
+
+    console.log('✅ Sistema de pedidos listo');
+    return true;
+}
+window.updateStockBadge = function (itemId, newStock, minStock, stockType, stockUnit, manageInventory = true) {
+    if (!manageInventory) return;
+
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!itemElement) return;
+
+    const stockBadge = itemElement.querySelector('.stock-badge');
+    const addButton = itemElement.querySelector('button');
+    if (!stockBadge || !addButton) return;
+
+    itemElement.dataset.stock = newStock;
+
+    if (stockType === 'discrete') {
+        stockBadge.textContent = `${newStock} UNI`;
+    } else {
+        stockBadge.textContent = `${newStock} ${stockUnit.toUpperCase()}`;
+    }
+
+    stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
+
+    if (newStock <= 0) {
+        stockBadge.classList.add('bg-gray-500', 'text-white');
+        stockBadge.textContent = 'SIN STOCK';
+        addButton.disabled = true;
+        addButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else if (newStock < minStock) {
+        stockBadge.classList.add('bg-yellow-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        stockBadge.classList.add('bg-green-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    stockBadge.classList.add('animate-pulse');
+    setTimeout(() => {
+        stockBadge.classList.remove('animate-pulse');
+    }, 500);
+};
+
+function updateOrderDetails() {
+    try {
+        console.log('🔄 EJECUTANDO updateOrderDetails()');
+
+        const order = JSON.parse(localStorage.getItem('order')) || [];
+        const orderDetails = document.getElementById('order-details');
+
+        console.log('📦 Order items:', order.length);
+        console.log('🎯 Order details element:', orderDetails);
+
+        if (!orderDetails) {
+            console.error('❌ Elemento order-details no encontrado');
+            return;
+        }
+
+        orderDetails.innerHTML = '';
+
+        if (order.length === 0) {
+            orderDetails.innerHTML = `
+                <div class="text-center py-4 text-gray-500 italic">
+                    No hay ítems en el pedido
+                </div>
+            `;
+            console.log('📭 Pedido vacío');
+            return;
+        }
+
+        order.forEach((item, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'flex justify-between items-center mb-2 p-1.5 bg-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm';
+            itemElement.innerHTML = `
+                <div class="flex items-center">
+                    <button type="button" onclick="removeItem(${index})" class="text-red-600 font-bold text-sm hover:text-red-800 mr-2 transition-colors">-</button>
+                    <button type="button" onclick="increaseItemQuantity(${index})" class="text-green-600 font-bold text-sm hover:text-green-800 mr-2 transition-colors">+</button>
+                    <p class="text-[#203363]">${item.name} (x${item.quantity})</p>
+                </div>
+                <p class="text-[#203363]">$${(item.price * item.quantity).toFixed(2)}</p>
+            `;
+            orderDetails.appendChild(itemElement);
+        });
+
+        const subtotal = order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const tax = 0;
+        const total = subtotal + tax;
+
+        const totalsElement = document.createElement('div');
+        totalsElement.className = 'mt-4 pt-4 border-t border-gray-300 text-sm';
+        totalsElement.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <p class="text-gray-600">Subtotal:</p>
+                <p class="text-gray-800">$${subtotal.toFixed(2)}</p>
+            </div>
+            <div class="flex justify-between items-center mb-1">
+                <p class="text-gray-600">Impuesto:</p>
+                <p class="text-gray-800">$${tax.toFixed(2)}</p>
+            </div>
+            <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-300">
+                <p class="font-bold text-[#203363] text-base">Total:</p>
+                <p class="font-bold text-[#203363] text-base">$${total.toFixed(2)}</p>
+            </div>
+        `;
+        orderDetails.appendChild(totalsElement);
+
+        console.log('✅ Order details actualizado correctamente');
+    } catch (error) {
+        console.error('❌ Error en updateOrderDetails:', error);
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+        if (!checkOrderSystemReady()) {
+            console.warn('⚠️ Recargando para inicializar sistema de pedidos...');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }, 500);
+});
 // Inicialización cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', function () {
     initializeOrderSystem();
@@ -43,24 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /**
  * Inicializa el sistema de pedidos
  */
-function initializeOrderSystem() {
-    // 1. Cargar o inicializar el pedido en localStorage
-    if (!localStorage.getItem('order')) {
-        localStorage.setItem('order', JSON.stringify([]));
-    }
 
-    // 2. Cargar o establecer valores por defecto
-    const defaultValues = {
-        'orderType': 'Comer aquí',
-        'orderNotes': ''
-    };
-
-    // 3. Sincronizar localStorage con DOM
-    syncLocalStorageWithDOM(defaultValues);
-
-    // 4. Actualizar la vista inicial
-    updateOrderDetails();
-}
 
 /**
  * Sincroniza localStorage con elementos del DOM
@@ -81,25 +214,44 @@ function syncLocalStorageWithDOM(defaults) {
         });
     }
 }
+function removeItem(index) {
+    console.log('🗑️ Eliminando item índice:', index);
 
+    try {
+        const order = JSON.parse(localStorage.getItem('order')) || [];
+
+        if (index >= 0 && index < order.length) {
+            const removedItem = order.splice(index, 1)[0];
+            console.log('📤 Item removido:', removedItem);
+
+            localStorage.setItem('order', JSON.stringify(order));
+
+            if (typeof window.updateOrderDetails === 'function') {
+                window.updateOrderDetails();
+            } else {
+                console.error('updateOrderDetails no disponible en removeItem');
+                location.reload();
+            }
+        }
+    } catch (error) {
+        console.error('Error en removeItem:', error);
+    }
+}
 /**
  * Configura los event listeners principales
  */
 function setupEventListeners() {
-    // Notas del pedido
     const notesTextarea = document.getElementById('order-notes');
     if (notesTextarea) {
         notesTextarea.addEventListener('input', updateNotesCounter);
     }
 
-    // Ejemplos de notas
     document.querySelectorAll('.notes-examples span').forEach(span => {
         span.addEventListener('click', function () {
             insertExample(this.textContent);
         });
     });
 
-    // Botones de acciones
     document.getElementById('btn-proforma').addEventListener('click', generateProforma);
     document.getElementById('btn-multiple-payment').addEventListener('click', showPaymentModal);
 }
@@ -125,7 +277,6 @@ function setupLogoutHandlers() {
             }
         });
     });
-
 }
 function unlockOrderInterface() {
     const orderPanel = document.getElementById('order-panel');
@@ -156,17 +307,14 @@ function isCustomerDetailsVisible() {
 function setOrderType(type) {
     console.log('🔧 Estableciendo tipo de pedido:', type);
 
-    // 1. Actualizar almacenamiento y elementos básicos
     const orderTypeInput = document.getElementById('order-type');
     if (orderTypeInput) {
         orderTypeInput.value = type;
     }
     localStorage.setItem('orderType', type);
 
-    // 2. Limpiar datos irrelevantes según el tipo seleccionado
     if (type !== 'Comer aquí') {
         localStorage.removeItem('tableNumber');
-        // Limpiar selección de mesa visual si existe
         const tableSelect = document.getElementById('table-number');
         if (tableSelect) {
             tableSelect.value = '';
@@ -175,14 +323,12 @@ function setOrderType(type) {
 
     if (type !== 'Para llevar') {
         localStorage.removeItem('deliveryService');
-        // Limpiar selección de delivery visual si existe
         const deliverySelect = document.getElementById('delivery-service');
         if (deliverySelect) {
             deliverySelect.value = '';
         }
     }
 
-    // 3. Actualizar detalles del pedido
     updateOrderDetails();
 
     console.log('✅ Tipo de pedido establecido:', type);
@@ -194,7 +340,6 @@ function showPaymentModal() {
         return;
     }
 
-    // 🔥 NUEVO: Verificar tipo de pedido y mostrar advertencia si es "Recoger"
     const orderType = localStorage.getItem('orderType') || 'Comer aquí';
     if (orderType === 'Recoger') {
         const confirmMessage = '⚠️ IMPORTANTE: Para pedidos "Recoger" solo están disponibles los métodos de pago:\n\n✓ QR\n✓ Transferencia Bancaria\n\n¿Desea continuar?';
@@ -203,11 +348,23 @@ function showPaymentModal() {
         }
     }
 
-    // Usar la función del modal
-    if (typeof openPaymentModal === 'function') {
+    console.log('🔧 Intentando abrir modal de pago...');
+
+    if (typeof window.openPaymentModal === 'function') {
+        console.log('✅ Usando window.openPaymentModal');
+        window.openPaymentModal();
+    } else if (typeof openPaymentModal === 'function') {
+        console.log('✅ Usando openPaymentModal global');
         openPaymentModal();
     } else {
         console.error('❌ Función openPaymentModal no encontrada');
+        const modal = document.getElementById('payment-modal');
+        if (modal) {
+            console.log('✅ Abriendo modal directamente');
+            modal.classList.remove('hidden');
+        } else {
+            alert('Error: No se puede abrir el modal de pago.');
+        }
     }
 }
 function syncOrderTypeWithModal(orderType) {
@@ -290,175 +447,33 @@ function loadOrderDataInModal() {
 function checkTablesEnabled() {
     return tablesEnabled;
 }
-function updateOrderDetails() {
-    const order = JSON.parse(localStorage.getItem('order')) || [];
-    const orderDetails = document.getElementById('order-details');
-    const processOrderBtn = document.getElementById('btn-process-order');
-
-    if (orderDetails) {
-        // Limpiar el contenido actual
-        orderDetails.innerHTML = '';
-        if (order.length === 0) {
-            // Mostrar mensaje cuando no hay ítems
-            const emptyMessage = document.createElement('div');
-            emptyMessage.className = 'text-center py-4 text-gray-500 italic';
-            emptyMessage.textContent = 'No hay ítems en el pedido';
-            orderDetails.appendChild(emptyMessage);
-            return;
-        }
-        // Agregar cada ítem al pedido
-        order.forEach((item, index) => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'flex justify-between items-center mb-2 p-1.5 bg-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm';
-            // Agregar contenedor para acciones (solo visible si no está procesado)
-            const actionsHtml = paymentProcessed ? '' : `
-            <div class="item-actions">
-                <button onclick="removeItem(${index})" class="text-red-600 font-bold text-sm hover:text-red-800 mr-2 transition-colors">-</button>
-                <button onclick="increaseItemQuantity(${index})" class="text-green-600 font-bold text-sm hover:text-green-800 mr-2 transition-colors">+</button>
-            </div>
-        `;
-            itemElement.innerHTML = `
-                <div class="flex items-center">
-                    <button onclick="removeItem(${index})" class="text-red-600 font-bold text-sm hover:text-red-800 mr-2 transition-colors">-</button>
-                    <button onclick="increaseItemQuantity(${index})" class="text-green-600 font-bold text-sm hover:text-green-800 mr-2 transition-colors">+</button>
-                    <p class="text-[#203363]">${item.name} (x${item.quantity})</p>
-                </div>
-                <p class="text-[#203363]">$${(item.price * item.quantity).toFixed(2)}</p>
-            `;
-            orderDetails.appendChild(itemElement);
-        });
-
-        // Calcular y mostrar el subtotal, impuesto y total
-        if (order.length > 0) {
-            const subtotal = order.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            const taxRate = 0; // 0% de impuesto
-            const tax = subtotal * taxRate;
-            const total = subtotal + tax;
-
-            const totalsElement = document.createElement('div');
-            totalsElement.className = 'text-sm';
-            totalsElement.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <p>Subtotal</p>
-                    <p>$${subtotal.toFixed(2)}</p>
-                </div>
-                <div class="flex justify-between items-center">
-                    <p>Impuesto</p>
-                    <p>$${tax.toFixed(2)}</p>
-                </div>
-                <div class="flex justify-between items-center font-bold text-[#203363]">
-                    <p>Total</p>
-                    <p>$${total.toFixed(2)}</p>
-                </div>
-            `;
-            orderDetails.appendChild(totalsElement);
-        }
-    }
-}
-function removeItem(index) {
-    const order = JSON.parse(localStorage.getItem('order')) || [];
-
-    if (index >= 0 && index < order.length) {
-        const item = order[index];
-
-        // Encontrar el elemento del menú correspondiente
-        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-
-        if (menuItem) {
-            const currentStock = parseInt(menuItem.dataset.stock) || 0;
-            const minStock = parseInt(menuItem.dataset.minStock) || 0;
-            const stockType = menuItem.dataset.stockType;
-            const stockUnit = menuItem.dataset.stockUnit;
-
-            // Revertir TODO el stock del ítem eliminado
-            const newStock = currentStock + item.quantity;
-            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
-        }
-
-        // Eliminar el ítem completamente del array
-        order.splice(index, 1);
-
-        // Actualizar el localStorage y la vista
-        localStorage.setItem('order', JSON.stringify(order));
-        updateOrderDetails();
-    } else {
-        console.error('Índice no válido:', index);
-    }
-}
 /**
  * Aumenta la cantidad de un ítem
  */
 function increaseItemQuantity(index) {
-    const order = JSON.parse(localStorage.getItem('order')) || [];
+    console.log('➕ Aumentando cantidad índice:', index);
 
-    if (index >= 0 && index < order.length) {
-        const item = order[index];
-        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
+    try {
+        const order = JSON.parse(localStorage.getItem('order')) || [];
 
-        if (menuItem) {
-            const currentStock = parseInt(menuItem.dataset.stock) || 0;
+        if (index >= 0 && index < order.length) {
+            order[index].quantity += 1;
+            console.log('📈 Nueva cantidad:', order[index].quantity);
 
-            if (currentStock <= 0) {
-                alert(`No hay suficiente stock para ${item.name}`);
-                return;
+            localStorage.setItem('order', JSON.stringify(order));
+
+            if (typeof window.updateOrderDetails === 'function') {
+                window.updateOrderDetails();
+            } else {
+                console.error('updateOrderDetails no disponible en increaseItemQuantity');
+                location.reload();
             }
-
-            // Actualizar stock visualmente
-            const newStock = currentStock - 1;
-            const minStock = parseInt(menuItem.dataset.minStock) || 0;
-            const stockType = menuItem.dataset.stockType;
-            const stockUnit = menuItem.dataset.stockUnit;
-
-            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
         }
-        item.quantity += 1;
-
-        // Actualizar el localStorage y la vista
-        localStorage.setItem('order', JSON.stringify(order));
-        updateOrderDetails();
-    } else {
-        console.error('Índice no válido:', index);
+    } catch (error) {
+        console.error('Error en increaseItemQuantity:', error);
     }
 }
-/**
- * Muestra el modal de pago
- */
-// function showPaymentModal() {
-//     const order = JSON.parse(localStorage.getItem('order')) || [];
-//     if (order.length === 0) {
-//         alert('No hay ítems en el pedido para realizar el pago');
-//         return;
-//     }
 
-//     const modal = document.getElementById('payment-modal');
-//     modal.classList.remove('hidden');
-
-//     const paymentRowsContainer = document.getElementById('payment-rows-container');
-//     const scrollableContainer = document.getElementById('payment-rows-scrollable'); 
-
-//     // Limpiar completamente el contenedor de filas y cualquier total previo
-//     paymentRowsContainer.innerHTML = '';
-
-//     // Eliminar cualquier display de total previo de manera más específica
-//     const existingTotalDisplays = document.querySelectorAll('.total-display');
-//     existingTotalDisplays.forEach(display => display.remove());
-
-//     // Mostrar el total del pedido
-//     const totalAmount = calcularTotal();
-//     const totalDisplay = document.createElement('div');
-//     totalDisplay.className = 'total-display text-sm font-bold text-[#203363] mb-4';
-//     totalDisplay.innerHTML = `Total del Pedido: $${totalAmount}`;
-
-//     // Insertar el total en el lugar correcto
-//     scrollableContainer.insertBefore(totalDisplay, paymentRowsContainer);
-
-//     // Inicializar contador y agregar primera fila
-//     paymentRowCounter = 0;
-//     addPaymentRow();
-
-//     // Asegurarse de que el scroll esté desactivado inicialmente
-//     scrollableContainer.classList.remove('has-scroll');
-// }
 // Función para cerrar el modal de pago
 function closePaymentModal() {
     const modal = document.getElementById('payment-modal');
@@ -466,13 +481,11 @@ function closePaymentModal() {
         modal.classList.add('hidden');
     }
 
-    // Limpiar el contenedor de métodos de pago
     const paymentContainer = document.getElementById('payment-rows-container');
     if (paymentContainer) {
         paymentContainer.innerHTML = '';
     }
 
-    // Resetear variables globales del modal si existen
     if (typeof window.currentStep !== 'undefined') {
         window.currentStep = 1;
     }
@@ -2011,46 +2024,23 @@ function showOrderPanel() {
     }
 }
 function clearOrder() {
-    // Confirmar con el usuario
-    if (!confirm('¿Estás seguro de que deseas limpiar todo el pedido? Esta acción no se puede deshacer.')) {
+    console.log('🧹 Limpiando todo el pedido');
+
+    if (!confirm('¿Estás seguro de que deseas limpiar todo el pedido?')) {
         return;
     }
 
-    const order = JSON.parse(localStorage.getItem('order')) || [];
-
-    // Revertir el stock de todos los ítems
-    order.forEach(item => {
-        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-        if (menuItem) {
-            const currentStock = parseInt(menuItem.dataset.stock) || 0;
-            const minStock = parseInt(menuItem.dataset.minStock) || 0;
-            const stockType = menuItem.dataset.stockType;
-            const stockUnit = menuItem.dataset.stockUnit;
-
-            const newStock = currentStock + item.quantity;
-            updateStockBadge(item.id, newStock, minStock, stockType, stockUnit);
-        }
-    });
-
-    // Limpiar el pedido del localStorage
     localStorage.setItem('order', JSON.stringify([]));
 
-    // 🔥 RESTAURAR opacidad al limpiar el pedido
-    unlockOrderInterface();
-
-    // Limpiar las notas
-    const notesTextarea = document.getElementById('order-notes');
-    if (notesTextarea) {
-        notesTextarea.value = '';
-        updateNotesCounter();
-        localStorage.removeItem('orderNotes');
+    // Llamar a updateOrderDetails de forma segura
+    if (typeof window.updateOrderDetails === 'function') {
+        window.updateOrderDetails();
+    } else {
+        console.error('updateOrderDetails no disponible en clearOrder');
+        location.reload();
     }
 
-    // Actualizar los detalles del pedido
-    updateOrderDetails();
-
-    // Mostrar mensaje de éxito
-    alert('El pedido ha sido limpiado correctamente.');
+    alert('Pedido limpiado correctamente');
 }
 /**
  * Función para cambiar la disponibilidad de una mesa
@@ -2700,6 +2690,34 @@ function selectModalTable(tableElement) {
 
     console.log('📋 Mesa guardada - ID:', tableId, 'Número:', tableNumber);
 }
+function initializeOrderSystem() {
+    console.log('🚀 Inicializando sistema de pedidos...');
+
+    try {
+        // Verificar que estamos en la página correcta
+        const orderPanel = document.getElementById('order-panel');
+        if (!orderPanel) {
+            console.log('ℹ️ No se encontró order-panel, saltando inicialización');
+            return;
+        }
+
+        // Inicializar localStorage si no existe
+        if (!localStorage.getItem('order')) {
+            localStorage.setItem('order', JSON.stringify([]));
+            console.log('📦 localStorage inicializado');
+        }
+
+        // Actualizar vista inicial
+        updateOrderDetails();
+
+        console.log('✅ Sistema de pedidos inicializado correctamente');
+        return true;
+    } catch (error) {
+        console.error('❌ Error inicializando sistema de pedidos:', error);
+        return false;
+    }
+}
+
 
 // Cargar el estado al cambiar de mesa
 document.addEventListener('DOMContentLoaded', function () {
@@ -2822,3 +2840,9 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+// ✅ Exportar funciones al scope global
+window.updateOrderDetails = updateOrderDetails;
+window.removeItem = removeItem;
+window.increaseItemQuantity = increaseItemQuantity;
+window.clearOrder = clearOrder;
+window.initializeOrderSystem = initializeOrderSystem;

@@ -89,24 +89,6 @@ class TableController extends Controller
           $table->delete();
           return redirect()->route('tables.index')->with('success', 'Mesa eliminada correctamente.');
       }
-          /**
-     * Obtener mesas disponibles para el pedido
-     */
-     public function available()
-    {
-        try {
-            $tables = Table::all();
-            return response()->json([
-                'success' => true,
-                'data' => $tables
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener las mesas'
-            ], 500);
-        }
-    }
 
         public function getAvailableTables()
         {
@@ -240,7 +222,34 @@ public function bulkChangeState(Request $request)
         ], 500);
     }
 }
-
+/**
+ * Obtener todas las mesas (para el modal de configuración)
+ */
+public function available()
+{
+    try {
+        // Verificar si las mesas están habilitadas
+        $settings = Setting::firstOrCreate([]);
+        
+        // Obtener todas las mesas ordenadas por número
+        $tables = Table::orderBy('number')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $tables,
+            'tables_enabled' => $settings->tables_enabled
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('Error al obtener mesas: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener las mesas: ' . $e->getMessage(),
+            'data' => []
+        ], 500);
+    }
+}
 // También puedes agregar un método para obtener estadísticas de mesas
 public function getTablesStats()
 {

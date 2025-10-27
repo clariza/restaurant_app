@@ -75,19 +75,21 @@
     @if(!auth()->check())
         clearOrderOnLogout();
     @endif
-    
 </script>
-<script src="{{ asset('js/order-details.js') }}"></script>
-<script src="{{ asset('js/payment-modal.js') }}"></script>
+
+<!-- Variables globales PRIMERO -->
 <script>
 window.routes = {
     tablesAvailable: "{{ route('tables.available') }}",
     salesStore: "{{ route('sales.store') }}",
     customerDetails: "{{ route('customer.details') }}",
-    menuIndex:"{{ route('menu.index') }}"
-    
+    menuIndex: "{{ route('menu.index') }}"
 };
 window.csrfToken = "{{ csrf_token() }}";
 window.authUserName = "{{ Auth::user()->name ?? '' }}";
 window.tablesEnabled = @json($settings->tables_enabled ?? false);
 </script>
+
+<!-- Scripts DESPUÉS de las variables -->
+<script src="{{ asset('js/payment-modal.js') }}"></script>
+<script src="{{ asset('js/order-details.js') }}"></script>

@@ -9,9 +9,10 @@
                 <i class="fas fa-arrow-left mr-2"></i> Atrás
             </a>
             @if($tablesEnabled)
-                <button onclick="openBulkStateModal()" class="bg-[#f59e0b] text-white px-4 py-2 rounded-lg hover:bg-[#d97706] transition duration-200 inline-flex items-center justify-center">
+                <button type="button" onclick="openBulkStateModalDirect()" class="bg-[#f59e0b] text-white px-4 py-2 rounded-lg hover:bg-[#d97706] transition duration-200 inline-flex items-center justify-center">
                     <i class="fas fa-sync-alt mr-2"></i> Cambiar Todas
-                <button onclick="openModal()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition duration-200 inline-flex items-center justify-center">
+                </button>
+                <button type="button" onclick="openCreateModalDirect()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition duration-200 inline-flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i> Crear Mesa
                 </button>
             @endif
@@ -41,7 +42,7 @@
     </div>
 
     @if($tablesEnabled)
-    <!-- Modal para crear mesas -->
+    <!-- Modal para crear mesas (INDEPENDIENTE) -->
     <div id="createTableModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
@@ -62,7 +63,7 @@
                         </select>
                     </div>
                     <div class="mt-4 flex justify-end">
-                        <button type="button" onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">Cancelar</button>
+                        <button type="button" onclick="closeCreateModalDirect()" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">Cancelar</button>
                         <button type="submit" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition duration-200">Guardar</button>
                     </div>
                 </form>
@@ -70,7 +71,7 @@
         </div>
     </div>
 
-    <!-- Modal para cambio masivo de estado -->
+    <!-- Modal para cambio masivo de estado (INDEPENDIENTE) -->
     <div id="bulkStateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
@@ -78,7 +79,7 @@
                     <h3 class="text-lg leading-6 font-medium text-[#203363]">
                         <i class="fas fa-sync-alt mr-2"></i>Cambiar Estado de Todas las Mesas
                     </h3>
-                    <button onclick="closeBulkStateModal()" class="text-gray-400 hover:text-gray-600">
+                    <button onclick="closeBulkStateModalDirect()" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
@@ -90,7 +91,7 @@
                     </p>
                 </div>
 
-                <form id="bulkStateForm" class="mt-4">
+                <form id="bulkStateForm" onsubmit="handleBulkStateSubmit(event)">
                     @csrf
                     <div class="mb-4">
                         <label for="bulk_state" class="block text-sm font-medium text-[#203363] mb-2">
@@ -114,7 +115,7 @@
                     </div>
 
                     <div class="flex justify-end gap-2 mt-6">
-                        <button type="button" onclick="closeBulkStateModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                        <button type="button" onclick="closeBulkStateModalDirect()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
                             <i class="fas fa-times mr-2"></i>Cancelar
                         </button>
                         <button type="submit" class="bg-[#f59e0b] text-white px-4 py-2 rounded-lg hover:bg-[#d97706] transition duration-200">
@@ -182,6 +183,170 @@
 </div>
 
 <script>
+    console.log('🚀 Script de tables/index.blade.php cargado');
+
+    // ============================================
+    // FUNCIONES PARA MODALES DE ESTA PÁGINA
+    // ============================================
+
+    // Funciones del modal de crear mesa
+    function openCreateModalDirect() {
+        console.log('✅ Abriendo modal de crear mesa (DIRECTO)');
+        const modal = document.getElementById('createTableModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        } else {
+            console.error('❌ Modal createTableModal no encontrado');
+        }
+    }
+
+    function closeCreateModalDirect() {
+        console.log('✅ Cerrando modal de crear mesa (DIRECTO)');
+        const modal = document.getElementById('createTableModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    // Funciones del modal de cambio masivo
+    function openBulkStateModalDirect() {
+        console.log('✅ Abriendo modal de cambio masivo (DIRECTO)');
+        const modal = document.getElementById('bulkStateModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            loadTableStatsDirect();
+        } else {
+            console.error('❌ Modal bulkStateModal no encontrado');
+        }
+    }
+
+    function closeBulkStateModalDirect() {
+        console.log('✅ Cerrando modal de cambio masivo (DIRECTO)');
+        const modal = document.getElementById('bulkStateModal');
+        const form = document.getElementById('bulkStateForm');
+        
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        
+        if (form) {
+            form.reset();
+        }
+    }
+
+    // Cargar estadísticas de mesas
+    async function loadTableStatsDirect() {
+        console.log('📊 Cargando estadísticas de mesas...');
+        const statsContent = document.getElementById('statsContent');
+        
+        if (!statsContent) {
+            console.error('❌ Elemento statsContent no encontrado');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ route("tables.stats") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const statsHtml = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            <span>Disponible: <strong>${data.stats.Disponible || 0}</strong></span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                            <span>Ocupada: <strong>${data.stats.Ocupada || 0}</strong></span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                            <span>Reservada: <strong>${data.stats.Reservada || 0}</strong></span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-gray-500 rounded-full mr-2"></span>
+                            <span>No Disponible: <strong>${data.stats['No Disponible'] || 0}</strong></span>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-gray-200">
+                        <span>Total de mesas: <strong>${data.total}</strong></span>
+                    </div>
+                `;
+                statsContent.innerHTML = statsHtml;
+                console.log('✅ Estadísticas cargadas correctamente');
+            } else {
+                throw new Error('Error al cargar estadísticas');
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar estadísticas:', error);
+            statsContent.innerHTML = '<span class="text-red-500">Error al cargar estadísticas</span>';
+        }
+    }
+
+    // Manejar el envío del formulario de cambio masivo
+    async function handleBulkStateSubmit(event) {
+        event.preventDefault();
+        console.log('📤 Enviando cambio masivo de estado...');
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const newState = formData.get('state');
+        
+        if (!newState) {
+            alert('Por favor seleccione un estado');
+            return;
+        }
+        
+        // // Confirmación
+        // if (!confirm(`¿Está seguro de que desea cambiar TODAS las mesas al estado "${newState}"?`)) {
+        //     return;
+        // }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
+            
+            const response = await fetch('{{ route("tables.bulk-state") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Error al actualizar las mesas');
+            }
+            
+            // Mostrar mensaje de éxito
+            alert(`✓ ${data.message}\nMesas actualizadas: ${data.updated_count}`);
+            
+            // Recargar la página
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            alert('Error: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    }
+
     // Configuración del formulario de settings
     document.getElementById('settings-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -221,137 +386,19 @@
         }
     });
 
-    // Funciones del modal de crear mesa
-    function openModal() {
-        document.getElementById('createTableModal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-        document.getElementById('createTableModal').classList.add('hidden');
-    }
-
-    // Funciones del modal de cambio masivo
-    function openBulkStateModal() {
-        document.getElementById('bulkStateModal').classList.remove('hidden');
-        loadTableStats();
-    }
-
-    function closeBulkStateModal() {
-        document.getElementById('bulkStateModal').classList.add('hidden');
-        document.getElementById('bulkStateForm').reset();
-    }
-
-    // Cargar estadísticas de mesas
-    async function loadTableStats() {
-        try {
-            const response = await fetch('{{ route("tables.stats") }}', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const statsHtml = `
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                            <span>Disponible: <strong>${data.stats.Disponible || 0}</strong></span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-                            <span>Ocupada: <strong>${data.stats.Ocupada || 0}</strong></span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-                            <span>Reservada: <strong>${data.stats.Reservada || 0}</strong></span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-gray-500 rounded-full mr-2"></span>
-                            <span>No Disponible: <strong>${data.stats['No Disponible'] || 0}</strong></span>
-                        </div>
-                    </div>
-                    <div class="mt-2 pt-2 border-t border-gray-200">
-                        <span>Total de mesas: <strong>${data.total}</strong></span>
-                    </div>
-                `;
-                document.getElementById('statsContent').innerHTML = statsHtml;
-            }
-        } catch (error) {
-            console.error('Error al cargar estadísticas:', error);
-            document.getElementById('statsContent').innerHTML = '<span class="text-red-500">Error al cargar estadísticas</span>';
-        }
-    }
-
-    // Manejar el envío del formulario de cambio masivo
-    document.getElementById('bulkStateForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const newState = formData.get('state');
-        
-        if (!newState) {
-            alert('Por favor seleccione un estado');
-            return;
-        }
-        
-        // Confirmación
-        if (!confirm(`¿Está seguro de que desea cambiar TODAS las mesas al estado "${newState}"?`)) {
-            return;
-        }
-        
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        try {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
-            
-            const response = await fetch('{{ route("tables.bulk-state") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok || !data.success) {
-                throw new Error(data.message || 'Error al actualizar las mesas');
-            }
-            
-            // Mostrar mensaje de éxito
-            alert(`✓ ${data.message}\nMesas actualizadas: ${data.updated_count}`);
-            
-            // Recargar la página
-            window.location.reload();
-            
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error: ' + error.message);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
-    });
-
     // Cerrar modales al hacer clic fuera
     window.addEventListener('click', function(event) {
         const createModal = document.getElementById('createTableModal');
         const bulkModal = document.getElementById('bulkStateModal');
         
         if (event.target === createModal) {
-            closeModal();
+            closeCreateModalDirect();
         }
         if (event.target === bulkModal) {
-            closeBulkStateModal();
+            closeBulkStateModalDirect();
         }
     });
+
+    console.log('✅ Script de tables/index.blade.php inicializado correctamente');
 </script>
 @endsection

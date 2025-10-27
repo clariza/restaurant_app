@@ -3,6 +3,7 @@
 @section('content')
 @php
     $isAdmin = auth()->user()->type === 'Admin';
+    $showOrderDetails = true; // Asegurar que se muestre el panel
 @endphp
 
 <!-- Barra de búsqueda -->
@@ -210,20 +211,20 @@
                                 ${{ number_format($item->price, 2) }}
                             </p>
 
-                            <!-- Botón "Agregar" -->
-                            <button onclick="addToOrder({{ json_encode([
-                                'id' => $item->id,
-                                'name' => $item->name,
-                                'price' => $item->price,
-                                'stock' => $item->stock,
-                            'stock_type' => $item->stock_type,
-        'stock_unit' => $item->stock_unit,
-        'min_stock' => $item->min_stock,
-        'manage_inventory' => $item->manage_inventory
-    ]) }})" 
-    class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
-           @if($item->manage_inventory && $item->stock <= 0) opacity-50 cursor-not-allowed @endif"
-@if($item->manage_inventory && $item->stock <= 0) disabled @endif>
+                           <button type="button" 
+        onclick="addToOrder({{ json_encode([
+            'id' => $item->id,
+            'name' => $item->name,
+            'price' => $item->price,
+            'stock' => $item->stock,
+            'stock_type' => $item->stock_type,
+            'stock_unit' => $item->stock_unit,
+            'min_stock' => $item->min_stock,
+            'manage_inventory' => $item->manage_inventory
+        ]) }}, event)" 
+        class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
+               @if($item->manage_inventory && $item->stock <= 0) opacity-50 cursor-not-allowed @endif"
+        @if($item->manage_inventory && $item->stock <= 0) disabled @endif>
     Agregar
 </button>
                         </div>
@@ -895,19 +896,20 @@ button[disabled] {
 }
     </style>
 
-    <script>
+@push('scripts')
+<script>
 
 // Función mejorada para filtrar órdenes
-function filterOrders(type) {
-    const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
-    document.querySelectorAll('.order-filters button').forEach(btn => {
-        btn.classList.remove('bg-[#203363]', 'text-white');
-        btn.classList.add('bg-white', 'text-[#203363]');
-    });
+    function filterOrders(type) {
+        const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
+        document.querySelectorAll('.order-filters button').forEach(btn => {
+            btn.classList.remove('bg-[#203363]', 'text-white');
+            btn.classList.add('bg-white', 'text-[#203363]');
+        });
     
-    document.querySelectorAll('.orders-grid > div .price-display').forEach(priceElement => {
-        priceElement.style.display = isAdmin ? 'block' : 'none';
-    });
+        document.querySelectorAll('.orders-grid > div .price-display').forEach(priceElement => {
+            priceElement.style.display = isAdmin ? 'block' : 'none';
+        });
     // Agregar clase active al botón seleccionado
     const activeButton = document.querySelector(`.order-filters button[onclick*="filterOrders('${type}')"]`);
     if (activeButton) {
@@ -995,7 +997,7 @@ function convertProformaToOrder(proformaId) {
 
 
         // Mostrar todas las órdenes al cargar
-        document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
             filterOrders('all');
         });
 
@@ -1096,53 +1098,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
         // Función para agregar ítems al pedido
-function addToOrder(item) {
-    // Only check stock if inventory management is enabled
+function addToOrder(item, event) {
+    // PREVENIR COMPORTAMIENTO POR DEFECTO Y REFRESCO
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    
+    console.log('➕ AGREGANDO ITEM:', item);
+    
+    // Verificar stock
     if (item.manage_inventory) {
         const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-        if (!menuItem) return;
+        if (!menuItem) return false;
         
         const currentStock = parseInt(menuItem.dataset.stock) || 0;
         if (currentStock <= 0) {
             alert('No hay suficiente stock disponible');
-            return;
+            return false;
         }
-        
-        // Reduce stock visually only if inventory is managed
-        const newStock = currentStock - 1;
-        updateStockBadge(item.id, newStock, parseInt(menuItem.dataset.minStock), 
-                        menuItem.dataset.stockType, menuItem.dataset.stockUnit, item.manage_inventory);
     }
 
     let order = JSON.parse(localStorage.getItem('order')) || [];
    
-     // Verificar si el ítem ya está en el pedido
+    // Buscar si el ítem ya existe
     const existingItem = order.find(i => i.id === item.id);
-     if (existingItem) {
-        existingItem.quantity += 1; // Incrementar la cantidad si ya existe
+    if (existingItem) {
+        existingItem.quantity += 1;
     } else {
-        item.quantity = 1; // Agregar el ítem con cantidad 1 si no existe
+        item.quantity = 1;
         order.push(item);
     }
 
-        // Guardar el pedido actualizado en el localStorage
-         localStorage.setItem('order', JSON.stringify(order));
+    // Guardar en localStorage
+    localStorage.setItem('order', JSON.stringify(order));
+    console.log('💾 Order guardado:', order);
 
-            // Actualizar la vista de order-details
-            updateOrderDetails();
-            //showOrderPanel();
-        }
-
-
-        function goBack() {
+    // MÚLTIPLES ESTRATEGIAS para llamar updateOrderDetails
+    let updateCalled = false;
+    
+    // Estrategia 1: Función directa
+    if (typeof updateOrderDetails === 'function') {
+        console.log('✅ Estrategia 1 - Llamando updateOrderDetails directamente');
+        updateOrderDetails();
+        updateCalled = true;
+    }
+    
+    // Estrategia 2: Window function
+    if (!updateCalled && typeof window.updateOrderDetails === 'function') {
+        console.log('✅ Estrategia 2 - Llamando window.updateOrderDetails');
+        window.updateOrderDetails();
+        updateCalled = true;
+    }
+    
+    // Estrategia 3: Timeout para esperar carga
+    if (!updateCalled) {
+        console.log('🕒 Estrategia 3 - Esperando carga de función...');
+        setTimeout(() => {
+            if (typeof window.updateOrderDetails === 'function') {
+                console.log('✅ Función disponible después de timeout');
+                window.updateOrderDetails();
+            } else {
+                console.error('❌ updateOrderDetails nunca estuvo disponible');
+                // Último recurso: mostrar datos en consola
+                console.log('📊 Estado actual del pedido:', order);
+            }
+        }, 500);
+    }
+    
+    // IMPORTANTE: Retornar false para prevenir comportamiento por defecto
+    return false;
+}
+function goBack() {
         // Aquí puedes implementar la lógica para volver atrás
         // Por ejemplo, recargar la página del menú:
-        window.location.href = "{{ route('menu.index') }}";
+    window.location.href = "{{ route('menu.index') }}";
         
         // O si estás usando un sistema de vistas dinámicas:
         // loadMenuView();
-    }
-      function toggleOrdersSection() {
+}
+function toggleOrdersSection() {
         const container = document.getElementById('orders-container');
         const arrow = document.getElementById('orders-arrow');
         
@@ -1151,10 +1187,34 @@ function addToOrder(item) {
     }
 
     // Asegurarse de que esté oculto al cargar la página
-    document.addEventListener('DOMContentLoaded', () => {
-        const container = document.getElementById('orders-container');
-        container.classList.remove('show');
-    });
+// Inicialización específica del menú
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando página del menú...');
+    
+    // Inicializar búsqueda
+    if (typeof initializeSearch === 'function') {
+        initializeSearch();
+    }
+    
+    // Aplicar filtros iniciales
+    filterOrders('all');
+    filterItems('all');
+    
+    // Ocultar precios si no es admin
+    const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
+    if (!isAdmin) {
+        document.querySelectorAll('.price-display').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+    
+    // Verificar que el sistema de pedidos esté listo
+    setTimeout(() => {
+        if (typeof updateOrderDetails === 'function') {
+            updateOrderDetails(); // Actualizar vista inicial
+        }
+    }, 500);
+});
     // Variable para almacenar todos los ítems del menú
 let allMenuItems = [];
 
@@ -1311,7 +1371,9 @@ function resetSearch() {
     const allCategory = document.querySelector('#menu-items > div:first-child');
     if (allCategory) allCategory.style.display = 'block';
 }
-function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
+function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit, manageInventory = true) {
+    if (!manageInventory) return;
+    
     const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
     if (!itemElement) return;
 
@@ -1322,21 +1384,13 @@ function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
     // Actualizar el valor del stock en el atributo data
     itemElement.dataset.stock = newStock;
 
-    // Actualizar el texto del badge según el tipo de stock
-    //let stockText = '';
-    // if (stockType === 'discrete') {
-    //     stockText = `${newStock} UNI`;
-    // } else {
-    //     stockText = `${newStock} ${stockUnit.toUpperCase()}`;
-    // }
-     // Actualizar el texto del badge
+    // Actualizar el texto del badge
     if (stockType === 'discrete') {
         stockBadge.textContent = `${newStock} UNI`;
     } else {
         stockBadge.textContent = `${newStock} ${stockUnit.toUpperCase()}`;
     }
-    // Actualizar clases según el nivel de stock
-    //stockBadge.classList.remove('stock-high', 'stock-low', 'stock-out');
+
     // Actualizar clases según el nivel de stock
     stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
     
@@ -1355,13 +1409,7 @@ function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
         addButton.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
-    // Actualizar estado del botón "Agregar"
-    //const addButton = itemElement.querySelector('button');
-    // if (addButton) {
-    //     addButton.disabled = newStock <= 0;
-    //     addButton.classList.toggle('opacity-50', newStock <= 0);
-    // }
-    // Añadir animación para feedback visual
+    // Animación de feedback visual
     stockBadge.classList.add('animate-pulse');
     setTimeout(() => {
         stockBadge.classList.remove('animate-pulse');
@@ -1369,12 +1417,63 @@ function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit) {
 }
 
 // Inicializar la búsqueda al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
+function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit, manageInventory = true) {
+    if (!manageInventory) return;
+    
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!itemElement) return;
+
+    const stockBadge = itemElement.querySelector('.stock-badge');
+    const addButton = itemElement.querySelector('button');
+    if (!stockBadge || !addButton) return;
+
+    // Actualizar el valor del stock en el atributo data
+    itemElement.dataset.stock = newStock;
+
+    // Actualizar el texto del badge
+    if (stockType === 'discrete') {
+        stockBadge.textContent = `${newStock} UNI`;
+    } else {
+        stockBadge.textContent = `${newStock} ${stockUnit.toUpperCase()}`;
+    }
+
+    // Actualizar clases según el nivel de stock
+    stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
+    
+    if (newStock <= 0) {
+        stockBadge.classList.add('bg-gray-500', 'text-white');
+        stockBadge.textContent = 'SIN STOCK';
+        addButton.disabled = true;
+        addButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else if (newStock < minStock) {
+        stockBadge.classList.add('bg-yellow-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        stockBadge.classList.add('bg-green-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    // Animación de feedback visual
+    stockBadge.classList.add('animate-pulse');
+    setTimeout(() => {
+        stockBadge.classList.remove('animate-pulse');
+    }, 500);
+}
+
+// Inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando sistema de menú...');
+    
+    // Inicializar búsqueda
     initializeSearch();
     
+    // Aplicar filtros iniciales
     filterOrders('all');
     filterItems('all');
     
+    // Ocultar precios si no es admin
     const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
     if (!isAdmin) {
         document.querySelectorAll('.price-display').forEach(el => {
@@ -1382,12 +1481,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Manejar la tecla Escape para limpiar la búsqueda
-    document.getElementById('menu-search').addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            clearSearch();
+    // Verificar si el sistema de pedidos está inicializado
+    if (typeof initializeOrderSystem === 'function') {
+        initializeOrderSystem();
+    } else {
+        console.warn('⚠️ El sistema de pedidos no está completamente cargado');
+        // Inicializar localStorage básico para el pedido
+        if (!localStorage.getItem('order')) {
+            localStorage.setItem('order', JSON.stringify([]));
         }
-    });
+    }
+    
+    // Configurar tecla Escape para búsqueda
+    const searchInput = document.getElementById('menu-search');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                clearSearch();
+            }
+        });
+    }
 });
     </script>
+   
+@endpush
 @endsection

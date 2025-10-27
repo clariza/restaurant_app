@@ -9,7 +9,7 @@ class Table extends Model
 {
     use HasFactory;
     protected $table = 'tables'; 
-
+    
     protected $fillable = [
         'number', 
         'state', 
@@ -21,7 +21,12 @@ class Table extends Model
     protected $casts = [
         'number' => 'integer', 
     ];
-     public static $validStates = ['Disponible', 'No Disponible', 'Ocupada', 'Reservada'];
+     public static $validStates = [
+        'Disponible',
+        'Ocupada',
+        'Reservada',
+        'No Disponible'
+    ];
     
     public function scopeAvailable($query)
     {
