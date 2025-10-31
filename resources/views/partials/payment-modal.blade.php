@@ -337,7 +337,7 @@
                 </div>
             </div>
 
-            <!-- Paso 3: Detalles del Cliente (NUEVO) -->
+           <!-- Paso 3: Detalles del Cliente (NUEVO) -->
             <div class="step-content" id="step-3">
                 <div class="customer-details-section">
                     <h3>
@@ -438,7 +438,7 @@
 
                 <div class="step-actions">
                     <button class="step-btn prev" onclick="prevStep()">Anterior</button>
-                    <button class="step-btn confirm" onclick="processPayment()">
+                    <button class="step-btn confirm" onclick="confirmAndProcessOrder()">
                         <i class="fas fa-check-circle"></i>
                         Confirmar Pedido
                     </button>

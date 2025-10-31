@@ -574,6 +574,14 @@ function processPaymentFromModal() {
  * Agrega una fila de pago
  */
 function addPaymentRow() {
+    console.log('➕ Agregando nueva fila de pago...');
+
+    // ✅ ASEGURAR que window.paymentRows existe
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+        console.log('📦 window.paymentRows inicializado');
+    }
+
     const paymentRowsContainer = document.getElementById('payment-rows-container');
     const scrollableContainer = document.getElementById('payment-rows-scrollable');
     const existingPaymentTypes = new Set();
@@ -584,6 +592,9 @@ function addPaymentRow() {
     });
 
     paymentRowCounter++;
+
+    // 🔥 CREAR ID ÚNICO
+    const rowId = Date.now() + paymentRowCounter;
 
     // Obtener el cambio de la última fila de pago (si existe)
     const lastPaymentRow = paymentRowsContainer.querySelector('.payment-row:last-child');
@@ -604,16 +615,15 @@ function addPaymentRow() {
     // El Total a Pagar en la nueva fila será el cambio de la fila anterior (si existe)
     const totalToPay = lastChange > 0 ? lastChange : remainingTotal;
 
-    // 🔥 NUEVO: Obtener el tipo de pedido actual
+    // Obtener el tipo de pedido actual
     const orderType = localStorage.getItem('orderType') || 'Comer aquí';
     const isPickupOrder = orderType === 'Recoger';
 
-    // 🔥 NUEVO: Generar opciones de pago según el tipo de pedido
+    // Generar opciones de pago según el tipo de pedido
     let paymentOptions = '';
     let defaultSelected = false;
 
     if (isPickupOrder) {
-        // ✅ SOLO QR y Transferencia para pedidos "Recoger"
         if (!existingPaymentTypes.has('QR')) {
             paymentOptions += `<option value="QR" class="payment-option" ${!defaultSelected ? 'selected' : ''}>QR</option>`;
             defaultSelected = true;
@@ -623,7 +633,6 @@ function addPaymentRow() {
             defaultSelected = true;
         }
     } else {
-        // ✅ TODOS los métodos para "Comer aquí" y "Para llevar"
         if (!existingPaymentTypes.has('Efectivo')) {
             paymentOptions += `<option value="Efectivo" class="payment-option" ${!defaultSelected ? 'selected' : ''}>Efectivo</option>`;
             defaultSelected = true;
@@ -642,7 +651,6 @@ function addPaymentRow() {
         }
     }
 
-    // Validar que haya opciones disponibles
     if (!paymentOptions) {
         const availableMethods = isPickupOrder
             ? 'QR y Transferencia Bancaria'
@@ -651,21 +659,24 @@ function addPaymentRow() {
         return;
     }
 
-    // Determinar si mostrar el campo de transacción inicialmente
     const firstPaymentType = paymentOptions.match(/value="([^"]+)"/)[1];
     const showTransactionField = firstPaymentType === 'QR' ||
         firstPaymentType === 'Tarjeta' ||
         firstPaymentType === 'Transferencia';
 
-    // Crear una nueva fila de pago
+    // 🔥 CREAR FILA CON data-row-id
     const paymentRow = document.createElement('div');
     paymentRow.id = `payment-row-${paymentRowCounter}`;
     paymentRow.className = 'payment-row flex flex-col space-y-4 mb-4 p-4 bg-gray-100 rounded-lg border border-gray-300 shadow-sm';
+
+    // 🔥 CRÍTICO: AGREGAR data-row-id
+    paymentRow.dataset.rowId = rowId;
+
     paymentRow.innerHTML = `
         <div class="flex justify-between items-center payment-row-header">
             <div class="flex items-center space-x-2 payment-icons-container">
                 <span class="payment-icon hidden" data-type="QR">
-                    <img src="{{ asset('images/codigo-qr.png') }}" alt="QR" class="w-5 h-5">
+                    <img src="/images/codigo-qr.png" alt="QR" class="w-5 h-5">
                 </span>
                 <span class="payment-icon hidden" data-type="Efectivo">
                     <img src="https://cdn-icons-png.flaticon.com/512/2704/2704714.png" alt="Efectivo" class="w-5 h-5">
@@ -682,14 +693,19 @@ function addPaymentRow() {
         <div class="flex-1">
             <label class="input-label">Tipo de Pago:</label>
             <div class="select-container">
-                <select class="payment-type" onchange="updatePaymentFields(this, '${paymentRow.id}')">
+                <select class="payment-type" data-row-id="${rowId}" onchange="updatePaymentFields(this, '${paymentRow.id}'); updatePaymentRowField(${rowId}, 'method', this.value);">
                     ${paymentOptions}
                 </select>
             </div>
         </div>
         <div id="transaction-field-${paymentRowCounter}" class="${showTransactionField ? '' : 'hidden'}">
             <label class="block text-sm text-[#203363] font-bold mb-1">Nro Transacción:</label>
-            <input type="text" class="transaction-number border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm" placeholder="Ingrese el número de transacción" ${isPickupOrder ? 'required' : ''}>
+            <input type="text" 
+                class="transaction-number border border-gray-300 rounded-md p-1.5 w-full focus:border-[#203363] focus:ring-2 focus:ring-[#203363] transition-colors text-sm" 
+                placeholder="Ingrese el número de transacción" 
+                data-row-id="${rowId}"
+                onchange="updatePaymentRowField(${rowId}, 'reference', this.value);"
+                ${isPickupOrder ? 'required' : ''}>
         </div>
         <div class="flex justify-between space-x-4 payment-amount-group">
             <div class="flex-1 payment-amount-input input-with-icon">
@@ -698,7 +714,10 @@ function addPaymentRow() {
             </div>
             <div class="flex-1 payment-amount-input input-with-icon">
                 <label class="input-label">Total Pagado:</label>
-                <input type="text" class="payment-input total-paid" oninput="updateChange('${paymentRow.id}')">
+                <input type="text" 
+                    class="payment-input total-paid" 
+                    data-row-id="${rowId}"
+                    oninput="updateChange('${paymentRow.id}'); updatePaymentRowField(${rowId}, 'amount', parseFloat(this.value) || 0);">
             </div>
             <div class="flex-1 input-with-icon payment-amount-input">
                 <label class="input-label">Cambio:</label>
@@ -706,6 +725,19 @@ function addPaymentRow() {
             </div>
         </div>
     `;
+
+    // 🔥 AGREGAR AL ARRAY ANTES DE AGREGAR AL DOM
+    const method = firstPaymentType;
+    const row = {
+        id: rowId,
+        method: method,
+        reference: '',
+        amount: 0
+    };
+
+    window.paymentRows.push(row);
+    console.log('✅ Fila agregada al array:', row);
+    console.log('📦 Total en array:', window.paymentRows.length);
 
     // Agregar la nueva fila al contenedor
     paymentRowsContainer.appendChild(paymentRow);
@@ -718,8 +750,12 @@ function addPaymentRow() {
 
     // Actualizar campos según el tipo de pago seleccionado
     updatePaymentFields(paymentRow.querySelector('.payment-type'), paymentRow.id);
-}
 
+    console.log('✅ Fila agregada al DOM');
+    console.log('🎯 Verificación:');
+    console.log('   - Array:', window.paymentRows.length);
+    console.log('   - DOM:', document.querySelectorAll('.payment-row').length);
+}
 function updateScrollContainer() {
     const paymentRowsContainer = document.getElementById('payment-rows-container');
     const scrollableContainer = document.getElementById('payment-rows-scrollable');
@@ -1650,75 +1686,159 @@ function calcularTotal() {
 }
 // Función para procesar el pedido
 async function processOrder() {
+    if (typeof syncPaymentRowsFromDOM === 'function') {
+        syncPaymentRowsFromDOM();
+    }
     try {
+        console.log('🚀 Iniciando processOrder...');
 
-        // Obtener paymentMethods de localStorage
-        let paymentMethods = JSON.parse(localStorage.getItem('paymentMethods')) || [];
-        // Validaciones iniciales  
-        const customerName = document.getElementById('customer-name')?.value;
+        // ============================================
+        // 1. OBTENER DATOS DEL CLIENTE
+        // ============================================
+
+        // Primero intentar desde el modal (Paso 3)
+        let customerName = document.getElementById('modal-customer-name')?.value?.trim();
+        let customerEmail = document.getElementById('modal-customer-email')?.value?.trim() || '';
+        let customerPhone = document.getElementById('modal-customer-phone')?.value?.trim() || '';
+        let customerNotes = document.getElementById('modal-customer-notes')?.value?.trim() || '';
+
+        // Si no existe en el modal, intentar desde la vista customer-details
+        if (!customerName) {
+            customerName = document.getElementById('customer-name')?.value?.trim();
+            customerEmail = document.getElementById('customer-email')?.value?.trim() || '';
+            customerPhone = document.getElementById('customer-phone')?.value?.trim() || '';
+        }
+
+        // Fallback: intentar desde localStorage
+        if (!customerName) {
+            customerName = localStorage.getItem('customerName');
+            customerEmail = localStorage.getItem('customerEmail') || '';
+            customerPhone = localStorage.getItem('customerPhone') || '';
+            customerNotes = localStorage.getItem('customerNotes') || '';
+        }
+
+        console.log('📋 Datos del cliente obtenidos:', {
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone
+        });
+
+        // Validar nombre del cliente
         if (!customerName) {
             alert('El nombre del cliente es obligatorio');
             return;
         }
 
+        // ============================================
+        // 2. OBTENER ITEMS DEL PEDIDO
+        // ============================================
+
         const order = JSON.parse(localStorage.getItem('order')) || [];
+
         if (order.length === 0) {
             alert('No hay ítems en el pedido');
             return;
         }
 
+        console.log('📦 Items del pedido:', order.length);
 
-
-        // Convertir items al formato esperado
+        // Convertir items al formato esperado por el backend
         const orderItems = order.map(item => ({
+            menu_item_id: item.id || item.menu_item_id,
             name: item.name,
             price: item.price,
             quantity: item.quantity
         }));
 
-        if (paymentMethods.length === 0) {
+        // ============================================
+        // 3. OBTENER MÉTODOS DE PAGO
+        // ============================================
 
+        let paymentMethods = [];
+
+        // Opción 1: Desde window.paymentRows (modal de 3 pasos)
+        if (window.paymentRows && window.paymentRows.length > 0) {
+            console.log('✅ Obteniendo métodos de pago desde window.paymentRows');
+            paymentMethods = window.paymentRows.map(row => ({
+                method: row.method,
+                amount: parseFloat(row.amount) || 0,
+                transaction_number: row.reference || null
+            }));
+        }
+        // Opción 2: Desde localStorage
+        else if (localStorage.getItem('paymentMethods')) {
+            console.log('✅ Obteniendo métodos de pago desde localStorage');
+            paymentMethods = JSON.parse(localStorage.getItem('paymentMethods'));
+        }
+        // Opción 3: Desde paymentDetails (modal antiguo)
+        else if (localStorage.getItem('paymentDetails')) {
+            console.log('✅ Obteniendo métodos de pago desde paymentDetails');
+            const paymentDetails = JSON.parse(localStorage.getItem('paymentDetails'));
             paymentMethods = paymentDetails.map(p => ({
                 method: p.paymentType,
                 amount: parseFloat(p.totalPaid) || 0,
                 transaction_number: p.transactionNumber || null
             }));
-
-            if (paymentMethods.length === 0) {
-                alert('Debe registrar al menos un método de pago');
-                return;
-            }
         }
 
-        // Obtener datos del formulario
+        console.log('💳 Métodos de pago obtenidos:', paymentMethods);
+
+        // Validar que existan métodos de pago
+        if (!paymentMethods || paymentMethods.length === 0) {
+            alert('Debe registrar al menos un método de pago');
+            console.error('❌ No se encontraron métodos de pago');
+            return;
+        }
+
+        // Validar que los montos sean válidos
+        const totalPaid = paymentMethods.reduce((sum, method) => sum + (method.amount || 0), 0);
+        if (totalPaid <= 0) {
+            alert('Los montos de pago deben ser mayores a 0');
+            return;
+        }
+
+        // ============================================
+        // 4. OBTENER TIPO DE PEDIDO Y DETALLES
+        // ============================================
+
         const orderType = localStorage.getItem('orderType') || 'Comer aquí';
-        const customerEmail = document.getElementById('customer-email')?.value || '';
-        const customerPhone = document.getElementById('customer-phone')?.value || '';
         const orderNotes = localStorage.getItem('orderNotes') || '';
 
+        console.log('📝 Tipo de pedido:', orderType);
 
-        let tableNumber = '';
+        // ============================================
+        // 5. OBTENER MESA (SI APLICA)
+        // ============================================
+
+        let tableNumber = null;
+
         if (orderType === 'Comer aquí') {
+            const tablesEnabled = window.tablesConfigState?.tablesEnabled || window.tablesEnabled || false;
+
             if (tablesEnabled) {
+                // Intentar obtener desde diferentes fuentes
                 tableNumber = localStorage.getItem('tableNumber');
 
-                console.log('🔍 DEBUG - Procesando orden:');
-                console.log('   - Tipo de pedido:', orderType);
-                console.log('   - Table Number (localStorage):', tableNumber);
-                console.log('   - PaymentModalState:', window.paymentModalState?.selectedTable);
-
-
-                if (!tableNumber) {
-                    // Fallback: intentar obtener de paymentModalState
-                    if (window.paymentModalState?.selectedTable?.id) {
-                        tableNumber = window.paymentModalState.selectedTable.id;
-                        console.log('   - Usando tableNumber de paymentModalState:', tableNumber);
-                    } else {
-                        throw new Error('Debe seleccionar una mesa para "Comer aquí"');
-                    }
+                // Fallback: desde window.selectedTable (modal)
+                if (!tableNumber && window.selectedTable?.id) {
+                    tableNumber = window.selectedTable.id;
+                    console.log('📍 Mesa obtenida desde window.selectedTable:', tableNumber);
                 }
 
-                // Actualizar estado de la mesa solo si está habilitado
+                // Fallback: desde paymentModalState
+                if (!tableNumber && window.paymentModalState?.selectedTable?.id) {
+                    tableNumber = window.paymentModalState.selectedTable.id;
+                    console.log('📍 Mesa obtenida desde paymentModalState:', tableNumber);
+                }
+
+                console.log('🪑 Mesa seleccionada:', tableNumber);
+
+                // Validar que se haya seleccionado una mesa
+                if (!tableNumber) {
+                    throw new Error('Debe seleccionar una mesa para "Comer aquí"');
+                }
+
+                // Actualizar estado de la mesa a "Ocupada"
                 try {
                     const result = await updateTableState(tableNumber, 'Ocupada');
                     if (!result.success) {
@@ -1729,26 +1849,68 @@ async function processOrder() {
                     console.error('Error al actualizar mesa:', error);
                     throw new Error(`No se pudo ocupar la mesa. ${error.message}`);
                 }
-            } else {
-
             }
-
         }
 
-        // Preparar datos para enviar al servidor
+        // ============================================
+        // 6. OBTENER SERVICIO DE DELIVERY (SI APLICA)
+        // ============================================
+
+        let deliveryService = null;
+        if (orderType === 'Recojo por Delivery' || orderType === 'Para llevar') {
+            deliveryService = localStorage.getItem('deliveryService') ||
+                window.selectedDeliveryService || null;
+            console.log('🚚 Servicio de delivery:', deliveryService);
+        }
+
+        // ============================================
+        // 7. OBTENER NOTAS DE RECOGER (SI APLICA)
+        // ============================================
+
+        let pickupNotes = '';
+        if (orderType === 'Recoger') {
+            pickupNotes = localStorage.getItem('pickupNotes') ||
+                document.getElementById('modal-pickup-notes-text')?.value?.trim() || '';
+            console.log('📝 Notas de recoger:', pickupNotes);
+        }
+
+        // ============================================
+        // 8. PREPARAR DATOS PARA EL BACKEND
+        // ============================================
+
         const requestData = {
-            order_type: orderType,
+            // Datos del cliente
             customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone,
+            customer_email: customerEmail || null,
+            customer_phone: customerPhone || null,
+
+            // Tipo de pedido y ubicación
+            order_type: orderType,
             table_number: tableNumber,
+            delivery_service: deliveryService,
+
+            // Notas
             order_notes: orderNotes,
+            customer_notes: customerNotes,
+            pickup_notes: pickupNotes,
+
+            // Items del pedido (como JSON string)
             order: JSON.stringify(orderItems),
+
+            // Método de pago principal (el primero)
             payment_method: paymentMethods[0]?.method || 'Efectivo',
-            transaction_number: paymentMethods[0]?.transaction_number || null
+            transaction_number: paymentMethods[0]?.transaction_number || null,
+
+            // Todos los métodos de pago (para registro completo)
+            payment_methods: paymentMethods
         };
 
-        // Enviar al servidor
+        console.log('📤 Datos a enviar al servidor:', requestData);
+
+        // ============================================
+        // 9. ENVIAR AL SERVIDOR
+        // ============================================
+
         const response = await fetch(window.routes.salesStore, {
             method: 'POST',
             headers: {
@@ -1761,41 +1923,79 @@ async function processOrder() {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || 'Error al procesar el pedido');
+            throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
         }
 
         const data = await response.json();
 
-        const dailyOrderNumber = data.daily_order_number;
-        // Mostrar vista previa y esperar confirmación
-        const printConfirmed = await showPrintConfirmation(dailyOrderNumber);
+        console.log('✅ Respuesta del servidor:', data);
 
-        if (!printConfirmed) {
-            console.log('Impresión cancelada por el usuario');
-            return;
-        }
+        // ============================================
+        // 10. MANEJAR RESPUESTA EXITOSA
+        // ============================================
 
-        // Éxito - limpiar y redirigir
         if (data.success) {
+            const dailyOrderNumber = data.daily_order_number;
+
+            // Mostrar vista previa de impresión
+            const printConfirmed = await showPrintConfirmation(dailyOrderNumber);
+
+            if (!printConfirmed) {
+                console.log('ℹ️ Impresión cancelada por el usuario');
+            }
+
+            // Limpiar todos los datos
             unlockOrderInterface();
             localStorage.removeItem('paymentProcessed');
-            paymentProcessed = false;
             localStorage.removeItem('order');
             localStorage.removeItem('orderType');
             localStorage.removeItem('tableNumber');
             localStorage.removeItem('orderNotes');
             localStorage.removeItem('customerData');
+            localStorage.removeItem('customerName');
+            localStorage.removeItem('customerEmail');
+            localStorage.removeItem('customerPhone');
+            localStorage.removeItem('customerNotes');
             localStorage.removeItem('paymentMethods');
             localStorage.removeItem('paymentDetails');
+            localStorage.removeItem('deliveryService');
+            localStorage.removeItem('pickupNotes');
 
+            // Limpiar variables globales
+            if (window.paymentRows) {
+                window.paymentRows = [];
+            }
+            if (window.selectedTable) {
+                window.selectedTable = null;
+            }
+            if (window.selectedDeliveryService) {
+                window.selectedDeliveryService = null;
+            }
+
+            // Cerrar modal si está abierto
+            const paymentModal = document.getElementById('payment-modal');
+            if (paymentModal && !paymentModal.classList.contains('hidden')) {
+                paymentModal.classList.add('hidden');
+            }
+
+            // Redirigir al menú
+            console.log('✅ Pedido procesado correctamente, redirigiendo...');
             window.location.href = window.routes.menuIndex;
+
         } else {
             throw new Error(data.message || 'Error al procesar el pedido');
         }
 
     } catch (error) {
-        console.error('Error en processOrder:', error);
-        alert(`Error: ${error.message}`);
+        console.error('❌ Error en processOrder:', error);
+        alert(`Error al procesar el pedido:\n${error.message}`);
+
+        // Rehabilitar interfaz si hay error
+        const confirmBtn = document.querySelector('.step-btn.confirm');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pedido';
+        }
     }
 }
 async function checkStockAvailability(order) {
@@ -1956,10 +2156,16 @@ async function loadAvailableTables() {
 }
 // Función para actualizar el estado de una mesa
 async function updateTableState(tableId, newState) {
+    const tablesEnabled = window.tablesConfigState?.tablesEnabled || window.tablesEnabled || false;
+
     if (!tablesEnabled) {
+        console.log('ℹ️ Mesas deshabilitadas, saltando actualización de estado');
         return { success: true };
     }
+
     try {
+        console.log(`🔄 Actualizando mesa ${tableId} a estado: ${newState}`);
+
         const response = await fetch(`/tables/${tableId}/state`, {
             method: 'POST',
             headers: {
@@ -1976,10 +2182,12 @@ async function updateTableState(tableId, newState) {
             throw new Error(data.error || 'Error al actualizar estado de mesa');
         }
 
+        console.log('✅ Mesa actualizada correctamente');
         return data;
+
     } catch (error) {
-        console.error('Error updating table state:', error);
-        throw error; // Re-lanzar el error para que lo capture processOrder
+        console.error('❌ Error updating table state:', error);
+        throw error;
     }
 }
 function setupTableSelectStyles() {
@@ -2846,3 +3054,6 @@ window.removeItem = removeItem;
 window.increaseItemQuantity = increaseItemQuantity;
 window.clearOrder = clearOrder;
 window.initializeOrderSystem = initializeOrderSystem;
+window.processOrder = processOrder;
+window.checkStockAvailability = checkStockAvailability;
+window.updateTableState = updateTableState;

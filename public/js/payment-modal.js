@@ -1,12 +1,16 @@
 // ============================================
 // VARIABLES GLOBALES
 // ============================================
-window.openPaymentModal = openPaymentModal;
-window.closePaymentModal = closePaymentModal;
+window.paymentRows = [];
 
 let paymentRowCounter = 0;
 let originalTablesEnabled = false;
 let tables = [];
+
+let currentStep = 1;
+const totalSteps = 3;
+let selectedTable = null;
+let selectedDeliveryService = null;
 
 // API Routes
 const TABLES_API = {
@@ -41,22 +45,78 @@ window.tablesConfigState = {
 // ============================================
 
 function showPaymentModal() {
-    const order = JSON.parse(localStorage.getItem('order')) || [];
-    if (order.length === 0) {
-        alert('No hay ítems en el pedido para realizar el pago');
+    const modal = document.getElementById('payment-modal');
+    const orderTotal = calculateOrderTotal();
+
+    if (orderTotal <= 0) {
+        alert('No hay items en el pedido');
         return;
     }
 
-    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
-    if (orderType === 'Recoger') {
-        const confirmMessage = '⚠️ IMPORTANTE: Para pedidos "Recoger" solo están disponibles los métodos de pago QR y Transferencia Bancaria.\n\n¿Desea continuar?';
-        if (!confirm(confirmMessage)) {
-            return;
-        }
+    modal.classList.remove('hidden');
+    currentStep = 1;
+    updateStepDisplay();
+    updateOrderTotal();
+
+    // ✅ LIMPIAR Y REINICIAR paymentRows
+    window.paymentRows = [];
+    console.log('🧹 window.paymentRows limpiado');
+
+    // Limpiar selecciones previas
+    selectedTable = null;
+    selectedDeliveryService = null;
+
+    // Limpiar contenedor de filas
+    const container = document.getElementById('payment-rows-container');
+    if (container) {
+        container.innerHTML = '';
     }
 
-    console.log('🔧 Abriendo modal de pago...');
-    openPaymentModal();
+    // ✅ AGREGAR AUTOMÁTICAMENTE LA PRIMERA FILA DE PAGO
+    setTimeout(() => {
+        console.log('➕ Agregando primera fila automáticamente...');
+        addPaymentRow();
+
+        // Verificar después de agregar
+        setTimeout(() => {
+            console.log('🔍 Verificación post-agregar:');
+            console.log('   - Array:', window.paymentRows.length);
+            console.log('   - DOM:', document.querySelectorAll('.payment-row').length);
+        }, 100);
+    }, 100);
+
+    // Resetear formulario del paso 3
+    if (document.getElementById('modal-customer-details-form')) {
+        document.getElementById('modal-customer-details-form').reset();
+    }
+
+    // Cargar mesas si está habilitado
+    const tablesEnabled = window.tablesConfigState?.tablesEnabled || false;
+    console.log('🔍 Tables enabled:', tablesEnabled);
+
+    if (tablesEnabled) {
+        loadModalTables();
+    }
+
+    // Establecer tipo de pedido por defecto
+    const defaultType = tablesEnabled ? 'comer-aqui' : 'para-llevar';
+    selectOrderType(defaultType);
+
+    console.log('✅ Modal abierto correctamente');
+}
+
+function calculateOrderTotal() {
+    const orderDetails = document.getElementById('order-details');
+    if (!orderDetails) return 0;
+
+    let total = 0;
+    orderDetails.querySelectorAll('.order-item').forEach(item => {
+        const priceText = item.querySelector('.order-item-price')?.textContent || '0';
+        const price = parseFloat(priceText.replace('$', '').trim());
+        total += price;
+    });
+
+    return total;
 }
 
 function openPaymentModal() {
@@ -78,37 +138,430 @@ function openPaymentModal() {
         }
     }, 50);
 }
+function addPaymentRow() {
+    console.log('➕ === AGREGANDO NUEVA FILA ===');
 
-function closePaymentModal() {
-    const modal = document.getElementById('payment-modal');
-    if (modal) {
-        modal.classList.add('hidden');
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+        console.log('📦 window.paymentRows inicializado');
     }
 
-    const paymentContainer = document.getElementById('payment-rows-container');
-    if (paymentContainer) {
-        paymentContainer.innerHTML = '';
-    }
+    const rowId = Date.now();
 
-    // Resetear estado del modal
-    window.paymentModalState = {
-        currentStep: 1,
-        maxSteps: 3,
-        selectedOrderType: 'comer-aqui',
-        selectedTable: null,
-        paymentRows: [],
-        customerData: {}
+    const row = {
+        id: rowId,
+        method: '',
+        reference: '',
+        amount: 0
     };
 
-    // Limpiar formulario de cliente
-    const customerForm = document.getElementById('modal-customer-details-form');
-    if (customerForm) {
-        customerForm.reset();
+    window.paymentRows.push(row);
+    console.log(`✅ Fila agregada al array (ID: ${rowId})`);
+    console.log(`📦 Total filas en array: ${window.paymentRows.length}`);
+
+    renderPaymentRows();
+
+    // Verificar después de renderizar
+    setTimeout(() => {
+        const domCount = document.querySelectorAll('.payment-row').length;
+        console.log(`🎯 Verificación post-agregar:`);
+        console.log(`   - Array: ${window.paymentRows.length}`);
+        console.log(`   - DOM: ${domCount}`);
+
+        if (domCount !== window.paymentRows.length) {
+            console.error(`❌ DESINCRONIZACIÓN después de agregar`);
+        }
+    }, 100);
+}
+function closePaymentModal() {
+    console.log('🔒 Cerrando modal de pago...');
+
+    const modal = document.getElementById('payment-modal');
+    modal.classList.add('hidden');
+
+    currentStep = 1;
+
+    // ✅ LIMPIAR window.paymentRows correctamente
+    window.paymentRows = [];
+
+    selectedTable = null;
+    selectedDeliveryService = null;
+
+    // Limpiar contenedor
+    const container = document.getElementById('payment-rows-container');
+    if (container) {
+        container.innerHTML = '';
     }
 
-    console.log('✅ Modal de pago cerrado y limpiado');
+    console.log('✅ Modal cerrado y paymentRows limpiado');
+}
+function renderPaymentRows() {
+    const container = document.getElementById('payment-rows-container');
+
+    if (!container) {
+        console.error('❌ No se encontró payment-rows-container');
+        return;
+    }
+
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+    }
+
+    console.log(`🎨 Renderizando ${window.paymentRows.length} filas`);
+
+    container.innerHTML = '';
+
+    if (window.paymentRows.length === 0) {
+        console.warn('⚠️ No hay filas para renderizar');
+        return;
+    }
+
+    window.paymentRows.forEach((row, index) => {
+        const rowElement = createPaymentRowElement(row, index);
+        container.appendChild(rowElement);
+    });
+
+    console.log(`✅ ${window.paymentRows.length} filas renderizadas`);
+
+    // Verificar sincronización
+    const domCount = document.querySelectorAll('.payment-row').length;
+    if (domCount !== window.paymentRows.length) {
+        console.error(`❌ DESINCRONIZACIÓN después de renderizar:`);
+        console.error(`   - Array: ${window.paymentRows.length}`);
+        console.error(`   - DOM: ${domCount}`);
+    }
+}
+function createPaymentRowElement(row, index) {
+    const div = document.createElement('div');
+    div.className = 'payment-row';
+    div.dataset.rowId = row.id; // ✅ CRÍTICO: Agregar identificador único
+
+    div.innerHTML = `
+        <div class="payment-row-header">
+            <strong>Método de Pago ${index + 1}</strong>
+            <button type="button" class="payment-row-remove" onclick="removePaymentRow(${row.id})">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="payment-form">
+            <div class="form-group">
+                <label class="form-label">Método</label>
+                <select class="form-select" data-row-id="${row.id}" onchange="updatePaymentRowFromSelect(${row.id}, 'method', this.value)">
+                    <option value="">Seleccionar...</option>
+                    <option value="Efectivo" ${row.method === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                    <option value="Tarjeta" ${row.method === 'Tarjeta' ? 'selected' : ''}>Tarjeta</option>
+                    <option value="QR" ${row.method === 'QR' ? 'selected' : ''}>QR</option>
+                    <option value="Transferencia" ${row.method === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Referencia</label>
+                <input type="text" 
+                    class="form-input" 
+                    placeholder="Número de referencia" 
+                    value="${row.reference || ''}"
+                    data-row-id="${row.id}"
+                    onchange="updatePaymentRowFromInput(${row.id}, 'reference', this.value)">
+            </div>
+            <div class="form-group full-width">
+                <label class="form-label">Monto</label>
+                <input type="number" 
+                    class="form-input" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="0.00"
+                    value="${row.amount || ''}"
+                    data-row-id="${row.id}"
+                    onchange="updatePaymentRowFromInput(${row.id}, 'amount', parseFloat(this.value) || 0)">
+            </div>
+        </div>
+    `;
+    return div;
+}
+function updatePaymentRowFromInput(rowId, field, value) {
+    console.log(`🔄 Actualizando ${field} de fila ${rowId} desde INPUT:`, value);
+
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+    }
+
+    const row = window.paymentRows.find(r => r.id === rowId);
+    if (row) {
+        row[field] = value;
+        console.log(`✅ ${field} actualizado en array:`, row);
+    } else {
+        console.error(`❌ No se encontró fila con ID ${rowId} en el array`);
+    }
+}
+function updateOrderTotal() {
+    const total = calculateOrderTotal();
+    document.querySelectorAll('#order-total, #step3-order-total').forEach(el => {
+        el.textContent = total.toFixed(2);
+    });
+}
+function updatePaymentRow(id, field, value) {
+    // Actualizar en window.paymentRows si existe
+    if (window.paymentRows && window.paymentRows.length > 0) {
+        const row = window.paymentRows.find(r => r.id === id);
+        if (row) {
+            row[field] = value;
+            console.log(`✅ Actualizado ${field} de fila ${id}:`, value);
+        }
+    }
+
+    // ✅ TAMBIÉN sincronizar desde el DOM a window.paymentRows
+    syncPaymentRowsFromDOM();
+}
+function updatePaymentRowFromSelect(rowId, field, value) {
+    console.log(`🔄 Actualizando ${field} de fila ${rowId} desde SELECT:`, value);
+
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+    }
+
+    const row = window.paymentRows.find(r => r.id === rowId);
+    if (row) {
+        row[field] = value;
+        console.log(`✅ ${field} actualizado en array:`, row);
+    } else {
+        console.error(`❌ No se encontró fila con ID ${rowId} en el array`);
+    }
 }
 
+function syncPaymentRowsFromDOM() {
+    console.log('🔄 === INICIANDO SINCRONIZACIÓN DESDE DOM ===');
+
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+    }
+
+    const paymentRowElements = document.querySelectorAll('#payment-rows-container .payment-row');
+    console.log(`🔍 Filas encontradas en DOM: ${paymentRowElements.length}`);
+
+    // Si no hay filas, no hay nada que sincronizar
+    if (paymentRowElements.length === 0) {
+        console.warn('⚠️ No hay filas de pago en el DOM para sincronizar');
+        window.paymentRows = [];
+        return;
+    }
+
+    const tempRows = [];
+
+    paymentRowElements.forEach((rowElement, index) => {
+        console.log(`\n📝 === Procesando fila ${index} ===`);
+
+        // Obtener rowId
+        const rowId = parseInt(rowElement.dataset.rowId);
+        console.log(`   1️⃣ Row ID: ${rowId}`);
+
+        if (!rowId) {
+            console.error(`   ❌ No se encontró rowId para la fila ${index}`);
+            return;
+        }
+
+        // ESTRATEGIA MÚLTIPLE: Intentar varios selectores para encontrar los elementos
+
+        // Método 1: Buscar por clase específica
+        let methodSelect = rowElement.querySelector('.payment-type') ||
+            rowElement.querySelector('select.form-select') ||
+            rowElement.querySelector('select');
+
+        let referenceInput = rowElement.querySelector('.transaction-number') ||
+            rowElement.querySelector('input[type="text"]');
+
+        let amountInput = rowElement.querySelector('.total-paid') ||
+            rowElement.querySelector('input[type="number"]');
+
+        console.log(`   2️⃣ Elementos encontrados:`, {
+            methodSelect: !!methodSelect,
+            referenceInput: !!referenceInput,
+            amountInput: !!amountInput
+        });
+
+        // Si no encontramos el select de método, la fila es inválida
+        if (!methodSelect) {
+            console.error(`   ❌ No se encontró SELECT de método de pago en fila ${index}`);
+            console.log(`   🔍 Diagnóstico de fila:`, rowElement.innerHTML.substring(0, 300));
+            return;
+        }
+
+        // Si no encontramos el input de monto, la fila es inválida
+        if (!amountInput) {
+            console.error(`   ❌ No se encontró INPUT de monto en fila ${index}`);
+            console.log(`   🔍 Diagnóstico de fila:`, rowElement.innerHTML.substring(0, 300));
+            return;
+        }
+
+        // Extraer valores
+        const method = methodSelect.value;
+        const reference = referenceInput ? referenceInput.value : '';
+        const amount = parseFloat(amountInput.value) || 0;
+
+        console.log(`   3️⃣ Valores extraídos:`, {
+            method,
+            reference,
+            amount
+        });
+
+        // Validar que al menos tengamos método o monto
+        if (!method && amount === 0) {
+            console.warn(`   ⚠️ Fila ${index} sin datos válidos (método vacío y monto 0)`);
+        }
+
+        // Crear objeto de fila
+        const row = {
+            id: rowId,
+            method: method,
+            reference: reference,
+            amount: amount
+        };
+
+        tempRows.push(row);
+        console.log(`   ✅ Fila ${index} agregada al array temporal:`, row);
+    });
+
+    // Reemplazar array global
+    window.paymentRows = tempRows;
+
+    console.log(`\n✅ === SINCRONIZACIÓN COMPLETA ===`);
+    console.log(`📦 Total filas sincronizadas: ${window.paymentRows.length}`);
+    console.log(`📦 window.paymentRows:`, window.paymentRows);
+
+    // Verificar sincronización
+    const domRows = paymentRowElements.length;
+    if (domRows !== window.paymentRows.length) {
+        console.error(`\n❌ === DESINCRONIZACIÓN DETECTADA ===`);
+        console.error(`   - Filas en DOM: ${domRows}`);
+        console.error(`   - Filas en Array: ${window.paymentRows.length}`);
+        console.error(`   - Diferencia: ${domRows - window.paymentRows.length} filas perdidas`);
+
+        // Ejecutar diagnóstico automático
+        diagnosePaymentRowStructure();
+    } else {
+        console.log(`✅ Sincronización exitosa: DOM y Array coinciden`);
+    }
+
+    return window.paymentRows;
+}
+function createPaymentRowElement(row, index) {
+    const div = document.createElement('div');
+    div.className = 'payment-row';
+    div.dataset.rowId = row.id;
+
+    // IMPORTANTE: Usar clases específicas que coincidan con syncPaymentRowsFromDOM
+    div.innerHTML = `
+        <div class="payment-row-header">
+            <strong>Método de Pago ${index + 1}</strong>
+            <button type="button" class="payment-row-remove" onclick="removePaymentRow(${row.id})">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="payment-form">
+            <div class="form-group">
+                <label class="form-label">Método</label>
+                <select class="form-select payment-type" data-row-id="${row.id}" onchange="updatePaymentRowField(${row.id}, 'method', this.value)">
+                    <option value="">Seleccionar...</option>
+                    <option value="Efectivo" ${row.method === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                    <option value="Tarjeta" ${row.method === 'Tarjeta' ? 'selected' : ''}>Tarjeta</option>
+                    <option value="QR" ${row.method === 'QR' ? 'selected' : ''}>QR</option>
+                    <option value="Transferencia" ${row.method === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Referencia</label>
+                <input type="text" 
+                    class="form-input transaction-number" 
+                    placeholder="Número de referencia" 
+                    value="${row.reference || ''}"
+                    data-row-id="${row.id}"
+                    onchange="updatePaymentRowField(${row.id}, 'reference', this.value)">
+            </div>
+            <div class="form-group full-width">
+                <label class="form-label">Monto</label>
+                <input type="number" 
+                    class="form-input total-paid" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="0.00"
+                    value="${row.amount || ''}"
+                    data-row-id="${row.id}"
+                    onchange="updatePaymentRowField(${row.id}, 'amount', parseFloat(this.value) || 0)">
+            </div>
+        </div>
+    `;
+
+    return div;
+}
+function updatePaymentRowField(rowId, field, value) {
+    console.log(`🔄 Actualizando campo "${field}" de fila ${rowId}:`, value);
+
+    if (!window.paymentRows) {
+        console.warn('⚠️ window.paymentRows no existe, inicializando...');
+        window.paymentRows = [];
+    }
+
+    const row = window.paymentRows.find(r => r.id === rowId);
+
+    if (row) {
+        row[field] = value;
+        console.log(`✅ Campo "${field}" actualizado en array:`, row);
+    } else {
+        console.error(`❌ No se encontró fila con ID ${rowId} en el array`);
+        console.log('📦 Array actual:', window.paymentRows);
+
+        // Intentar recuperar sincronizando desde DOM
+        console.log('🔄 Intentando recuperar sincronizando desde DOM...');
+        syncPaymentRowsFromDOM();
+    }
+}
+function removePaymentRow(id) {
+    console.log(`🗑️ Eliminando fila ID: ${id}`);
+
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+    }
+
+    const lengthBefore = window.paymentRows.length;
+    window.paymentRows = window.paymentRows.filter(row => row.id !== id);
+
+    console.log(`📦 Filas: ${lengthBefore} → ${window.paymentRows.length}`);
+
+    renderPaymentRows();
+}
+function updateStepDisplay() {
+    // Actualizar indicadores de paso
+    document.querySelectorAll('.step-item').forEach((item, index) => {
+        const stepNum = index + 1;
+        item.classList.remove('active', 'completed');
+
+        if (stepNum === currentStep) {
+            item.classList.add('active');
+        } else if (stepNum < currentStep) {
+            item.classList.add('completed');
+        }
+    });
+
+    // Mostrar/ocultar contenido de pasos
+    document.querySelectorAll('.step-content').forEach((content, index) => {
+        const stepNum = index + 1;
+        content.classList.toggle('active', stepNum === currentStep);
+    });
+
+    // Actualizar botones
+    updateNavigationButtons();
+}
+function updateNavigationButtons() {
+    const prevButtons = document.querySelectorAll('.step-btn.prev');
+    const nextButtons = document.querySelectorAll('.step-btn.next');
+
+    prevButtons.forEach(btn => {
+        btn.disabled = currentStep === 1;
+    });
+
+    nextButtons.forEach(btn => {
+        btn.style.display = currentStep === totalSteps ? 'none' : 'inline-block';
+    });
+}
 function loadOrderData() {
     const order = JSON.parse(localStorage.getItem('order')) || [];
     const total = order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -319,14 +772,155 @@ function goToStep(step) {
 }
 
 function nextStep() {
-    if (window.paymentModalState.currentStep >= window.paymentModalState.maxSteps) return;
-    goToStep(window.paymentModalState.currentStep + 1);
+    console.log(`🔄 Intentando avanzar del paso ${currentStep} al paso ${currentStep + 1}`);
+
+    // ✅ Si estamos en el paso 2, sincronizar antes de validar
+    if (currentStep === 2) {
+        console.log('🔄 Paso 2 detectado, sincronizando datos de pago...');
+        syncPaymentRowsFromDOM();
+    }
+
+    if (!validateCurrentStep()) {
+        console.warn('⚠️ Validación fallida, no se avanza al siguiente paso');
+        return;
+    }
+
+    if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepDisplay();
+
+        console.log(`✅ Avanzando al paso ${currentStep}`);
+
+        // Si llegamos al paso 3, actualizar el resumen
+        if (currentStep === 3) {
+            // ✅ Sincronizar una vez más antes de mostrar resumen
+            syncPaymentRowsFromDOM();
+            updateStep3Summary();
+        }
+    }
+}
+function debugPaymentRows() {
+    console.log('=== DEBUG PAYMENT ROWS ===');
+    console.log('window.paymentRows existe:', typeof window.paymentRows !== 'undefined');
+    console.log('window.paymentRows:', window.paymentRows);
+    console.log('Cantidad de filas:', window.paymentRows?.length || 0);
+    console.log('Contenedor DOM:', document.getElementById('payment-rows-container'));
+    console.log('Filas en DOM:', document.querySelectorAll('.payment-row').length);
+    console.log('========================');
+}
+window.debugPaymentRows = debugPaymentRows;
+// 7. MODIFICAR updateStep3Summary() para usar window.paymentRows
+function updateStep3Summary() {
+    console.log('📋 Actualizando resumen del paso 3...');
+    syncPaymentRowsFromDOM();
+    console.log('💳 Datos de pago para resumen:', window.paymentRows);
+    // Actualizar resumen del pedido
+
+    const orderSummary = document.getElementById('step3-order-summary');
+    const orderDetails = document.getElementById('order-details');
+
+    if (orderSummary && orderDetails) {
+        const items = orderDetails.querySelectorAll('.order-item');
+        let summaryHTML = '';
+
+        items.forEach(item => {
+            const name = item.querySelector('.order-item-name')?.textContent || '';
+            const quantity = item.querySelector('.order-item-quantity')?.textContent || '1';
+            const price = item.querySelector('.order-item-price')?.textContent || '$0.00';
+
+            summaryHTML += `
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                    <span>${quantity} × ${name}</span>
+                    <span style="font-weight: 600;">${price}</span>
+                </div>
+            `;
+        });
+
+        orderSummary.innerHTML = summaryHTML;
+    }
+
+    // Actualizar detalles de pago - ✅ USAR window.paymentRows
+    const paymentDetails = document.getElementById('step3-payment-methods');
+    if (paymentDetails) {
+        let paymentHTML = '';
+
+        if (window.paymentRows.length === 0) {
+            paymentHTML = '<p style="color: #666; text-align: center; padding: 20px;">No hay métodos de pago registrados</p>';
+        } else {
+            window.paymentRows.forEach((row, index) => {
+                paymentHTML += `
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                        <div>
+                            <strong>${row.method || 'Sin método'}</strong>
+                            ${row.reference ? `<br><small style="color: var(--text-secondary);">Ref: ${row.reference}</small>` : ''}
+                        </div>
+                        <span style="font-weight: 600; color: var(--success-color);">$${parseFloat(row.amount || 0).toFixed(2)}</span>
+                    </div>
+                `;
+            });
+        }
+
+        paymentDetails.innerHTML = paymentHTML;
+    }
+
+
+    // Actualizar total
+    updateOrderTotal();
+}
+
+
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        return validateStep1();
+    } else if (currentStep === 2) {
+        return validateStep2();
+    }
+    return true;
+}
+function selectOrderType(type) {
+    // Actualizar botones
+    document.querySelectorAll('.order-type-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+
+    // Actualizar input oculto
+    const orderTypeInput = document.getElementById('order-type');
+    if (orderTypeInput) {
+        const typeMap = {
+            'comer-aqui': 'Comer aquí',
+            'para-llevar': 'Recojo por Delivery',
+            'recoger': 'Recoger'
+        };
+        orderTypeInput.value = typeMap[type] || 'Comer aquí';
+    }
+
+    // Mostrar/ocultar secciones según el tipo
+    const tableSelection = document.getElementById('modal-table-selection');
+    const deliverySelection = document.getElementById('modal-delivery-selection');
+    const pickupNotes = document.getElementById('modal-pickup-notes');
+
+    tableSelection.classList.add('hidden');
+    deliverySelection.classList.add('hidden');
+    pickupNotes.classList.add('hidden');
+
+    if (type === 'comer-aqui') {
+        tableSelection.classList.remove('hidden');
+    } else if (type === 'para-llevar') {
+        deliverySelection.classList.remove('hidden');
+        loadDeliveryServices();
+    } else if (type === 'recoger') {
+        pickupNotes.classList.remove('hidden');
+    }
 }
 
 function prevStep() {
-    if (window.paymentModalState.currentStep <= 1) return;
-    goToStep(window.paymentModalState.currentStep - 1);
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepDisplay();
+    }
 }
+
 
 function updateStepNavigation() {
     const prevButton = document.querySelector('#payment-modal .step-btn.prev');
@@ -353,139 +947,84 @@ function updateStepNavigation() {
 // ============================================
 // VALIDACIONES POR PASO
 // ============================================
-
 function validateStep1() {
-    const selectedBtn = document.querySelector('#payment-modal .order-type-btn.selected');
-    if (!selectedBtn) {
-        alert('Por favor, selecciona un tipo de pedido');
-        return false;
-    }
+    const orderType = document.getElementById('order-type')?.value || 'Comer aquí';
 
-    const orderType = selectedBtn.dataset.type;
+    if (orderType === 'Comer aquí') {
+        const tablesEnabled = window.tablesConfigState?.tablesEnabled || false;
 
-    switch (orderType) {
-        case 'comer-aqui':
-            const selectedTableBtn = document.querySelector('#payment-modal .table-btn.selected');
-            if (!selectedTableBtn) {
-                alert('Por favor, selecciona una mesa para "Comer aquí"');
-                return false;
-            }
+        if (tablesEnabled && !selectedTable) {
+            alert('Por favor selecciona una mesa');
+            return false;
+        }
+    } else if (orderType === 'Recojo por Delivery') {
+        const deliverySelect = document.getElementById('modal-delivery-service');
+        selectedDeliveryService = deliverySelect?.value;
 
-            const tableId = selectedTableBtn.dataset.tableId;
-            const tableNumber = selectedTableBtn.dataset.tableNumber;
-
-            window.paymentModalState.selectedTable = {
-                id: tableId,
-                number: tableNumber
-            };
-
-            localStorage.setItem('tableNumber', tableId);
-            break;
-
-        case 'para-llevar':
-            const deliverySelect = document.getElementById('modal-delivery-service');
-            if (!deliverySelect || !deliverySelect.value) {
-                alert('Por favor, selecciona un servicio de delivery para "Para llevar"');
-                return false;
-            }
-            localStorage.setItem('deliveryService', deliverySelect.value);
-            break;
-
-        case 'recoger':
-            // No hay validaciones obligatorias para "Recoger"
-            const pickupNotesText = document.getElementById('modal-pickup-notes-text');
-            if (pickupNotesText && pickupNotesText.value.trim()) {
-                localStorage.setItem('pickupNotes', pickupNotesText.value);
-            }
-            break;
+        if (!selectedDeliveryService) {
+            alert('Por favor selecciona un servicio de delivery');
+            return false;
+        }
     }
 
     return true;
 }
-
 function validateStep2() {
-    const paymentRows = document.querySelectorAll('#payment-modal .payment-row');
+    console.log('🔍 Validando paso 2 (leyendo del DOM)...');
 
-    if (paymentRows.length === 0) {
-        alert('Debe agregar al menos un método de pago');
+    // ✅ Leer directamente del DOM en lugar de window.paymentRows
+    const paymentRowElements = document.querySelectorAll('#payment-rows-container .payment-row');
+
+    console.log('📦 Filas de pago en DOM:', paymentRowElements.length);
+
+    if (paymentRowElements.length === 0) {
+        alert('Por favor agrega al menos un método de pago');
+        console.error('❌ No hay filas de pago en el DOM');
         return false;
     }
-
-    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
-    const isPickupOrder = orderType === 'Recoger';
-    const allowedMethods = isPickupOrder ? ['QR', 'Transferencia'] : ['Efectivo', 'QR', 'Tarjeta', 'Transferencia'];
 
     let totalPaid = 0;
-    const order = JSON.parse(localStorage.getItem('order')) || [];
-    const orderTotal = order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderTotal = calculateOrderTotal();
 
-    for (let row of paymentRows) {
-        const paymentTypeSelect = row.querySelector('.payment-type');
-        const paymentType = paymentTypeSelect ? paymentTypeSelect.value : '';
-        const totalPaidInput = row.querySelector('.total-paid');
-        const paidValue = parseFloat(totalPaidInput.value);
-        const transactionInput = row.querySelector('.transaction-number');
+    // Validar cada fila
+    for (let rowElement of paymentRowElements) {
+        const methodSelect = rowElement.querySelector('.form-select');
+        const amountInput = rowElement.querySelector('input[type="number"]');
 
-        // Validar método permitido
-        if (!allowedMethods.includes(paymentType)) {
-            const methodsList = allowedMethods.join(', ');
-            alert(`❌ Método de pago no permitido.\n\nPara pedidos "${orderType}" solo se permiten:\n${methodsList}`);
+        if (!methodSelect || !amountInput) {
+            console.error('❌ No se encontraron elementos en la fila');
+            continue;
+        }
+
+        const method = methodSelect.value;
+        const amount = parseFloat(amountInput.value) || 0;
+
+        console.log(`💳 Método: ${method}, Monto: ${amount}`);
+
+        if (!method) {
+            alert('Por favor selecciona un método de pago para todos los métodos agregados');
             return false;
         }
 
-        // Validar monto
-        if (isNaN(paidValue) || paidValue <= 0) {
-            alert('Por favor, ingrese un monto válido en todos los campos de "Total Pagado".');
-            totalPaidInput.focus();
+        if (amount <= 0) {
+            alert('Por favor ingresa un monto válido para todos los métodos de pago');
             return false;
         }
 
-        // Validar número de transacción para pedidos "Recoger"
-        if (isPickupOrder && (paymentType === 'QR' || paymentType === 'Transferencia')) {
-            if (transactionInput) {
-                const transactionValue = transactionInput.value.trim();
-                if (!transactionValue) {
-                    alert(`❌ El número de transacción es OBLIGATORIO para pagos con ${paymentType} en pedidos "Recoger"`);
-                    transactionInput.focus();
-                    return false;
-                }
-
-                if (transactionValue.length < 4) {
-                    alert(`❌ El número de transacción debe tener al menos 4 caracteres`);
-                    transactionInput.focus();
-                    return false;
-                }
-            }
-        }
-
-        totalPaid += paidValue;
+        totalPaid += amount;
     }
 
-    // Validar que el total pagado cubra el monto del pedido
+    console.log('💰 Total del pedido:', orderTotal);
+    console.log('💳 Total pagado:', totalPaid);
+
     if (totalPaid < orderTotal) {
-        alert(`❌ El total pagado (${totalPaid.toFixed(2)}) es menor al total del pedido (${orderTotal.toFixed(2)}).`);
+        alert(`El total de pagos ($${totalPaid.toFixed(2)}) es menor al total del pedido ($${orderTotal.toFixed(2)})`);
         return false;
     }
 
-    // Guardar métodos de pago en localStorage
-    const paymentMethods = [];
-    paymentRows.forEach(row => {
-        const paymentType = row.querySelector('.payment-type').value;
-        const totalPaid = parseFloat(row.querySelector('.total-paid').value) || 0;
-        const transactionNumber = row.querySelector('.transaction-number')?.value || null;
-
-        paymentMethods.push({
-            method: paymentType,
-            amount: totalPaid,
-            transaction_number: transactionNumber
-        });
-    });
-
-    localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
-
+    console.log('✅ Validación del paso 2 exitosa');
     return true;
 }
-
 // ============================================
 // CARGAR RESUMEN EN EL PASO 3
 // ============================================
@@ -594,70 +1133,93 @@ function loadStep3CustomerData() {
 // PROCESAR PAGO (ACTUALIZADO)
 // ============================================
 
-function processPayment() {
-    console.log('💳 Procesando pedido completo...');
+async function processPayment() {
+    console.log('🚀 Iniciando processPayment...');
+    console.log('📦 window.paymentRows:', window.paymentRows);
 
-    // Validar datos del cliente
-    const customerName = document.getElementById('modal-customer-name')?.value.trim();
+    // Validar formulario de cliente
+    const customerName = document.getElementById('modal-customer-name')?.value?.trim();
 
     if (!customerName) {
-        alert('❌ El nombre del cliente es obligatorio');
-        document.getElementById('modal-customer-name')?.focus();
+        alert('Por favor ingresa el nombre del cliente');
+        return;
+    }
+
+    // Validar que haya métodos de pago
+    if (!window.paymentRows || window.paymentRows.length === 0) {
+        alert('No hay métodos de pago registrados');
+        console.error('❌ window.paymentRows está vacío');
         return;
     }
 
     // Recopilar datos del cliente
-    const customerEmail = document.getElementById('modal-customer-email')?.value.trim() || '';
-    const customerPhone = document.getElementById('modal-customer-phone')?.value.trim() || '';
-    const customerNotes = document.getElementById('modal-customer-notes')?.value.trim() || '';
-
-    // Guardar datos del cliente
-    window.paymentModalState.customerData = {
+    const customerData = {
         name: customerName,
-        email: customerEmail,
-        phone: customerPhone,
-        notes: customerNotes
+        email: document.getElementById('modal-customer-email')?.value?.trim() || null,
+        phone: document.getElementById('modal-customer-phone')?.value?.trim() || null,
+        notes: document.getElementById('modal-customer-notes')?.value?.trim() || null
     };
 
-    // Guardar en localStorage para usar en order-details.js
-    localStorage.setItem('customerName', customerName);
-    localStorage.setItem('customerEmail', customerEmail);
-    localStorage.setItem('customerPhone', customerPhone);
-
-    // Obtener todos los datos necesarios
+    // Recopilar items del pedido
     const order = JSON.parse(localStorage.getItem('order')) || [];
-    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
-    const paymentMethods = JSON.parse(localStorage.getItem('paymentMethods')) || [];
-    const orderNotes = localStorage.getItem('orderNotes') || '';
 
-    // Preparar datos para enviar
-    let tableNumber = null;
-    if (orderType === 'Comer aquí' && window.paymentModalState.selectedTable) {
-        tableNumber = window.paymentModalState.selectedTable.id;
+    if (order.length === 0) {
+        alert('No hay items en el pedido');
+        return;
     }
 
-    const orderItems = order.map(item => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
+    // Preparar métodos de pago
+    const paymentMethods = window.paymentRows.map(row => ({
+        method: row.method,
+        amount: parseFloat(row.amount),
+        transaction_number: row.reference || null
     }));
 
-    const requestData = {
-        order_type: orderType,
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        table_number: tableNumber,
-        order_notes: orderNotes,
-        order: JSON.stringify(orderItems),
-        payment_method: paymentMethods[0]?.method || 'Efectivo',
-        transaction_number: paymentMethods[0]?.transaction_number || null
-    };
+    console.log('💳 Métodos de pago preparados:', paymentMethods);
 
-    console.log('📤 Datos a enviar:', requestData);
+    // Guardar en localStorage
+    localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
+    localStorage.setItem('customerName', customerData.name);
+    localStorage.setItem('customerEmail', customerData.email || '');
+    localStorage.setItem('customerPhone', customerData.phone || '');
+    localStorage.setItem('customerNotes', customerData.notes || '');
 
-    // Llamar a la función de procesamiento del pedido
-    submitOrder(requestData);
+    // Deshabilitar botón
+    const confirmBtn = document.querySelector('.step-btn.confirm');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    }
+
+    try {
+        // Llamar a processOrder
+        if (typeof window.processOrder === 'function') {
+            console.log('✅ Llamando a window.processOrder...');
+            await window.processOrder();
+
+            // Si llegamos aquí, el pedido se procesó exitosamente
+            console.log('✅ Pedido procesado exitosamente');
+
+            // Cerrar el modal
+            closePaymentModal();
+
+            // Limpiar datos del modal
+            clearModalData();
+
+        } else {
+            throw new Error('La función processOrder no está disponible');
+        }
+
+    } catch (error) {
+        console.error('❌ Error al procesar el pedido:', error);
+        alert('Error al procesar el pedido: ' + error.message);
+
+        // Rehabilitar botón
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pedido';
+        }
+    }
 }
 
 async function submitOrder(requestData) {
@@ -723,131 +1285,95 @@ function clearOrderData() {
 // GESTIÓN DE MESAS EN MODAL DE PAGO
 // ============================================
 
-async function loadModalTables() {
+function loadModalTables() {
     const tableGrid = document.getElementById('table-grid');
-    const loadingElement = document.getElementById('table-loading');
-    const errorElement = document.getElementById('table-error');
-    const errorMessage = document.getElementById('table-error-message');
+    const tableLoading = document.getElementById('table-loading');
+    const tableError = document.getElementById('table-error');
 
-    if (!tableGrid) {
-        console.error('❌ No se encontró table-grid');
-        return;
-    }
+    if (!tableGrid) return;
 
-    if (loadingElement) loadingElement.classList.remove('hidden');
-    if (errorElement) errorElement.classList.add('hidden');
+    tableLoading.classList.remove('hidden');
+    tableError.classList.add('hidden');
     tableGrid.innerHTML = '';
 
-    try {
-        const response = await fetch(TABLES_API.available);
+    fetch(window.routes.tablesAvailable)
+        .then(response => response.json())
+        .then(data => {
+            tableLoading.classList.add('hidden');
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.success || !data.data) {
-            throw new Error(data.message || 'No se pudieron obtener las mesas');
-        }
-
-        const tables = data.data;
-
-        if (tables.length === 0) {
-            tableGrid.innerHTML = '<div class="col-span-full text-center text-gray-500">No hay mesas configuradas</div>';
-            return;
-        }
-
-        tables.forEach(table => {
-            const button = document.createElement('button');
-            button.className = 'table-btn';
-            button.dataset.tableId = table.id;
-            button.dataset.tableNumber = table.number;
-            button.dataset.status = table.state.toLowerCase().replace(' ', '-');
-            button.textContent = `Mesa ${table.number}`;
-
-            switch (table.state) {
-                case 'Disponible':
-                    button.addEventListener('click', function () {
-                        selectTable(this);
-                    });
-                    break;
-                case 'Ocupada':
-                    button.classList.add('occupied');
-                    button.disabled = true;
-                    button.title = 'Mesa ocupada';
-                    break;
-                case 'Reservada':
-                    button.classList.add('reserved');
-                    button.disabled = true;
-                    button.title = 'Mesa reservada';
-                    break;
-                case 'No Disponible':
-                    button.classList.add('occupied');
-                    button.disabled = true;
-                    button.title = 'Mesa no disponible';
-                    break;
+            if (data.tables && data.tables.length > 0) {
+                renderTables(data.tables);
+            } else {
+                tableGrid.innerHTML = '<p class="text-center text-gray-500 py-4">No hay mesas disponibles</p>';
             }
-
-            tableGrid.appendChild(button);
+        })
+        .catch(error => {
+            console.error('Error loading tables:', error);
+            tableLoading.classList.add('hidden');
+            tableError.classList.remove('hidden');
         });
-
-    } catch (error) {
-        console.error('❌ Error al cargar mesas:', error);
-        if (errorMessage) errorMessage.textContent = error.message;
-        if (errorElement) errorElement.classList.remove('hidden');
-    } finally {
-        if (loadingElement) loadingElement.classList.add('hidden');
-    }
 }
+function renderTables(tables) {
+    const tableGrid = document.getElementById('table-grid');
+    tableGrid.innerHTML = '';
 
-function selectTable(tableElement) {
-    document.querySelectorAll('#payment-modal .table-btn.selected').forEach(btn => {
+    tables.forEach(table => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'table-btn';
+        button.textContent = `Mesa ${table.number}`;
+        button.dataset.tableId = table.id;
+        button.dataset.tableNumber = table.number;
+
+        const state = table.state.toLowerCase().replace(' ', '-');
+
+        if (state === 'disponible') {
+            button.addEventListener('click', () => selectTable(table.id, table.number));
+        } else {
+            button.classList.add(state);
+            button.disabled = true;
+            button.title = `Estado: ${table.state}`;
+        }
+
+        tableGrid.appendChild(button);
+    });
+}
+function selectTable(tableId, tableNumber) {
+    selectedTable = { id: tableId, number: tableNumber };
+
+    document.querySelectorAll('.table-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
 
-    tableElement.classList.add('selected');
+    const selectedBtn = document.querySelector(`[data-table-id="${tableId}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('selected');
+    }
 
-    window.paymentModalState.selectedTable = {
-        id: tableElement.dataset.tableId,
-        number: tableElement.dataset.tableNumber
-    };
-
-    localStorage.setItem('tableNumber', tableElement.dataset.tableId);
+    console.log('Mesa seleccionada:', selectedTable);
 }
 
 function loadDeliveryServices() {
-    const deliverySelect = document.getElementById('modal-delivery-service');
-    if (!deliverySelect) return;
+    const select = document.getElementById('modal-delivery-service');
+    if (!select) return;
 
-    const deliveryServices = [
-        { name: 'Delivery Express' },
-        { name: 'Rápido Delivery' },
-        { name: 'Food Delivery' }
+    // Aquí deberías cargar los servicios de delivery desde tu backend
+    // Por ahora usaremos servicios de ejemplo
+    const services = [
+        { id: 1, name: 'PedidosYa' },
+        { id: 2, name: 'Uber Eats' },
+        { id: 3, name: 'Rappi' },
+        { id: 4, name: 'Delivery Propio' }
     ];
 
-    deliverySelect.innerHTML = '<option value="">Seleccione un servicio de delivery</option>';
-    deliveryServices.forEach(service => {
+    select.innerHTML = '<option value="">Seleccione un servicio de delivery</option>';
+    services.forEach(service => {
         const option = document.createElement('option');
-        option.value = service.name;
+        option.value = service.id;
         option.textContent = service.name;
-        deliverySelect.appendChild(option);
-    });
-
-    const savedService = localStorage.getItem('deliveryService');
-    if (savedService) {
-        deliverySelect.value = savedService;
-    }
-
-    deliverySelect.addEventListener('change', function () {
-        if (this.value) {
-            localStorage.setItem('deliveryService', this.value);
-        } else {
-            localStorage.removeItem('deliveryService');
-        }
+        select.appendChild(option);
     });
 }
-
 function loadPickupNotes() {
     const notesTextarea = document.getElementById('modal-pickup-notes-text');
     if (!notesTextarea) return;
@@ -1479,44 +2005,171 @@ function showPickupPaymentWarning() {
         }
     }
 }
+async function confirmAndProcessOrder() {
+    console.log('🚀 Confirmando y procesando pedido...');
+
+    syncPaymentRowsFromDOM();
+
+    console.log('📦 window.paymentRows actual:', window.paymentRows);
+
+    // ✅ VALIDACIÓN CRÍTICA
+    if (!window.paymentRows || window.paymentRows.length === 0) {
+        alert('Error: No hay métodos de pago registrados. Por favor regresa al Paso 2 y agrega un método de pago.');
+        console.error('❌ No hay métodos de pago en window.paymentRows');
+        return;
+    }
+    // Validar que todos los métodos tengan datos válidos
+    const validPayments = window.paymentRows.filter(row =>
+        row.method && row.amount > 0
+    );
+    if (validPayments.length === 0) {
+        alert('Por favor completa todos los métodos de pago con método y monto válido');
+        return;
+    }
+    // Validar formulario de cliente
+    const customerName = document.getElementById('modal-customer-name')?.value?.trim();
+
+    if (!customerName) {
+        alert('Por favor ingresa el nombre del cliente');
+        return;
+    }
+
+    // Recopilar datos del cliente
+    const customerData = {
+        name: customerName,
+        email: document.getElementById('modal-customer-email')?.value?.trim() || '',
+        phone: document.getElementById('modal-customer-phone')?.value?.trim() || '',
+        notes: document.getElementById('modal-customer-notes')?.value?.trim() || ''
+    };
+
+    // Preparar métodos de pago
+    const paymentMethods = window.paymentRows.map(row => ({
+        method: row.method,
+        amount: parseFloat(row.amount),
+        transaction_number: row.reference || null
+    }));
+
+    console.log('💳 Métodos de pago preparados:', paymentMethods);
+
+    // Guardar en localStorage
+    localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
+    localStorage.setItem('customerName', customerData.name);
+    localStorage.setItem('customerEmail', customerData.email);
+    localStorage.setItem('customerPhone', customerData.phone);
+    localStorage.setItem('customerNotes', customerData.notes);
+
+    // Deshabilitar botón
+    const confirmBtn = document.querySelector('.step-btn.confirm');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    }
+
+    try {
+        if (typeof window.processOrder === 'function') {
+            console.log('✅ Llamando a window.processOrder...');
+            await window.processOrder();
+
+            console.log('✅ Pedido procesado exitosamente');
+            closePaymentModal();
+            clearModalData();
+
+        } else {
+            throw new Error('La función processOrder no está disponible');
+        }
+
+    } catch (error) {
+        console.error('❌ Error al procesar el pedido:', error);
+        alert('Error al procesar el pedido: ' + error.message);
+
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pedido';
+        }
+    }
+}
+// Función auxiliar para limpiar datos del modal
+function clearModalData() {
+    // Limpiar formulario del cliente
+    const customerForm = document.getElementById('modal-customer-details-form');
+    if (customerForm) {
+        customerForm.reset();
+    }
+
+    // ✅ LIMPIAR window.paymentRows
+    window.paymentRows = [];
+
+    const paymentContainer = document.getElementById('payment-rows-container');
+    if (paymentContainer) {
+        paymentContainer.innerHTML = '';
+    }
+
+    // Resetear paso al inicio
+    currentStep = 1;
+
+    // Limpiar selección de mesa
+    selectedTable = null;
+
+    // Limpiar servicio de delivery
+    selectedDeliveryService = null;
+
+    console.log('✅ Datos del modal limpiados');
+}
+function debugPaymentRowsInRealTime() {
+    console.log('\n🔍 === DEBUG EN TIEMPO REAL ===\n');
+
+    console.log('1️⃣ ESTADO DEL ARRAY:');
+    console.log('   - window.paymentRows existe:', typeof window.paymentRows !== 'undefined');
+    console.log('   - Cantidad de filas:', window.paymentRows?.length || 0);
+    console.log('   - Contenido:', window.paymentRows);
+
+    console.log('\n2️⃣ ESTADO DEL DOM:');
+    const domRows = document.querySelectorAll('.payment-row');
+    console.log('   - Filas en DOM:', domRows.length);
+
+    console.log('\n3️⃣ COMPARACIÓN DETALLADA:');
+    domRows.forEach((row, index) => {
+        const rowId = parseInt(row.dataset.rowId);
+        const arrayRow = window.paymentRows?.find(r => r.id === rowId);
+
+        // Intentar encontrar elementos con múltiples selectores
+        const methodSelect = row.querySelector('.payment-type') ||
+            row.querySelector('select.form-select') ||
+            row.querySelector('select');
+
+        const amountInput = row.querySelector('.total-paid') ||
+            row.querySelector('input[type="number"]');
+
+        console.log(`\n   Fila ${index} (ID: ${rowId}):`);
+        console.log('   - Existe en Array:', !!arrayRow);
+        console.log('   - Método (DOM):', methodSelect?.value || 'NO ENCONTRADO');
+        console.log('   - Método (Array):', arrayRow?.method || 'N/A');
+        console.log('   - Monto (DOM):', amountInput?.value || 'NO ENCONTRADO');
+        console.log('   - Monto (Array):', arrayRow?.amount || 'N/A');
+
+        if (!arrayRow) {
+            console.error('   ❌ FILA NO EXISTE EN ARRAY');
+        }
+
+        if (!methodSelect) {
+            console.error('   ❌ NO SE ENCONTRÓ SELECT DE MÉTODO');
+        }
+
+        if (!amountInput) {
+            console.error('   ❌ NO SE ENCONTRÓ INPUT DE MONTO');
+        }
+    });
+
+    console.log('\n🔍 === FIN DEBUG ===\n');
+
+    // Ejecutar diagnóstico de estructura
+    diagnosePaymentRowStructure();
+}
 
 // ============================================
 // EXPONER FUNCIONES GLOBALMENTE
 // ============================================
 
-window.openTablesConfigModal = openTablesConfigModal;
-window.closeTablesConfigModal = closeTablesConfigModal;
-window.loadCurrentTablesConfig = loadCurrentTablesConfig;
-window.loadTablesFromDB = loadTablesFromDB;
-window.saveTablesConfig = saveTablesConfig;
-
-window.openCreateTableModal = openCreateTableModal;
-window.closeCreateTableModal = closeCreateTableModal;
-window.openEditTableModal = openEditTableModal;
-window.handleCreateTable = handleCreateTable;
-window.confirmDeleteTable = confirmDeleteTable;
-window.deleteTable = deleteTable;
-
-window.openBulkStateModal = openBulkStateModal;
-window.closeBulkStateModal = closeBulkStateModal;
-window.handleBulkStateChange = handleBulkStateChange;
-
-window.loadModalTables = loadModalTables;
-window.selectTable = selectTable;
-window.goToStep = goToStep;
-window.nextStep = nextStep;
-window.prevStep = prevStep;
-
-// Nuevas funciones del paso 3
-window.loadStep3Summary = loadStep3Summary;
-window.loadStep3OrderSummary = loadStep3OrderSummary;
-window.loadStep3PaymentDetails = loadStep3PaymentDetails;
-window.loadStep3CustomerData = loadStep3CustomerData;
-window.validateStep1 = validateStep1;
-window.validateStep2 = validateStep2;
-window.processPayment = processPayment;
-window.submitOrder = submitOrder;
-window.clearOrderData = clearOrderData;
 
 // ============================================
 // INICIALIZACIÓN
@@ -1574,3 +2227,131 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log('✅ Sistema inicializado correctamente (3 pasos)');
 });
+// Inicializar listeners cuando carga el DOM
+document.addEventListener('DOMContentLoaded', function () {
+    // Listeners para botones de tipo de pedido
+    document.querySelectorAll('.order-type-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            selectOrderType(this.dataset.type);
+        });
+    });
+
+    // Listener para cerrar modal al hacer click en el overlay
+    const overlay = document.querySelector('.payment-modal-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', closePaymentModal);
+    }
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const addPaymentBtn = document.querySelector('.add-payment-btn');
+
+    if (addPaymentBtn) {
+        addPaymentBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            console.log('🖱️ Click en botón agregar pago');
+            addPaymentRow();
+        });
+    }
+});
+function diagnosePaymentRowStructure() {
+    console.log('🔍 === DIAGNÓSTICO DE ESTRUCTURA ===');
+
+    const container = document.getElementById('payment-rows-container');
+    if (!container) {
+        console.error('❌ No se encontró payment-rows-container');
+        return;
+    }
+
+    const rows = container.querySelectorAll('.payment-row');
+    console.log(`📦 Total de filas en DOM: ${rows.length}`);
+
+    rows.forEach((row, index) => {
+        console.log(`\n🔍 Analizando fila ${index}:`);
+        console.log('   - dataset.rowId:', row.dataset.rowId);
+        console.log('   - HTML completo:', row.innerHTML.substring(0, 200));
+
+        // Intentar encontrar todos los posibles selectores
+        const selects = row.querySelectorAll('select');
+        const inputs = row.querySelectorAll('input');
+
+        console.log(`   - Cantidad de <select>: ${selects.length}`);
+        console.log(`   - Cantidad de <input>: ${inputs.length}`);
+
+        selects.forEach((select, i) => {
+            console.log(`   - Select ${i}:`, {
+                class: select.className,
+                value: select.value,
+                'data-row-id': select.dataset?.rowId
+            });
+        });
+
+        inputs.forEach((input, i) => {
+            console.log(`   - Input ${i}:`, {
+                type: input.type,
+                class: input.className,
+                value: input.value,
+                'data-row-id': input.dataset?.rowId
+            });
+        });
+    });
+
+    console.log('🔍 === FIN DIAGNÓSTICO ===\n');
+}
+
+window.updatePaymentRowFromSelect = updatePaymentRowFromSelect;
+window.updatePaymentRowFromInput = updatePaymentRowFromInput;
+
+console.log('✅ Payment Modal JS cargado correctamente');
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
+window.showPaymentModal = showPaymentModal;
+window.addPaymentRow = addPaymentRow;
+window.renderPaymentRows = renderPaymentRows;
+window.validateStep2 = validateStep2;
+window.updatePaymentRow = updatePaymentRow;
+window.removePaymentRow = removePaymentRow;
+window.openTablesConfigModal = openTablesConfigModal;
+window.closeTablesConfigModal = closeTablesConfigModal;
+window.loadCurrentTablesConfig = loadCurrentTablesConfig;
+window.loadTablesFromDB = loadTablesFromDB;
+window.saveTablesConfig = saveTablesConfig;
+window.openCreateTableModal = openCreateTableModal;
+window.closeCreateTableModal = closeCreateTableModal;
+window.openEditTableModal = openEditTableModal;
+window.handleCreateTable = handleCreateTable;
+window.confirmDeleteTable = confirmDeleteTable;
+window.deleteTable = deleteTable;
+
+window.openBulkStateModal = openBulkStateModal;
+window.closeBulkStateModal = closeBulkStateModal;
+window.handleBulkStateChange = handleBulkStateChange;
+
+window.loadModalTables = loadModalTables;
+window.selectTable = selectTable;
+window.goToStep = goToStep;
+window.prevStep = prevStep;
+
+// Nuevas funciones del paso 3
+window.loadStep3Summary = loadStep3Summary;
+window.loadStep3OrderSummary = loadStep3OrderSummary;
+window.loadStep3PaymentDetails = loadStep3PaymentDetails;
+window.loadStep3CustomerData = loadStep3CustomerData;
+window.validateStep1 = validateStep1;
+window.validateStep2 = validateStep2;
+window.processPayment = processPayment;
+window.submitOrder = submitOrder;
+window.clearOrderData = clearOrderData;
+
+window.addPaymentRow = addPaymentRow;
+window.nextStep = nextStep;
+window.confirmAndProcessOrder = confirmAndProcessOrder;
+
+window.addPaymentRow = addPaymentRow;
+window.renderPaymentRows = renderPaymentRows;
+window.removePaymentRow = removePaymentRow;
+window.syncPaymentRowsFromDOM = syncPaymentRowsFromDOM;
+window.updatePaymentRowField = updatePaymentRowField;
+window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
+window.diagnosePaymentRowStructure = diagnosePaymentRowStructure;
+
