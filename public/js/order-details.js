@@ -340,14 +340,6 @@ function showPaymentModal() {
         return;
     }
 
-    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
-    if (orderType === 'Recoger') {
-        const confirmMessage = '⚠️ IMPORTANTE: Para pedidos "Recoger" solo están disponibles los métodos de pago:\n\n✓ QR\n✓ Transferencia Bancaria\n\n¿Desea continuar?';
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-    }
-
     console.log('🔧 Intentando abrir modal de pago...');
 
     if (typeof window.openPaymentModal === 'function') {
@@ -2019,7 +2011,6 @@ async function checkStockAvailability(order) {
 async function saveProforma(event) {
     event.preventDefault();
 
-    // Mostrar loader o estado de carga
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
@@ -2033,21 +2024,17 @@ async function saveProforma(event) {
 
         const formData = new FormData(document.getElementById('proforma-form'));
         const orderType = document.getElementById('order-type').value;
-        const tableNumber = orderType === 'Comer aquí' ? document.getElementById('table-number').value : null;
 
-        // Obtener el token CSRF del meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         if (!csrfToken) {
             throw new Error('No se encontró el token CSRF');
         }
 
-        // Crear objeto con los datos de la proforma
         const proformaData = {
             customer_name: formData.get('customer_name'),
-            customer_phone: formData.get('customer_phone'),
+            customer_phone: formData.get('customer_phone') || null, // ✅ Usar null si no existe
             notes: formData.get('notes'),
             order_type: orderType,
-            table_number: tableNumber,
             items: order,
             subtotal: order.reduce((sum, item) => sum + item.price * item.quantity, 0),
             tax: 0,
@@ -2055,9 +2042,8 @@ async function saveProforma(event) {
             status: 'reservado'
         };
 
-        console.log('Enviando datos:', proformaData); // Para depuración
+        console.log('Enviando datos:', proformaData);
 
-        // Enviar datos al servidor
         const response = await fetch('/proformas', {
             method: 'POST',
             headers: {
@@ -2068,8 +2054,6 @@ async function saveProforma(event) {
             body: JSON.stringify(proformaData)
         });
 
-        console.log('Respuesta recibida:', response); // Para depuración
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
             throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
@@ -2077,14 +2061,16 @@ async function saveProforma(event) {
 
         const data = await response.json();
 
-        alert('Proforma guardada correctamente con ID: ' + data.id);
+        // alert('Reserva guardada correctamente con ID: ' + data.id);
         closeProformaModal();
+
+        // Opcional: Limpiar el formulario
+        document.getElementById('proforma-form').reset();
 
     } catch (error) {
         console.error('Error al guardar proforma:', error);
-        alert('Error al guardar la proforma: ' + error.message);
+        alert('Error al guardar la reserva: ' + error.message);
     } finally {
-        // Restaurar el botón a su estado original
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
     }

@@ -68,8 +68,8 @@
     }
     .reports-section:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.reports-section::before {
+    }
+    .reports-section::before {
     content: '';
     position: absolute;
     top: 0;
@@ -117,7 +117,7 @@
     position: relative;
     z-index: 2;
     padding-left: 3rem;
-}
+    }
 
 
     
@@ -203,11 +203,11 @@
 .btn-report:active {
     transform: translateY(0);
 }
-.btn-report-alt:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    color: #111827;
-}
+    .btn-report-alt:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: #111827;
+    }
 
     .input-group {
         display: flex;
@@ -1289,31 +1289,48 @@
     }
 
     // Función para agregar nuevo gasto en fila
-    function addExpense() {
-        const expensesContainer = document.getElementById('expensesContainer');
+function addExpense() {
+    const expensesContainer = document.getElementById('expensesContainer');
 
-        const newExpenseRow = document.createElement('div');
-        newExpenseRow.className = 'expense-row';
-        newExpenseRow.innerHTML = `
-            <div class="expense-field">
-                <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-            </div>
-            <div class="expense-field">
-                <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-            </div>
-            <div class="expense-field">
-                <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
-            </div>
-            <div class="expense-actions">
-                <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+    const newExpenseRow = document.createElement('div');
+    newExpenseRow.className = 'expense-row';
+    newExpenseRow.innerHTML = `
+        <div class="expense-field">
+            <input type="text" class="form-control form-control-sm expense-input" 
+                   placeholder="Nombre del gasto" name="expense_name[]"
+                   oninput="validateExpenseRow(this)">
+        </div>
+        <div class="expense-field">
+            <input type="text" class="form-control form-control-sm expense-input" 
+                   placeholder="Descripción/Categoría" name="expense_description[]">
+        </div>
+        <div class="expense-field">
+            <input type="number" class="form-control form-control-sm expense-input" 
+                   placeholder="Monto" step="0.01" min="0" name="expense_amount[]" 
+                   oninput="calculateTotalExpenses(); validateExpenseRow(this)">
+        </div>
+        <div class="expense-actions">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" 
+                    onclick="removeExpense(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
 
-        expensesContainer.appendChild(newExpenseRow);
+    expensesContainer.appendChild(newExpenseRow);
+}
+function validateExpenseRow(input) {
+    const row = input.closest('.expense-row');
+    const nameInput = row.querySelector('input[name="expense_name[]"]');
+    const amountInput = row.querySelector('input[name="expense_amount[]"]');
+    
+    // Marcar como requerido si tiene algún valor
+    if (amountInput.value && !nameInput.value) {
+        nameInput.style.borderColor = '#f87171';
+    } else {
+        nameInput.style.borderColor = '';
     }
-
+}
     // Función para eliminar fila de gasto
     function removeExpense(button) {
         const expenseRow = button.closest('.expense-row');
@@ -1364,72 +1381,129 @@
     }
 
     // Guardar el cierre
-    function saveClosure() {
-        const pettyCashId = document.getElementById('petty_cash_id').value;
-        const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo').value) || 0;
-        const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
-        const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
-        const totalExpenses = calculateTotalExpenses();
+function saveClosure() {
+    const pettyCashId = document.getElementById('petty_cash_id').value;
+    const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo').value) || 0;
+    const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
+    const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
+    const totalExpenses = calculateTotalExpenses();
 
-        if (!pettyCashId) {
-            alert('Error: No se ha seleccionado una caja chica');
+    if (!pettyCashId) {
+        alert('Error: No se ha seleccionado una caja chica');
+        return;
+    }
+
+    // Validar que al menos haya un valor ingresado
+    if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && totalExpenses === 0) {
+        if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
             return;
         }
-
-        // Validar que al menos haya un valor ingresado
-        if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && totalExpenses === 0) {
-            if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
-                return;
-            }
-        }
-
-        // Recopilar datos de gastos
-        const expenses = [];
-        document.querySelectorAll('.expense-row').forEach((row, index) => {
-            const name = row.querySelector('input[name="expense_name[]"]').value;
-            const description = row.querySelector('input[name="expense_description[]"]').value;
-            const amount = row.querySelector('input[name="expense_amount[]"]').value;
-
-            if (name && amount) {
-                expenses.push({
-                    name: name,
-                    description: description,
-                    amount: parseFloat(amount)
-                });
-            }
-        });
-
-        // Enviar el formulario
-        fetch("{{ route('petty-cash.save-closure') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    petty_cash_id: pettyCashId,
-                    total_sales_cash: totalSalesCash,
-                    total_sales_qr: totalSalesQR,
-                    total_sales_card: totalSalesCard,
-                    total_expenses: totalExpenses,
-                    expenses: expenses
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Cierre guardado correctamente');
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + (data.message || 'No se pudo guardar el cierre'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al enviar el formulario');
-            });
     }
+
+    // Recopilar datos de gastos de manera más robusta
+    const expenses = [];
+    let validExpenses = 0;
+    
+    document.querySelectorAll('.expense-row').forEach((row, index) => {
+        const nameInput = row.querySelector('input[name="expense_name[]"]');
+        const descriptionInput = row.querySelector('input[name="expense_description[]"]');
+        const amountInput = row.querySelector('input[name="expense_amount[]"]');
+
+        const name = nameInput ? nameInput.value.trim() : '';
+        const description = descriptionInput ? descriptionInput.value.trim() : '';
+        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
+
+        // Solo incluir gastos que tengan nombre y monto válido
+        if (name && amount > 0) {
+            expenses.push({
+                name: name,
+                description: description,
+                amount: amount
+            });
+            validExpenses++;
+        }
+    });
+
+    console.log('Datos a enviar:', {
+        petty_cash_id: pettyCashId,
+        total_sales_cash: totalSalesCash,
+        total_sales_qr: totalSalesQR,
+        total_sales_card: totalSalesCard,
+        total_expenses: totalExpenses,
+        expenses: expenses
+    });
+
+    // Mostrar loading
+    const saveBtn = document.querySelector('.save-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...';
+    saveBtn.disabled = true;
+
+    // Enviar el formulario
+    fetch("{{ route('petty-cash.save-closure') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                petty_cash_id: pettyCashId,
+                total_sales_cash: totalSalesCash,
+                total_sales_qr: totalSalesQR,
+                total_sales_card: totalSalesCard,
+                total_expenses: totalExpenses,
+                expenses: expenses
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Cierre guardado correctamente. Gastos registrados: ' + (data.data.expenses_count || 0));
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'No se pudo guardar el cierre');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar el cierre: ' + error.message);
+        })
+        .finally(() => {
+            // Restaurar botón
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        });
+}
+
+// Función mejorada para calcular total de gastos
+function calculateTotalExpenses() {
+    let total = 0;
+    document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
+        const value = parseFloat(input.value);
+        if (!isNaN(value) && value > 0) {
+            total += value;
+        }
+    });
+    
+    const totalGastosElement = document.getElementById('total-gastos');
+    const totalExpensesElement = document.getElementById('total_expenses');
+    
+    if (totalGastosElement) {
+        totalGastosElement.value = total.toFixed(2);
+    }
+    if (totalExpensesElement) {
+        totalExpensesElement.value = total.toFixed(2);
+    }
+    
+    console.log('Total gastos calculado:', total);
+    return total;
+}
 
     // Cerrar todas las cajas abiertas
     function closeOpenPettyCash() {
@@ -1469,6 +1543,7 @@
                 calculateTotalExpenses();
             }
         });
+        calculateTotalExpenses();
     });
 </script>
 @endsection

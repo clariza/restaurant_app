@@ -314,30 +314,36 @@
             </div>
 
             <!-- Paso 2: Métodos de Pago -->
-            <div class="step-content" id="step-2">
-                <div class="payment-summary">
-                    <h3>Métodos de Pago</h3>
-                    <div class="total-display">
-                        Total: $<span id="order-total">0.00</span>
-                    </div>
+<div class="step-content" id="step-2">
+    <div class="payment-summary">
+        <h3>Métodos de Pago</h3>
+        <div class="total-display">
+            Total: $<span id="order-total">0.00</span>
+        </div>
 
-                    <button class="add-payment-btn" onclick="addPaymentRow()">
-                        <i class="fas fa-plus-circle"></i>
-                        Agregar método de pago
-                    </button>
+        <button class="add-payment-btn" onclick="addPaymentRow()">
+            <i class="fas fa-plus-circle"></i>
+            Agregar método de pago
+        </button>
 
-                    <div class="payment-rows-container" id="payment-rows-container">
-                        <!-- Las filas de pago se agregarán aquí dinámicamente -->
-                    </div>
-                </div>
+        <!-- ✅ Mensaje cuando no hay métodos de pago -->
+        <div id="no-payments-message" style="display: none; text-align: center; padding: 20px; color: #64748b; font-size: 0.9rem;">
+            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
+            <p style="margin: 0;">No hay métodos de pago agregados</p>
+            <small>Haz clic en "Agregar método de pago" para comenzar</small>
+        </div>
 
-                <div class="step-actions">
-                    <button class="step-btn prev" onclick="prevStep()">Anterior</button>
-                    <button class="step-btn next" onclick="nextStep()">Siguiente</button>
-                </div>
-            </div>
+        <div class="payment-rows-container" id="payment-rows-container">
+            <!-- Las filas de pago se agregarán aquí dinámicamente -->
+        </div>
+    </div>
 
-           <!-- Paso 3: Detalles del Cliente (NUEVO) -->
+    <div class="step-actions">
+        <button class="step-btn prev" onclick="prevStep()">Anterior</button>
+        <button class="step-btn next" onclick="nextStep()">Siguiente</button>
+    </div>
+</div>
+           <!-- Paso 3: Detalles del Cliente  -->
             <div class="step-content" id="step-3">
                 <div class="customer-details-section">
                     <h3>
@@ -462,6 +468,252 @@ console.log('✅ Estado inicial de mesas:', window.tablesConfigState.tablesEnabl
 
 <style>
              /* Estilos para el modal de configuración de mesas */
+         #payment-modal .customer-details-section {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+        }
+        #payment-modal .customer-details-section > h3 {
+            margin: 0 0 4px 0 !important;
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            color: var(--primary-color) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding-bottom: 16px !important;
+            border-bottom: 2px solid var(--border-color) !important;
+        }
+        #payment-modal .customer-details-section > h3 i {
+            font-size: 1.3rem !important;
+            color: var(--secondary-color) !important;
+        }
+         #payment-modal .order-summary-card,
+        #payment-modal .payment-details-card,
+        #payment-modal .customer-form-card {
+            animation: slideInUp 0.4s ease-out !important;
+        }
+         #payment-modal .customer-form-card {
+            animation-delay: 0.3s !important;
+        }
+         #payment-modal .order-summary-card {
+            animation-delay: 0.1s !important;
+        }
+        #payment-modal .payment-details-card {
+            animation-delay: 0.2s !important;
+        }
+        #payment-modal .order-summary-card:hover,
+        #payment-modal .payment-details-card:hover,
+        #payment-modal .customer-form-card:hover {
+            box-shadow: 0 4px 16px rgba(32, 51, 99, 0.1) !important;
+            border-color: var(--tertiary-color) !important;
+        }
+          #payment-modal .order-summary-card h4,
+        #payment-modal .payment-details-card h4,
+        #payment-modal .customer-form-card h4 {
+            margin: 0 0 20px 0 !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: var(--primary-color) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding-bottom: 12px !important;
+            border-bottom: 2px solid #f0f4f8 !important;
+        }
+        #payment-modal .order-summary-card h4 i,
+        #payment-modal .payment-details-card h4 i,
+        #payment-modal .customer-form-card h4 i {
+            color: var(--secondary-color) !important;
+            font-size: 1rem !important;
+        }
+        #payment-modal #step3-order-summary {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            margin-bottom: 16px !important;
+        }
+         #payment-modal #step3-order-summary .summary-item {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 12px 16px !important;
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            border-left: 3px solid var(--tertiary-color) !important;
+            transition: all 0.2s ease !important;
+        }
+        #payment-modal #step3-order-summary .summary-item:hover {
+            background: #f0f4f8 !important;
+            border-left-color: var(--primary-color) !important;
+            transform: translateX(2px) !important;
+        }
+        #payment-modal #step3-order-summary .summary-item-label {
+            font-size: 0.9rem !important;
+            color: var(--text-secondary) !important;
+            font-weight: 500 !important;
+        }
+         #payment-modal #step3-order-summary .summary-item-value {
+            font-size: 0.95rem !important;
+            color: var(--primary-color) !important;
+            font-weight: 600 !important;
+        }
+        #payment-modal .summary-total {
+            margin-top: 16px !important;
+            padding: 16px 20px !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: white !important;
+            border-radius: 10px !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+            text-align: center !important;
+            box-shadow: 0 4px 12px rgba(32, 51, 99, 0.2) !important;
+            letter-spacing: 0.5px !important;
+        }
+        #payment-modal .summary-total span {
+            font-size: 1.4rem !important;
+            margin-left: 8px !important;
+        }
+        #payment-modal #step3-payment-methods {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+        }
+         #payment-modal #step3-payment-methods .payment-method-item {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 14px 16px !important;
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--border-color) !important;
+            transition: all 0.2s ease !important;
+        }
+        #payment-modal #step3-payment-methods .payment-method-item:hover {
+            background: white !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 2px 8px rgba(32, 51, 99, 0.08) !important;
+        }
+         #payment-modal #step3-payment-methods .payment-method-name {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            font-size: 0.9rem !important;
+            color: var(--text-primary) !important;
+            font-weight: 500 !important;
+        }
+         #payment-modal #step3-payment-methods .payment-method-icon {
+            width: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: var(--primary-color) !important;
+            color: white !important;
+            border-radius: 6px !important;
+            font-size: 0.9rem !important;
+        }
+        #payment-modal #modal-customer-details-form {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+        }
+         #payment-modal .form-group-row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 16px !important;
+        }
+        #payment-modal .customer-form-card .form-group {
+            margin-bottom: 0 !important;
+        }
+        #payment-modal .customer-form-card .form-label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            color: var(--primary-color) !important;
+            margin-bottom: 8px !important;
+        }
+                #payment-modal .customer-form-card .form-label.required::after {
+            content: '*' !important;
+            color: var(--error-color) !important;
+            font-size: 1rem !important;
+            margin-left: 2px !important;
+        }
+
+        #payment-modal #step3-payment-methods .payment-method-amount {
+            font-size: 1rem !important;
+            color: var(--primary-color) !important;
+            font-weight: 700 !important;
+        }
+        #payment-modal .customer-form-card .form-input {
+            width: 100% !important;
+            padding: 12px 14px !important;
+            border: 2px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            font-size: 0.95rem !important;
+            color: var(--text-primary) !important;
+            transition: all 0.3s ease !important;
+            background: #fafbfc !important;
+        }
+        #payment-modal .customer-form-card .form-input:focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 4px rgba(32, 51, 99, 0.08) !important;
+            background: white !important;
+        }
+        #payment-modal .customer-form-card .form-input::placeholder {
+            color: #94a3b8 !important;
+            font-size: 0.9rem !important;
+        }
+        #payment-modal .customer-form-card textarea.form-input {
+            resize: vertical !important;
+            min-height: 100px !important;
+            font-family: inherit !important;
+            line-height: 1.6 !important;
+        }
+         #payment-modal .customer-form-card .form-input:invalid:not(:placeholder-shown) {
+            border-color: var(--error-color) !important;
+            background: #fef2f2 !important;
+        }
+        #payment-modal .customer-form-card .form-input:valid:not(:placeholder-shown) {
+            border-color: var(--success-color) !important;
+        }
+         #step-3 .step-actions {
+            margin-top: 32px !important;
+            padding-top: 24px !important;
+            border-top: 2px solid var(--border-color) !important;
+        }
+
+        #step-3 .step-btn.confirm {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white !important;
+            font-size: 1rem !important;
+            padding: 14px 32px !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #step-3 .step-btn.confirm:hover:not(:disabled) {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        #step-3 .step-btn.confirm i {
+            font-size: 1.1rem !important;
+        }
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         #tables-config-modal {
             position: fixed !important;
             top: 0 !important;
@@ -1586,6 +1838,29 @@ console.log('✅ Estado inicial de mesas:', window.tablesConfigState.tablesEnabl
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            #payment-modal .form-group-row {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+             #payment-modal .customer-details-section > h3 {
+                font-size: 1.2rem !important;
+            }
+            #payment-modal .order-summary-card,
+            #payment-modal .payment-details-card,
+            #payment-modal .customer-form-card {
+                padding: 20px !important;
+            }
+            #payment-modal .summary-total {
+                font-size: 1.1rem !important;
+            }
+             #payment-modal .summary-total span {
+                font-size: 1.2rem !important;
+            }
+
+            #step-3 .step-btn.confirm {
+                padding: 12px 24px !important;
+                font-size: 0.95rem !important;
+            }
             #payment-modal .payment-modal-container {
                 width: 95% !important;
                 max-width: none !important;
@@ -1635,6 +1910,30 @@ console.log('✅ Estado inicial de mesas:', window.tablesConfigState.tablesEnabl
         }
 
         @media (max-width: 480px) {
+             #payment-modal .customer-details-section > h3 {
+                font-size: 1.1rem !important;
+                padding-bottom: 12px !important;
+            }
+            
+            #payment-modal .order-summary-card h4,
+            #payment-modal .payment-details-card h4,
+            #payment-modal .customer-form-card h4 {
+                font-size: 1rem !important;
+            }
+
+            #payment-modal .customer-form-card .form-input {
+                padding: 10px 12px !important;
+                font-size: 0.9rem !important;
+            }
+
+            #payment-modal #step3-order-summary .summary-item {
+                padding: 10px 12px !important;
+            }
+
+            #payment-modal .summary-total {
+                font-size: 1rem !important;
+                padding: 14px 16px !important;
+            }
             #payment-modal .payment-modal-container {
                 width: 98% !important;
                 margin: 5px !important;
@@ -1768,7 +2067,7 @@ console.log('✅ Estado inicial de mesas:', window.tablesConfigState.tablesEnabl
         }
 
         /* Validación visual para delivery requerido */
-        #modal-delivery-service.required:invalid {
+         #modal-delivery-service.required:invalid {
             border-color: var(--error-color) !important;
             box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
         }

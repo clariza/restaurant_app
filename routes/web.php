@@ -10,13 +10,13 @@ use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\PettyCashController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DeliveryServiceController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PettyCashController;
 
 // Route::get('/', function () {
 //     return view('dashboard');
@@ -27,7 +27,9 @@ Route::get('/', function () {
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->middleware('web')
+    ->name('logout');
 
 
 // Rutas de apertura de caja (sin middleware de caja abierta)
@@ -36,7 +38,23 @@ Route::middleware(['auth'])->group(function () {
         ->name('petty-cash.create');
     Route::post('/petty-cash', [PettyCashController::class, 'store'])
         ->name('petty-cash.store');
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/petty-cash/modal-content', [PettyCashController::class, 'modalContent'])
+        ->name('petty-cash.modal-content');
+
+    // Rutas de reportes
+    Route::get('/petty-cash/export/excel', [PettyCashController::class, 'exportExcel'])
+        ->name('petty-cash.export.excel');
+    Route::get('/petty-cash/export/pdf', [PettyCashController::class, 'exportPdf'])
+        ->name('petty-cash.export.pdf');
+
+    Route::post('/petty-cash/save-closure', [PettyCashController::class, 'saveClosure'])
+        ->name('petty-cash.save-closure');
+    Route::post('/petty-cash/close-all-open', [PettyCashController::class, 'closeAllOpen'])
+        ->name('petty-cash.close-all-open');
+    Route::get('/petty-cash/check-open', [PettyCashController::class, 'checkOpen'])->name('petty-cash.check-open');
+    Route::get('/petty-cash/{pettyCash}/print', [PettyCashController::class, 'print'])
+        ->name('petty-cash.print');
+    Route::resource('petty-cash', PettyCashController::class);
 });
 
 // Todas las demás rutas requieren caja abierta
@@ -46,6 +64,7 @@ Route::middleware(['auth', 'check.pettycash'])->group(function () {
     // Rutas para Delivery
     Route::resource('deliveries', DeliveryServiceController::class);
 });
+
 
 
 //Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
@@ -83,12 +102,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Rutas para la búsqueda de productos (Items)
-    Route::get('/items/search', [ItemsController::class, 'search'])->name('items.search');
+
     // Rutas para compras
-    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
-    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchases', [PurchaseController::class, 'store'])
         ->name('purchases.store');
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
+
 
     // Rutas para la búsqueda de productos
     Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])
@@ -100,18 +120,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // Rutas para compras (solo admin)
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
-    // Ruta para cambio masivo de estado
-    Route::post('/tables/bulk-change-state', [TableController::class, 'bulkChangeState'])
-        ->name('tables.bulk-change-state');
-
-    // Ruta para obtener estadísticas (opcional)
-    Route::get('/tables/stats', [TableController::class, 'getTablesStats'])
-        ->name('tables.stats');
 });
 
 
 // Rutas para Producto (MenuItem)
 Route::resource('items', ItemsController::class);
+Route::get('/items/search', [ItemsController::class, 'search'])->name('items.search');
 
 // Rutas para category
 Route::resource('categories', CategoryController::class);
@@ -127,17 +141,9 @@ Route::get('/items/{item}/edit', [ItemsController::class, 'edit'])->name('items.
 // Route::resource('purchases', PurchaseController::class);
 Route::resource('suppliers', SupplierController::class);
 
-Route::resource('petty-cash', PettyCashController::class);
 Route::resource('expenses', ExpenseController::class);
 //Ruta para procesar calcular el total efectivo de denominaciones
-Route::post('/petty-cash/save-closure', [PettyCashController::class, 'saveClosure'])->name('petty-cash.save-closure');
-Route::post('/calculate-total-cash', [SaleController::class, 'calculateTotalCash']);
-Route::post('/petty-cash/close-all-open', [PettyCashController::class, 'closeAllOpen'])->name('petty-cash.close-all-open');
-Route::get('/petty-cash/check-open', [PettyCashController::class, 'checkOpen'])->name('petty-cash.check-open');
 
-Route::get('/petty-cash/{pettyCash}/print', [PettyCashController::class, 'print'])
-    ->name('petty-cash.print');
-Route::post('/proformas', [ProformaController::class, 'store']);
 Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])->name('proformas.convert');
 // Rutas para órdenes
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
@@ -145,15 +151,13 @@ Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.sh
 Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
 
 // Rutas para proformas
+Route::post('/proformas', [ProformaController::class, 'store']);
 Route::get('/proformas/{proforma}', [ProformaController::class, 'show'])->name('proformas.show');
 Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])->name('proformas.print');
 Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])
     ->middleware('auth')
     ->name('proformas.convert');
 // Agrega esta ruta
-Route::get('/tables/available', [TableController::class, 'available'])->name('tables.available');
-Route::post('/tables/{table}/state', [TableController::class, 'updateState'])
-    ->name('tables.update-state');
 Route::post('/settings/update', [SettingController::class, 'update'])->name('settings.update');
 // Rutas para inventario
 Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
@@ -162,16 +166,22 @@ Route::get('/inventory/movements', [InventoryController::class, 'movements'])->n
 Route::get('/inventory/{id}/movements', [InventoryController::class, 'itemMovements'])->name('inventory.item-movements');
 // En routes/api.php
 Route::post('/check-stock', [SaleController::class, 'checkStock']);
-
-// Rutas para el cambio de estado de mesas
-Route::post('/tables/{id}/change-availability', [TableController::class, 'changeAvailability'])->name('tables.change-availability');
-Route::get('/tables/{id}/status', [TableController::class, 'getTableStatus'])->name('tables.status');
+Route::post('/calculate-total-cash', [SaleController::class, 'calculateTotalCash']);
 
 // Rutas para Table
+
+Route::get('/tables/available', [TableController::class, 'available'])
+    ->name('tables.available');
+Route::get('/tables/stats', [TableController::class, 'getTablesStats'])
+    ->name('tables.stats');
+Route::get('/tables/{id}/status', [TableController::class, 'getTableStatus'])
+    ->name('tables.status');
+Route::post('/tables/{id}/change-availability', [TableController::class, 'changeAvailability'])
+    ->name('tables.change-availability');
+Route::post('/tables/{table}/state', [TableController::class, 'updateState'])
+    ->name('tables.update-state');
+Route::post('/tables/bulk-state', [TableController::class, 'bulkChangeState'])
+    ->name('tables.bulk-state');
 Route::resource('tables', TableController::class);
-// Rutas de mesas
-Route::post('/tables/bulk-state', [TableController::class, 'bulkChangeState'])->name('tables.bulk-state');
-Route::get('/tables/stats', [TableController::class, 'getTablesStats'])->name('tables.stats');
-// Agregar estas rutas en tu archivo web.php
-Route::get('/petty-cash/export/excel', [PettyCashController::class, 'exportExcel'])->name('petty-cash.export.excel');
-Route::get('/petty-cash/export/pdf', [PettyCashController::class, 'exportPdf'])->name('petty-cash.export.pdf');
+Route::get('/petty-cash/modal-content', [PettyCashController::class, 'modalContent'])
+    ->name('petty-cash.modal-content');

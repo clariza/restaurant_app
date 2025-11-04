@@ -55,28 +55,31 @@
 
         <!-- Área de usuario -->
         <div class="flex items-center space-x-4">
-            <button class="text-gray-600 hover:text-[#203363] relative">
-                <i class="fas fa-bell text-xl"></i>
-                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
+    <button class="text-gray-600 hover:text-[#203363] relative">
+        <i class="fas fa-bell text-xl"></i>
+        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+    </button>
 
-            <!-- Menú de usuario -->
-            <div class="relative ml-4 px-4">
-                <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md hover:bg-gray-100 transition-colors">
-                    <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, Usuario</span>
-                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
-                        <img src="https://www.gravatar.com/avatar/default?s=200&d=mp" alt="User Avatar" class="h-full w-full object-cover">
-                    </div>
-                </button>
-
-                <!-- Menú desplegable -->
-                <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden border border-gray-200" style="z-index: 1000;">
-                    <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                    </button>
-                </div>
+    <!-- Menú de usuario -->
+    <div class="relative ml-4 px-4">
+        <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md hover:bg-gray-100 transition-colors">
+            <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, {{ Auth::user()->name ?? 'Usuario' }}</span>
+            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
+                <img src="https://www.gravatar.com/avatar/default?s=200&d=mp" alt="User Avatar" class="h-full w-full object-cover">
             </div>
+        </button>
+
+        <!-- Menú desplegable -->
+        <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden border border-gray-200" style="z-index: 1000;">
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="w-full">
+                @csrf
+                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                </button>
+            </form>
         </div>
+    </div>
+</div>
     </header>
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar (Visible en tablets y pantallas más grandes) -->
@@ -272,6 +275,50 @@
 <script src="{{ asset('js/app.js') }}" defer></script>
 <script src="{{ asset('js/init.js') }}" defer></script>
 
+<script>
+(function() {
+    console.log('🚀 Inicializando sistema de logout...');
+    
+    function initLogout() {
+        const logoutForm = document.getElementById('logout-form');
+        
+        if (!logoutForm) {
+            console.warn('⚠️ Formulario de logout no encontrado');
+            return;
+        }
+        
+        console.log('✅ Formulario de logout encontrado');
+        
+        // Prevenir múltiples listeners
+        logoutForm.removeEventListener('submit', handleLogoutSubmit);
+        logoutForm.addEventListener('submit', handleLogoutSubmit);
+    }
+    
+    function handleLogoutSubmit(e) {
+        console.log('🔴 Logout submit detectado');
+        
+        // Limpiar datos locales
+        try {
+            localStorage.removeItem('order');
+            localStorage.removeItem('orderType');
+            console.log('✅ localStorage limpiado');
+        } catch (error) {
+            console.warn('⚠️ Error al limpiar localStorage:', error);
+        }
+        
+        // Permitir que el formulario se envíe normalmente
+        console.log('📤 Enviando formulario de logout...');
+        // No hacer e.preventDefault() - dejar que el form se envíe
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLogout);
+    } else {
+        initLogout();
+    }
+})();
+</script>
 <!-- ✅ Inicialización sin recargas -->
 <script>
     let initAttempts = 0;

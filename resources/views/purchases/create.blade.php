@@ -180,34 +180,102 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Event listener para actualizar NIT y dirección cuando se selecciona un proveedor
+    // Variables globales
+    let productRowCounter = 0;
+    const productsTableBody = document.getElementById('products-table-body');
+    const totalProductsSpan = document.getElementById('total-products');
+    const totalAmountSpan = document.getElementById('total-amount');
+
+    // Actualizar NIT y dirección del proveedor
     document.getElementById('proveedor').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const nit = selectedOption.getAttribute('data-nit') || '-';
         const address = selectedOption.getAttribute('data-address') || '-';
         
-        // Actualizar NIT
-        const nitInput = document.getElementById('nit');
-        if (nitInput) {
-            nitInput.value = nit;
-        }
-        
-        // Actualizar dirección
-        const addressSpan = document.getElementById('supplier-address');
-        if (addressSpan) {
-            addressSpan.textContent = address;
-        }
+        document.getElementById('nit').value = nit;
+        document.getElementById('supplier-address').textContent = address;
     });
 
-    // Manejar el envío del formulario de compra
-    document.querySelector('form').addEventListener('submit', function(e) {
+    // Manejar el envío del formulario
+    document.getElementById('purchase-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const form = this;
         const submitButton = form.querySelector('button[type="submit"]');
-        const products = [];
         
-        // Recoger los datos de los productos
+        // Validar proveedor
+        const supplierId = document.getElementById('proveedor').value;
+        if (!supplierId) {
+            alert('Por favor seleccione un proveedor');
+            return;
+        }
+
+        // Validar que haya productos
+        const products = getProductsData();
+        if (products.length === 0) {
+            alert('Debe agregar al menos un producto');
+            return;
+        }
+
+        // Validar que todos los productos tengan costo unitario
+        const invalidProducts = products.filter(p => !p.unit_cost || p.unit_cost <= 0);
+        if (invalidProducts.length > 0) {
+            alert('Todos los productos deben tener un costo unitario mayor a 0');
+            return;
+        }
+
+        // Preparar datos del formulario
+        const formData = {
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            supplier_id: supplierId,
+            reference_number: document.querySelector('[name="reference_number"]').value,
+            purchase_date: document.querySelector('[name="purchase_date"]').value,
+            products: products
+        };
+
+        // Mostrar estado de carga
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+
+        // Enviar solicitud
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito y redirigir
+                alert(data.message);
+                window.location.href = data.redirect_url || "{{ route('purchases.index') }}";
+            } else {
+                throw new Error(data.message || 'Error al guardar la compra');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error al guardar la compra. Por favor, intente nuevamente.');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Guardar Compra';
+        });
+    });
+
+    // Obtener datos de productos
+    function getProductsData() {
+        const products = [];
         document.querySelectorAll('#products-table-body tr').forEach(row => {
             const productId = row.querySelector('input[name*="[product_id]"]').value;
             const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
@@ -216,75 +284,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const sellingPrice = parseFloat(row.querySelector('.selling-price').value) || 0;
             const expiryDate = row.querySelector('input[type="date"]').value;
             
-            products.push({
-                product_id: productId,
-                quantity: quantity,
-                unit_cost: unitCost,
-                discount: discount,
-                selling_price: sellingPrice,
-                expiry_date: expiryDate || null
-            });
-        });
-        
-        // Validar que haya al menos un producto
-        if (products.length === 0) {
-            alert('Debe agregar al menos un producto');
-            return;
-        }
-        
-        // Crear objeto con todos los datos del formulario
-        const formData = {
-            _token: document.querySelector('meta[name="csrf-token"]').content,
-            supplier_id: form.querySelector('[name="supplier_id"]').value,
-            reference_number: form.querySelector('[name="reference_number"]').value,
-            purchase_date: form.querySelector('[name="purchase_date"]').value,
-            products: products
-        };
-        
-        // Mostrar estado de carga
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
-        
-        // Enviar la solicitud como JSON
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Limpiar el formulario
-                form.reset();
-                document.getElementById('products-table-body').innerHTML = '';
-                document.getElementById('total-products').textContent = '0';
-                document.getElementById('total-amount').textContent = 'Bs. 0.00';
-                document.getElementById('nit').value = '-';
-                document.getElementById('supplier-address').textContent = '-';
-                productRowCounter = 0;
-                
-                // Mostrar mensaje de éxito
-                alert('Compra registrada exitosamente');
-                window.location.href = "{{ route('purchases.index') }}";
-            } else {
-                throw new Error(data.message || 'Error al guardar la compra');
+            if (productId && quantity > 0 && unitCost > 0) {
+                products.push({
+                    product_id: productId,
+                    quantity: quantity,
+                    unit_cost: unitCost,
+                    discount: discount,
+                    selling_price: sellingPrice,
+                    expiry_date: expiryDate || null
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message || 'Error al guardar la compra');
-        })
-        .finally(() => {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Guardar Compra';
         });
-    });
+        return products;
+    }
 
-    // Función debounce para limitar las solicitudes
+    // Función debounce para búsqueda
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -293,13 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Variables globales
-    let productRowCounter = 0;
-    const productsTableBody = document.getElementById('products-table-body');
-    const totalProductsSpan = document.getElementById('total-products');
-    const totalAmountSpan = document.getElementById('total-amount');
-    
-    // Función para agregar producto a la tabla (MEJORADA)
+    // Agregar producto a la tabla
     function addProductToTable(product) {
         productRowCounter++;
         
@@ -322,10 +330,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][unit_cost]" 
                        class="w-24 text-center unit-cost-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                       step="0.01" min="0" placeholder="0.00">
+                       step="0.01" min="0" placeholder="0.00" required>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][discount]" 
+                <input type="number" name="products[${productRowCounter}][discount]" value="0"
                        class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
                        step="0.1" min="0" max="100" placeholder="0.0">
             </td>
@@ -341,8 +349,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][selling_price]" value="${(product.price || 0).toFixed(2)}" 
-                       class="w-24 text-center selling-price bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1" 
-                       step="0.01" min="0" readonly>
+                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1" 
+                       step="0.01" min="0" required>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="date" name="products[${productRowCounter}][expiry_date]" 
@@ -357,45 +365,46 @@ document.addEventListener('DOMContentLoaded', function() {
         
         productsTableBody.appendChild(row);
         
-        // Agregar event listeners para los inputs
+        // Agregar event listeners
         row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input').forEach(input => {
-            input.addEventListener('change', updateRowCalculations);
             input.addEventListener('input', updateRowCalculations);
+            input.addEventListener('change', updateRowCalculations);
         });
         
         row.querySelector('.remove-product').addEventListener('click', function() {
             row.remove();
             updateTotals();
+            renumberRows();
         });
+
+        // Calcular valores iniciales
+        updateRowCalculations({ target: row.querySelector('.unit-cost-input') });
+        updateTotals();
     }
-    
-    // Función para actualizar cálculos de fila
+
+    // Actualizar cálculos de fila
     function updateRowCalculations(event) {
         const row = event.target.closest('tr');
         const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
         const unitCost = parseFloat(row.querySelector('.unit-cost-input').value) || 0;
         const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
         
-        // Solo calcular si todos los campos requeridos están llenos
         if (unitCost > 0) {
-            // Calcular costo unitario después de descuento
             const discountAmount = unitCost * (discount / 100);
             const unitCostAfterDiscount = unitCost - discountAmount;
-            row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
-            
-            // Calcular total de línea
             const lineTotal = quantity * unitCostAfterDiscount;
+            
+            row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
             row.querySelector('.line-total').value = lineTotal.toFixed(2);
         } else {
-            // Limpiar campos si no hay costo unitario
             row.querySelector('.unit-cost-after-discount').value = '';
             row.querySelector('.line-total').value = '';
         }
         
         updateTotals();
     }
-    
-    // Función para actualizar totales
+
+    // Actualizar totales
     function updateTotals() {
         const rows = productsTableBody.querySelectorAll('tr');
         let totalProducts = 0;
@@ -410,8 +419,17 @@ document.addEventListener('DOMContentLoaded', function() {
         totalProductsSpan.textContent = totalProducts;
         totalAmountSpan.textContent = 'Bs. ' + totalAmount.toFixed(2);
     }
-    
-    // Función para escapar HTML (seguridad)
+
+    // Renumerar filas
+    function renumberRows() {
+        const rows = productsTableBody.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            row.querySelector('td:first-child').textContent = index + 1;
+        });
+        productRowCounter = rows.length;
+    }
+
+    // Escapar HTML
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe.toString()
@@ -421,8 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
-    
-    // Función para buscar productos
+
+    // Búsqueda de productos
     document.getElementById('product-search').addEventListener('input', debounce(function(e) {
         const searchTerm = e.target.value.trim();
         const searchResults = document.getElementById('search-results');
@@ -437,11 +455,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (products && products.length > 0) {
                         let html = '';
                         products.forEach(product => {
-                            if (!product.id || !product.name) {
-                                console.warn('Producto inválido:', product);
-                                return;
-                            }
-                            
                             html += `
                                 <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 flex justify-between items-center transition-colors duration-150" 
                                      onclick="window.selectSearchProduct(${product.id}, '${escapeHtml(product.name)}', ${parseFloat(product.price) || 0}, '${escapeHtml(product.category || 'Sin categoría')}')">
@@ -472,8 +485,8 @@ document.addEventListener('DOMContentLoaded', function() {
             searchResults.innerHTML = '';
         }
     }, 300));
-    
-    // Cerrar los resultados cuando se hace clic fuera
+
+    // Cerrar resultados al hacer clic fuera
     document.addEventListener('click', function(e) {
         const searchContainer = document.getElementById('search-container');
         const searchResults = document.getElementById('search-results');
@@ -482,8 +495,8 @@ document.addEventListener('DOMContentLoaded', function() {
             searchResults.classList.add('hidden');
         }
     });
-    
-    // Hacer la función selectSearchProduct disponible globalmente
+
+    // Función global para seleccionar producto
     window.selectSearchProduct = function(id, name, price, category) {
         addProductToTable({
             id: id,
@@ -492,12 +505,10 @@ document.addEventListener('DOMContentLoaded', function() {
             category: category
         });
         
-        // Limpiar la búsqueda
         document.getElementById('product-search').value = '';
         document.getElementById('search-results').classList.add('hidden');
     };
 });
 </script>
 @endpush
-
 @endsection

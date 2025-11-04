@@ -82,7 +82,15 @@ class PurchaseController extends Controller
 
     public function store(Request $request)
     {
-        // Validación de los datos básicos
+        // Determinar si es una solicitud JSON
+        if ($request->wantsJson() || $request->isJson()) {
+            return $this->storeJson($request);
+        }
+
+        return $this->storeWeb($request);
+    }
+    protected function storeWeb(Request $request)
+    {
         $validatedData = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'reference_number' => 'nullable|string|max:255',
@@ -97,13 +105,8 @@ class PurchaseController extends Controller
         ]);
 
         try {
-            // Calcular el total de la compra
-            $totalAmount = collect($request->products)->sum(function ($product) {
-                $unitCostAfterDiscount = $product['unit_cost'] * (1 - ($product['discount'] / 100));
-                return $product['quantity'] * $unitCostAfterDiscount;
-            });
+            $totalAmount = $this->calculateTotalAmount($request->products);
 
-            // Crear la compra
             $purchase = Purchase::create([
                 'supplier_id' => $request->supplier_id,
                 'reference_number' => $request->reference_number,
@@ -112,34 +115,94 @@ class PurchaseController extends Controller
                 'status' => 'completed',
             ]);
 
-            // Guardar los productos de la compra en el stock
-            foreach ($request->products as $productData) {
-                $unitCostAfterDiscount = $productData['unit_cost'] * (1 - ($productData['discount'] / 100));
-                $totalCost = $productData['quantity'] * $unitCostAfterDiscount;
-
-                Stock::create([
-                    'product_id' => $productData['product_id'],
-                    'purchase_id' => $purchase->id,
-                    'quantity' => $productData['quantity'],
-                    'unit_cost' => $productData['unit_cost'],
-                    'discount' => $productData['discount'] ?? 0,
-                    'total_cost' => $totalCost,
-                    'selling_price' => $productData['selling_price'],
-                    'expiry_date' => $productData['expiry_date'] ?? null,
-                ]);
-
-                // Actualizar el stock del producto
-                $menuItem = MenuItem::find($productData['product_id']);
-                if ($menuItem) {
-                    $menuItem->increment('stock', $productData['quantity']);
-                }
-            }
+            $this->processPurchaseProducts($purchase, $request->products);
 
             return redirect()->route('purchases.index')
                 ->with('success', 'Compra registrada exitosamente. ID: ' . $purchase->id);
         } catch (\Exception $e) {
-            return redirect()->route('purchases.index')
-                ->with('error', 'Error al registrar la compra: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al registrar la compra: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+    protected function calculateTotalAmount($products)
+    {
+        return collect($products)->sum(function ($product) {
+            $unitCostAfterDiscount = $product['unit_cost'] * (1 - ($product['discount'] / 100));
+            return $product['quantity'] * $unitCostAfterDiscount;
+        });
+    }
+    protected function storeJson(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'supplier_id' => 'required|exists:suppliers,id',
+            'reference_number' => 'nullable|string|max:255',
+            'purchase_date' => 'required|date',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:menu_items,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.unit_cost' => 'required|numeric|min:0',
+            'products.*.discount' => 'nullable|numeric|min:0|max:100',
+            'products.*.selling_price' => 'required|numeric|min:0',
+            'products.*.expiry_date' => 'nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $totalAmount = $this->calculateTotalAmount($request->products);
+
+            $purchase = Purchase::create([
+                'supplier_id' => $request->supplier_id,
+                'reference_number' => $request->reference_number,
+                'purchase_date' => $request->purchase_date,
+                'total_amount' => $totalAmount,
+                'status' => 'completed',
+            ]);
+
+            $this->processPurchaseProducts($purchase, $request->products);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Compra registrada exitosamente',
+                'purchase_id' => $purchase->id,
+                'redirect_url' => route('purchases.index')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar la compra: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    protected function processPurchaseProducts($purchase, $products)
+    {
+        foreach ($products as $productData) {
+            $unitCostAfterDiscount = $productData['unit_cost'] * (1 - ($productData['discount'] / 100));
+            $totalCost = $productData['quantity'] * $unitCostAfterDiscount;
+
+            Stock::create([
+                'product_id' => $productData['product_id'],
+                'purchase_id' => $purchase->id,
+                'quantity' => $productData['quantity'],
+                'unit_cost' => $productData['unit_cost'],
+                'discount' => $productData['discount'] ?? 0,
+                'total_cost' => $totalCost,
+                'selling_price' => $productData['selling_price'],
+                'expiry_date' => $productData['expiry_date'] ?? null,
+            ]);
+
+            // Actualizar el stock del producto
+            $menuItem = MenuItem::find($productData['product_id']);
+            if ($menuItem) {
+                $menuItem->increment('stock', $productData['quantity']);
+            }
         }
     }
     public function edit(Purchase $purchase)

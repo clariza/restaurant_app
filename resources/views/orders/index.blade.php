@@ -26,7 +26,7 @@
     <!-- Filtros -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form id="filter-form">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- Filtro por tipo -->
                 <div>
                     <label class="block text-sm font-medium text-[#203363] mb-1">Tipo:</label>
@@ -39,24 +39,50 @@
                     </select>
                 </div>
                 
-                <!-- Filtro por estado -->
+                <!-- Filtro por fecha desde -->
                 <div>
-                    <label class="block text-sm font-medium text-[#203363] mb-1">Estado:</label>
-                    <select name="status" class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]">
-                        <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Todos</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendientes</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completadas</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Canceladas</option>
-                    </select>
+                    <label class="block text-sm font-medium text-[#203363] mb-1">Desde:</label>
+                    <input type="date" 
+                           name="date_from" 
+                           class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]"
+                           value="{{ request('date_from') }}">
                 </div>
                 
-                <!-- Botón de aplicar filtros -->
-                <div class="flex items-end">
-                    <button type="submit" 
-                            class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors w-full">
-                        <i class="fas fa-filter mr-2"></i> Aplicar Filtros
-                    </button>
+                <!-- Filtro por fecha hasta -->
+                <div>
+                    <label class="block text-sm font-medium text-[#203363] mb-1">Hasta:</label>
+                    <input type="date" 
+                           name="date_to" 
+                           class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]"
+                           value="{{ request('date_to') }}">
                 </div>
+                
+                <!-- Filtro por vendedor -->
+                <div>
+                    <label class="block text-sm font-medium text-[#203363] mb-1">Vendedor:</label>
+                    <select name="seller_id" class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]">
+                        <option value="all" {{ request('seller_id') == 'all' ? 'selected' : '' }}>Todos</option>
+                        @foreach($sellers ?? [] as $seller)
+                            <option value="{{ $seller->id }}" {{ request('seller_id') == $seller->id ? 'selected' : '' }}>
+                                {{ $seller->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <button type="submit" 
+                        class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors flex items-center justify-center">
+                    <i class="fas fa-filter mr-2"></i> Aplicar Filtros
+                </button>
+                
+                <button type="button" 
+                        onclick="clearFilters()"
+                        class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i> Limpiar Filtros
+                </button>
             </div>
         </form>
     </div>
@@ -208,6 +234,11 @@
         const params = new URLSearchParams(formData).toString();
         window.location.href = "{{ route('orders.index') }}?" + params;
     });
+    
+    // Limpiar filtros
+    function clearFilters() {
+        window.location.href = "{{ route('orders.index') }}";
+    }
     
     // Búsqueda en tiempo real con debounce
     let searchTimer;

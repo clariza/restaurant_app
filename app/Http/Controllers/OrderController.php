@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Proforma;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -14,8 +16,10 @@ class OrderController extends Controller
     {
         // Filtros
         $type = $request->get('type', 'all');
-        $status = $request->get('status', 'all');
         $search = $request->get('search');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
+        $sellerId = $request->get('seller_id', 'all');
 
         // Query base para órdenes (orden ASCENDENTE)
         $ordersQuery = Sale::with(['items.menuItem', 'user'])
@@ -39,17 +43,41 @@ class OrderController extends Controller
             }
         }
 
-        // Aplicar filtro de estado (si tienes campo status)
-        // if ($status !== 'all' && \Schema::hasColumn('sales', 'status')) {
-        //     $ordersQuery->where('status', $status);
-        // }
+        // Aplicar filtro de fecha desde
+        if ($dateFrom) {
+            try {
+                $dateFromCarbon = Carbon::parse($dateFrom)->startOfDay();
+                $ordersQuery->where('created_at', '>=', $dateFromCarbon);
+                $proformasQuery->where('created_at', '>=', $dateFromCarbon);
+            } catch (\Exception $e) {
+                // Si hay error en el parsing de fecha, ignorar el filtro
+            }
+        }
+
+        // Aplicar filtro de fecha hasta
+        if ($dateTo) {
+            try {
+                $dateToCarbon = Carbon::parse($dateTo)->endOfDay();
+                $ordersQuery->where('created_at', '<=', $dateToCarbon);
+                $proformasQuery->where('created_at', '<=', $dateToCarbon);
+            } catch (\Exception $e) {
+                // Si hay error en el parsing de fecha, ignorar el filtro
+            }
+        }
+
+        // Aplicar filtro de vendedor
+        if ($sellerId !== 'all') {
+            $ordersQuery->where('user_id', $sellerId);
+            $proformasQuery->where('user_id', $sellerId);
+        }
 
         // Aplicar búsqueda
         if ($search) {
             $ordersQuery->where(function ($query) use ($search) {
                 $query->where('customer_name', 'like', "%{$search}%")
                     ->orWhere('transaction_number', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('daily_order_number', 'like', "%{$search}%");
             });
 
             $proformasQuery->where(function ($query) use ($search) {
@@ -61,13 +89,30 @@ class OrderController extends Controller
         // Verificar caja abierta
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
 
+        // Obtener lista de vendedores (usuarios que han realizado ventas)
+        $sellers = User::whereIn('id', function ($query) {
+            $query->select('user_id')
+                ->from('sales')
+                ->whereNotNull('user_id')
+                ->distinct();
+        })
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name']);
+
         // Obtener resultados paginados
         $orders = $ordersQuery->paginate(15)->appends($request->all());
         $proformas = $proformasQuery->paginate(15)->appends($request->all());
 
-        return view('orders.index', compact('orders', 'proformas', 'hasOpenPettyCash'));
+        return view('orders.index', compact('orders', 'proformas', 'hasOpenPettyCash', 'sellers'));
     }
+    public function print($id)
+    {
+        // Obtener la orden con sus relaciones
+        $order = Sale::with(['items.menuItem', 'user'])->findOrFail($id);
 
+        // Retornar vista de impresión
+        return view('orders.print', compact('order'));
+    }
     public function show($id)
     {
         // Obtener la orden actual con sus relaciones

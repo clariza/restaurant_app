@@ -72,18 +72,19 @@ function showPaymentModal() {
         container.innerHTML = '';
     }
 
-    // ✅ AGREGAR AUTOMÁTICAMENTE LA PRIMERA FILA DE PAGO
+    // ❌ ELIMINAR ESTAS LÍNEAS - No agregar fila automáticamente
+    /*
     setTimeout(() => {
         console.log('➕ Agregando primera fila automáticamente...');
         addPaymentRow();
 
-        // Verificar después de agregar
         setTimeout(() => {
             console.log('🔍 Verificación post-agregar:');
             console.log('   - Array:', window.paymentRows.length);
             console.log('   - DOM:', document.querySelectorAll('.payment-row').length);
         }, 100);
     }, 100);
+    */
 
     // Resetear formulario del paso 3
     if (document.getElementById('modal-customer-details-form')) {
@@ -104,7 +105,6 @@ function showPaymentModal() {
 
     console.log('✅ Modal abierto correctamente');
 }
-
 function calculateOrderTotal() {
     const orderDetails = document.getElementById('order-details');
     if (!orderDetails) return 0;
@@ -138,41 +138,41 @@ function openPaymentModal() {
         }
     }, 50);
 }
-function addPaymentRow() {
-    console.log('➕ === AGREGANDO NUEVA FILA ===');
+// function addPaymentRow() {
+//     console.log('➕ === AGREGANDO NUEVA FILA ===');
 
-    if (!window.paymentRows) {
-        window.paymentRows = [];
-        console.log('📦 window.paymentRows inicializado');
-    }
+//     if (!window.paymentRows) {
+//         window.paymentRows = [];
+//         console.log('📦 window.paymentRows inicializado');
+//     }
 
-    const rowId = Date.now();
+//     const rowId = Date.now();
 
-    const row = {
-        id: rowId,
-        method: '',
-        reference: '',
-        amount: 0
-    };
+//     const row = {
+//         id: rowId,
+//         method: '',
+//         reference: '',
+//         amount: 0
+//     };
 
-    window.paymentRows.push(row);
-    console.log(`✅ Fila agregada al array (ID: ${rowId})`);
-    console.log(`📦 Total filas en array: ${window.paymentRows.length}`);
+//     window.paymentRows.push(row);
+//     console.log(`✅ Fila agregada al array (ID: ${rowId})`);
+//     console.log(`📦 Total filas en array: ${window.paymentRows.length}`);
 
-    renderPaymentRows();
+//     renderPaymentRows();
+//     updateNoPaymentsMessage();
+//     // Verificar después de renderizar
+//     setTimeout(() => {
+//         const domCount = document.querySelectorAll('.payment-row').length;
+//         console.log(`🎯 Verificación post-agregar:`);
+//         console.log(`   - Array: ${window.paymentRows.length}`);
+//         console.log(`   - DOM: ${domCount}`);
 
-    // Verificar después de renderizar
-    setTimeout(() => {
-        const domCount = document.querySelectorAll('.payment-row').length;
-        console.log(`🎯 Verificación post-agregar:`);
-        console.log(`   - Array: ${window.paymentRows.length}`);
-        console.log(`   - DOM: ${domCount}`);
-
-        if (domCount !== window.paymentRows.length) {
-            console.error(`❌ DESINCRONIZACIÓN después de agregar`);
-        }
-    }, 100);
-}
+//         if (domCount !== window.paymentRows.length) {
+//             console.error(`❌ DESINCRONIZACIÓN después de agregar`);
+//         }
+//     }, 100);
+// }
 function closePaymentModal() {
     console.log('🔒 Cerrando modal de pago...');
 
@@ -527,6 +527,7 @@ function removePaymentRow(id) {
     console.log(`📦 Filas: ${lengthBefore} → ${window.paymentRows.length}`);
 
     renderPaymentRows();
+    updateNoPaymentsMessage();
 }
 function updateStepDisplay() {
     // Actualizar indicadores de paso
@@ -774,29 +775,53 @@ function goToStep(step) {
 function nextStep() {
     console.log(`🔄 Intentando avanzar del paso ${currentStep} al paso ${currentStep + 1}`);
 
-    // ✅ Si estamos en el paso 2, sincronizar antes de validar
+    // ✅ Sincronizar SOLO si estamos SALIENDO del paso 2
     if (currentStep === 2) {
         console.log('🔄 Paso 2 detectado, sincronizando datos de pago...');
         syncPaymentRowsFromDOM();
     }
 
+    // ✅ Validar el paso ACTUAL antes de avanzar
     if (!validateCurrentStep()) {
         console.warn('⚠️ Validación fallida, no se avanza al siguiente paso');
         return;
     }
 
+    // ✅ Avanzar al siguiente paso
     if (currentStep < totalSteps) {
         currentStep++;
         updateStepDisplay();
 
         console.log(`✅ Avanzando al paso ${currentStep}`);
 
-        // Si llegamos al paso 3, actualizar el resumen
+        // ✅ AHORA SÍ: Si acabamos de LLEGAR al paso 2, agregar fila automáticamente
+        if (currentStep === 2) {
+            setTimeout(() => {
+                const rowsContainer = document.getElementById('payment-rows-container');
+                if (rowsContainer && rowsContainer.children.length === 0) {
+                    console.log('📝 Llegamos al Paso 2 sin filas, agregando una automáticamente...');
+                    addPaymentRow();
+                }
+            }, 100);
+        }
+
+        // ✅ Si llegamos al paso 3, actualizar el resumen
         if (currentStep === 3) {
-            // ✅ Sincronizar una vez más antes de mostrar resumen
             syncPaymentRowsFromDOM();
             updateStep3Summary();
         }
+    }
+}
+function updateNoPaymentsMessage() {
+    const container = document.getElementById('payment-rows-container');
+    const message = document.getElementById('no-payments-message');
+
+    if (!container || !message) return;
+
+    if (container.children.length === 0) {
+        message.style.display = 'block';
+    } else {
+        message.style.display = 'none';
     }
 }
 function debugPaymentRows() {
@@ -1678,33 +1703,77 @@ async function handleCreateTable(event) {
 
     try {
         const isEdit = tableId !== '';
-        const url = isEdit ? TABLES_API.update(tableId) : TABLES_API.store;
-        const method = isEdit ? 'PUT' : 'POST';
 
-        const formData = new FormData();
-        formData.append('number', number);
-        formData.append('state', state);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+        // ✅ Preparar datos como JSON (no FormData)
+        const requestData = {
+            number: number,
+            state: state,
+            _token: document.querySelector('meta[name="csrf-token"]')?.content || ''
+        };
 
-        if (isEdit) {
-            formData.append('_method', 'PUT');
-        }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
+        console.log('📤 Enviando datos:', {
+            isEdit,
+            tableId,
+            url: isEdit ? `/tables/${tableId}` : '/tables',
+            data: requestData
         });
 
+        let response;
+
+        if (isEdit) {
+            // ✅ Para UPDATE: usar PUT
+            response = await fetch(`/tables/${tableId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': requestData._token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    number: requestData.number,
+                    state: requestData.state
+                })
+            });
+        } else {
+            // ✅ Para CREATE: usar POST
+            response = await fetch('/tables', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': requestData._token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    number: requestData.number,
+                    state: requestData.state
+                })
+            });
+        }
+
+        console.log('📡 Respuesta HTTP:', response.status, response.statusText);
+
+        // ✅ Verificar si la respuesta es JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const htmlText = await response.text();
+            console.error('❌ Respuesta no es JSON:', htmlText.substring(0, 500));
+            throw new Error('El servidor devolvió HTML en lugar de JSON. Revisa las rutas y el controlador.');
+        }
+
         const result = await response.json();
+        console.log('📥 Respuesta del servidor:', result);
 
         if (!response.ok) {
+            throw new Error(result.message || `Error HTTP: ${response.status}`);
+        }
+
+        if (!result.success) {
             throw new Error(result.message || 'Error al guardar la mesa');
         }
 
+        // ✅ Éxito
         closeCreateTableModal();
         showSuccessMessage(isEdit ? 'Mesa actualizada correctamente' : 'Mesa creada correctamente');
         await loadTablesFromDB();
@@ -2242,17 +2311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         overlay.addEventListener('click', closePaymentModal);
     }
 });
-document.addEventListener('DOMContentLoaded', function () {
-    const addPaymentBtn = document.querySelector('.add-payment-btn');
 
-    if (addPaymentBtn) {
-        addPaymentBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            console.log('🖱️ Click en botón agregar pago');
-            addPaymentRow();
-        });
-    }
-});
 function diagnosePaymentRowStructure() {
     console.log('🔍 === DIAGNÓSTICO DE ESTRUCTURA ===');
 
@@ -2311,6 +2370,7 @@ window.renderPaymentRows = renderPaymentRows;
 window.validateStep2 = validateStep2;
 window.updatePaymentRow = updatePaymentRow;
 window.removePaymentRow = removePaymentRow;
+window.updateNoPaymentsMessage = updateNoPaymentsMessage;
 window.openTablesConfigModal = openTablesConfigModal;
 window.closeTablesConfigModal = closeTablesConfigModal;
 window.loadCurrentTablesConfig = loadCurrentTablesConfig;
@@ -2343,11 +2403,8 @@ window.processPayment = processPayment;
 window.submitOrder = submitOrder;
 window.clearOrderData = clearOrderData;
 
-window.addPaymentRow = addPaymentRow;
 window.nextStep = nextStep;
 window.confirmAndProcessOrder = confirmAndProcessOrder;
-
-window.addPaymentRow = addPaymentRow;
 window.renderPaymentRows = renderPaymentRows;
 window.removePaymentRow = removePaymentRow;
 window.syncPaymentRowsFromDOM = syncPaymentRowsFromDOM;

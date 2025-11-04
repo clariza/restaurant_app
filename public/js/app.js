@@ -2,41 +2,100 @@
 
 console.log('app.js cargado'); 
 
-function handleLogout() {
+// Función de logout
+function handleLogout(e) {
+    if (e) {
+        e.preventDefault();
+    }
+
+    console.log('Cerrando sesión...');
+
+    // Limpiar localStorage
     localStorage.removeItem('order');
     localStorage.removeItem('orderType');
-    
-    fetch(window.routes?.logout || '/logout', {
+
+    // Obtener el token CSRF
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    if (!token) {
+        console.error('Token CSRF no encontrado');
+        return;
+    }
+
+    // Realizar petición de logout
+    fetch('/logout', {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'X-CSRF-TOKEN': token,
             'Accept': 'application/json',
+            'Content-Type': 'application/json'
         },
+        credentials: 'same-origin'
     })
-    .then(response => {
-        if (response.ok) {
-            window.location.href = window.routes?.login || '/login';
-        }
-    });
+        .then(response => {
+            if (response.ok || response.redirected) {
+                window.location.href = '/login';
+            } else {
+                console.error('Error en logout:', response.status);
+                // Forzar redirección en caso de error
+                window.location.href = '/login';
+            }
+        })
+        .catch(error => {
+            console.error('Error en fetch de logout:', error);
+            // Forzar redirección en caso de error
+            window.location.href = '/login';
+        });
 }
 // Función principal de inicialización
 function initializeApp() {
     console.log('Inicializando aplicación...');
-    
-    // 1. Configurar menús desplegables
+
     setupMenuToggles();
-    
-    // 2. Configurar menú de usuario
     setupUserMenu();
-    
-    // 3. Configurar manejo de logout
     setupLogoutHandlers();
-    
-    // 4. Configurar control de caja chica
     setupPettyCashControl();
-    
-    // 5. Configurar interceptor de fetch para 401
     setupFetchInterceptor();
+    setupMobileMenu();
+}
+// Configurar menú móvil
+function setupMobileMenu() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (window.innerWidth < 768) {
+                if (mobileMenu) {
+                    mobileMenu.classList.toggle('show');
+                }
+                if (mobileOverlay) {
+                    mobileOverlay.classList.toggle('active');
+                }
+            }
+
+            if (sidebar) {
+                sidebar.classList.toggle('show');
+            }
+        });
+    }
+
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', function () {
+            if (mobileMenu) {
+                mobileMenu.classList.remove('show');
+            }
+            if (sidebar) {
+                sidebar.classList.remove('show');
+            }
+            mobileOverlay.classList.remove('active');
+        });
+    }
 }
 // Función para configurar menús desplegables
 function setupMenuToggles() {
@@ -120,90 +179,87 @@ function setupSubmenuLinks() {
 }
 // Función para configurar menú de usuario
 function setupUserMenu() {
-    console.log('Configurando menú de usuario...'); // Debug
-    
+    console.log('Configurando menú de usuario...');
+
     const userMenuButton = document.getElementById('user-menu-button');
     const userMenu = document.getElementById('user-menu');
-    
-    console.log('User menu button:', userMenuButton); // Debug
-    console.log('User menu:', userMenu); // Debug
-    
+
     if (userMenuButton && userMenu) {
         // Remover listeners existentes
         const newButton = userMenuButton.cloneNode(true);
         userMenuButton.parentNode.replaceChild(newButton, userMenuButton);
-        
-        newButton.addEventListener('click', function(e) {
+
+        newButton.addEventListener('click', function (e) {
             e.stopPropagation();
-            console.log('Click en menú de usuario'); // Debug
-            
-            const isHidden = userMenu.classList.contains('hidden');
-            console.log(`User menu hidden: ${isHidden}`); // Debug
-            
-            if (isHidden) {
-                userMenu.classList.remove('hidden');
-                userMenu.style.display = 'block';
-            } else {
-                userMenu.classList.add('hidden');
-                userMenu.style.display = 'none';
-            }
-            
-            console.log(`User menu ahora hidden: ${userMenu.classList.contains('hidden')}`); // Debug
+            userMenu.classList.toggle('hidden');
         });
-        
+
         // Cerrar menú al hacer clic fuera
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (userMenu && !userMenu.classList.contains('hidden')) {
                 if (!userMenu.contains(e.target) && !newButton.contains(e.target)) {
                     userMenu.classList.add('hidden');
-                    userMenu.style.display = 'none';
-                    console.log('User menu cerrado por click fuera'); // Debug
                 }
             }
         });
-    } else {
-        console.error('No se encontraron elementos del menú de usuario');
     }
 }
 // Función para configurar manejadores de logout
 function setupLogoutHandlers() {
-    // Manejar formularios de logout
+    console.log('Configurando handlers de logout...');
+
+    // Buscar todos los botones de logout
+    const logoutButtons = document.querySelectorAll('button[type="submit"]');
+
+    logoutButtons.forEach(button => {
+        const buttonText = button.textContent.trim();
+        if (buttonText.includes('Cerrar sesión') || buttonText.includes('Logout')) {
+            console.log('Botón de logout encontrado:', button);
+
+            // Remover listeners existentes
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+
+            newButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Click en logout detectado');
+                handleLogout(e);
+            });
+        }
+    });
+
+    // También manejar formularios de logout
     const logoutForms = document.querySelectorAll('form[action*="logout"]');
     logoutForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            console.log('Logout iniciado'); // Debug
-            localStorage.removeItem('order');
-            localStorage.removeItem('orderType');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            console.log('Submit de form logout detectado');
+            handleLogout(e);
         });
     });
-    
-    // Limpiar datos si no hay autenticación
-    if (typeof window.isAuthenticated !== 'undefined' && !window.isAuthenticated) {
-        localStorage.removeItem('order');
-        localStorage.removeItem('orderType');
-    }
 }
-// Función para configurar control de caja chica
+// Configurar control de caja chica
 function setupPettyCashControl() {
-    if (typeof window.pettyCashData !== 'undefined' && 
-        !window.pettyCashData.hasOpenPettyCash && 
+    if (typeof window.pettyCashData !== 'undefined' &&
+        !window.pettyCashData.hasOpenPettyCash &&
         window.pettyCashData.currentRoute !== 'petty-cash.create') {
-        
-        console.log('Configurando control de caja chica...'); // Debug
-        
+
+        console.log('Configurando control de caja chica...');
+
         const blockedRoutes = ['menu', 'sales'];
         const allLinks = document.querySelectorAll('a');
-        
+
         allLinks.forEach(link => {
             const shouldBlock = blockedRoutes.some(route => {
                 return link.href.includes(route.replace('.', '/'));
             });
-            
+
             if (shouldBlock) {
-                link.addEventListener('click', function(e) {
+                link.addEventListener('click', function (e) {
                     if (this.href !== window.location.href) {
                         e.preventDefault();
-                        
+
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'warning',
@@ -216,52 +272,33 @@ function setupPettyCashControl() {
                                     window.location.href = window.routes?.pettyCashCreate || '/petty-cash/create';
                                 }
                             });
-                        } else {
-                            alert('Debe abrir una caja chica para acceder a las funciones de ventas');
-                            window.location.href = window.routes?.pettyCashCreate || '/petty-cash/create';
                         }
                     }
                 });
-                
-                // Estilo visual para indicar bloqueo
+
                 link.style.opacity = '0.6';
                 link.style.cursor = 'not-allowed';
             }
         });
-        
-        // Verificar si estamos en una ruta bloqueada
-        if (['menu.index', 'sales.index'].includes(window.pettyCashData.currentRoute)) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Apertura de Caja Requerida',
-                    text: 'Debe abrir una caja chica para acceder a esta función',
-                    confirmButtonText: 'Abrir Caja',
-                    confirmButtonColor: '#203363'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = window.routes?.pettyCashCreate || '/petty-cash/create';
-                    }
-                });
-            }
-        }
     }
 }
+
 
 // Función para configurar interceptor de fetch
 function setupFetchInterceptor() {
     const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
+    window.fetch = async function (...args) {
         const response = await originalFetch(...args);
         if (response.status === 401) {
-            console.log('Sesión expirada, limpiando datos...'); // Debug
+            console.log('Sesión expirada, limpiando datos...');
             localStorage.removeItem('order');
             localStorage.removeItem('orderType');
-            window.location.reload();
+            window.location.href = '/login';
         }
         return response;
     };
 }
+
 
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
@@ -280,9 +317,8 @@ window.addEventListener('load', function() {
     }
 });
 
-// Exponer función handleLogout globalmente si es necesaria
-window.handleLogout = handleLogout;// Inicializar cuando el DOM esté listo
-window.initializeApp = initializeApp;
+
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
@@ -301,6 +337,7 @@ window.addEventListener('load', function() {
 
 // Exponer función handleLogout globalmente si es necesaria
 window.handleLogout = handleLogout;
+window.initializeApp = initializeApp;
 // Manejo del menú móvil
 document.addEventListener('DOMContentLoaded', function() {
     const menuToggle = document.getElementById('menu-toggle');

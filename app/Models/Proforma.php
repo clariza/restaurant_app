@@ -14,7 +14,6 @@ class Proforma extends Model
         'customer_phone',
         'notes',
         'order_type',
-        'table_number',
         'subtotal',
         'tax',
         'total',
