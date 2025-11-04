@@ -1208,41 +1208,46 @@
                 </div>
 
                 <!-- Formulario de cierre -->
-                <div class="closure-form-section">
-                    <div class="section-container">
-                        <h4 class="section-title">Resumen de Cierre</h4>
-                        <div class="form-grid">
-                            <div class="input-group mb-2">
-                                <label for="total-gastos" class="small">Total Gastos</label>
-                                <input type="number" id="total-gastos" class="form-control form-control-sm"
-                                    value="0" step="0.01" readonly>
-                            </div>
+                <!-- En la sección de Resumen de Cierre -->
+<div class="closure-form-section">
+    <div class="section-container">
+        <h4 class="section-title">Resumen de Cierre</h4>
+        <div class="form-grid">
+            <div class="input-group mb-2">
+                <label for="total-gastos" class="small">Total Gastos</label>
+                <input type="number" id="total-gastos" class="form-control form-control-sm"
+                    value="{{ $totalExpenses }}" step="0.01" readonly
+                    style="background-color: #f8f9fa; font-weight: bold; color: #dc3545;">
+            </div>
 
-                            <div class="input-group mb-2">
-                                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
-                                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
-                                    value="0" step="0.01" readonly>
-                            </div>
+            <div class="input-group mb-2">
+                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
+                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
+                    value="{{ $totalSalesCash }}" step="0.01" 
+                    oninput="document.getElementById('total_sales_cash').value = this.value">
+            </div>
 
-                            <div class="input-group mb-2">
-                                <label for="ventas-qr" class="small">Ventas QR</label>
-                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
-                                    value="{{ $totalSalesQR }}" step="0.01">
-                            </div>
+            <div class="input-group mb-2">
+                <label for="ventas-qr" class="small">Ventas QR</label>
+                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                    value="{{ $totalSalesQR }}" step="0.01"
+                    oninput="document.getElementById('total_sales_qr').value = this.value">
+            </div>
 
-                            <div class="input-group mb-2">
-                                <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
-                                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
-                                    value="{{ $totalSalesCard }}" step="0.01">
-                            </div>
-                            <div class="form-actions">
-                                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
-                                    <i class="fas fa-save mr-1"></i> Guardar Cierre
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="input-group mb-2">
+                <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
+                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
+                    value="{{ $totalSalesCard }}" step="0.01"
+                    oninput="document.getElementById('total_sales_card').value = this.value">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
+                    <i class="fas fa-save mr-1"></i> Guardar Cierre
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -1252,10 +1257,10 @@
 <form id="closureForm" action="{{ route('petty-cash.save-closure') }}" method="POST" class="hidden">
     @csrf
     <input type="hidden" name="petty_cash_id" id="petty_cash_id">
-    <input type="hidden" name="total_sales_cash" id="total_sales_cash">
-    <input type="hidden" name="total_sales_qr" id="total_sales_qr">
-    <input type="hidden" name="total_sales_card" id="total_sales_card">
-    <input type="hidden" name="total_expenses" id="total_expenses">
+    <input type="hidden" name="total_sales_cash" id="total_sales_cash" value="{{ $totalSalesCash }}">
+    <input type="hidden" name="total_sales_qr" id="total_sales_qr" value="{{ $totalSalesQR }}">
+    <input type="hidden" name="total_sales_card" id="total_sales_card" value="{{ $totalSalesCard }}">
+    <input type="hidden" name="total_expenses" id="total_expenses" value="{{ $totalExpenses }}">
 </form>
 
 <script>
@@ -1265,7 +1270,7 @@
         modal.classList.add('active');
         document.getElementById('petty_cash_id').value = id;
 
-        // Resetear los inputs al abrir el modal
+        // Resetear los inputs de denominaciones
         document.querySelectorAll('.contar-input').forEach(input => {
             input.value = '';
         });
@@ -1273,20 +1278,78 @@
             span.textContent = '$0.00';
         });
         document.getElementById('total').textContent = '$0.00';
-        document.getElementById('ventas-efectivo').value = '0';
-        document.getElementById('total-gastos').value = '0';
-
-        // Limpiar gastos excepto el primero
-        const expensesContainer = document.getElementById('expensesContainer');
-        while (expensesContainer.children.length > 1) {
-            expensesContainer.removeChild(expensesContainer.lastChild);
-        }
-        // Resetear el primer gasto
-        const firstExpense = expensesContainer.firstChild;
-        firstExpense.querySelector('input[name="expense_name[]"]').value = '';
-        firstExpense.querySelector('input[name="expense_description[]"]').value = '';
-        firstExpense.querySelector('input[name="expense_amount[]"]').value = '';
+    
+        // Cargar gastos existentes desde la base de datos
+        loadExistingExpenses(id);
+    
+        // Cargar ventas existentes
+        loadExistingSales(id);
     }
+    // Función para cargar gastos existentes desde la base de datos
+function loadExistingExpenses(pettyCashId) {
+    // Limpiar contenedor de gastos
+    const expensesContainer = document.getElementById('expensesContainer');
+    expensesContainer.innerHTML = '';
+
+    // Los gastos ya están disponibles en una variable PHP que pasamos a la vista
+    const existingExpenses = @json($existingExpenses);
+    
+    console.log('Gastos existentes:', existingExpenses);
+
+    if (existingExpenses && existingExpenses.length > 0) {
+        // Agregar cada gasto existente
+        existingExpenses.forEach(expense => {
+            addExpenseRow(expense.name, expense.description, expense.amount);
+        });
+    } else {
+        // Si no hay gastos, agregar una fila vacía
+        addExpenseRow();
+    }
+    
+    // Calcular total de gastos
+    calculateTotalExpenses();
+}
+function addExpenseRow(name = '', description = '', amount = '') {
+    const expensesContainer = document.getElementById('expensesContainer');
+
+    const newExpenseRow = document.createElement('div');
+    newExpenseRow.className = 'expense-row';
+    newExpenseRow.innerHTML = `
+        <div class="expense-field">
+            <input type="text" class="form-control form-control-sm expense-input" 
+                   placeholder="Nombre del gasto" name="expense_name[]" 
+                   value="${name}" oninput="validateExpenseRow(this)">
+        </div>
+        <div class="expense-field">
+            <input type="text" class="form-control form-control-sm expense-input" 
+                   placeholder="Descripción/Categoría" name="expense_description[]" 
+                   value="${description}">
+        </div>
+        <div class="expense-field">
+            <input type="number" class="form-control form-control-sm expense-input" 
+                   placeholder="Monto" step="0.01" min="0" name="expense_amount[]" 
+                   value="${amount}" oninput="calculateTotalExpenses(); validateExpenseRow(this)">
+        </div>
+        <div class="expense-actions">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" 
+                    onclick="removeExpense(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    expensesContainer.appendChild(newExpenseRow);
+}
+function addExpense() {
+    addExpenseRow();
+}
+function loadExistingSales(pettyCashId) {
+    // Usar los valores que ya tenemos en las variables PHP
+    document.getElementById('ventas-efectivo').value = {{ $totalSalesCash }};
+    document.getElementById('ventas-qr').value = {{ $totalSalesQR }};
+    document.getElementById('ventas-tarjeta').value = {{ $totalSalesCard }};
+    document.getElementById('total-gastos').value = {{ $totalExpenses }};
+}
 
     // Función para agregar nuevo gasto en fila
 function addExpense() {
@@ -1371,14 +1434,34 @@ function validateExpenseRow(input) {
 
     // Calcular total de gastos
     function calculateTotalExpenses() {
-        let total = 0;
-        document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
-            total += parseFloat(input.value) || 0;
-        });
-        document.getElementById('total-gastos').value = total.toFixed(2);
-        document.getElementById('total_expenses').value = total.toFixed(2);
-        return total;
+    let total = 0;
+    let hasValidExpenses = false;
+    
+    document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
+        const value = parseFloat(input.value);
+        const nameInput = input.closest('.expense-row').querySelector('input[name="expense_name[]"]');
+        const name = nameInput ? nameInput.value.trim() : '';
+        
+        // Solo contar gastos que tengan nombre y monto válido
+        if (name && !isNaN(value) && value > 0) {
+            total += value;
+            hasValidExpenses = true;
+        }
+    });
+    
+    const totalGastosElement = document.getElementById('total-gastos');
+    const totalExpensesElement = document.getElementById('total_expenses');
+    
+    if (totalGastosElement) {
+        totalGastosElement.value = total.toFixed(2);
     }
+    if (totalExpensesElement) {
+        totalExpensesElement.value = total.toFixed(2);
+    }
+    
+    console.log('Total gastos calculado:', total, 'Gastos válidos:', hasValidExpenses);
+    return total;
+}
 
     // Guardar el cierre
 function saveClosure() {
