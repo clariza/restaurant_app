@@ -13,7 +13,12 @@ class Expense extends Model
         'date',
         'petty_cash_id',
     ];
-    
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
     // Relación con la caja chica
     public function pettyCash()
     {

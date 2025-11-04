@@ -41,20 +41,24 @@
         color: white;
         border: 1px solid #4b5563;
     }
+
     .btn-excel {
         background-color: #10b981;
         color: white;
         border: 1px solid #059669;
     }
+
     .btn-pdf {
         background-color: #ef4444;
         color: white;
         border: 1px solid #dc2626;
     }
+
     .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     .reports-section {
         background: #ffffff;
         border: 1px solid #e5e7eb;
@@ -66,143 +70,158 @@
         overflow: hidden;
         transition: box-shadow 0.3s ease;
     }
+
     .reports-section:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
     .reports-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    transform: translate(30px, -30px);
-}
-    .reports-header {
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    margin-bottom: 0.5rem;
-    position: relative;
-    z-index: 2;
-}
-    .reports-header i {
-    font-size: 1.5rem;
-    color: #6b7280;
-    background: #f3f4f6;
-    padding: 0.625rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-    .reports-section:hover .reports-header i {
-    background: #e5e7eb;
-    color: #374151;
-}
-   .reports-header h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
-    margin: 0;
-    letter-spacing: -0.01em;
-}
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
 
-    
-    ..reports-description {
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin-bottom: 1.25rem;
-    line-height: 1.6;
-    position: relative;
-    z-index: 2;
-    padding-left: 3rem;
+    .reports-header {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .reports-header i {
+        font-size: 1.5rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 0.625rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .reports-section:hover .reports-header i {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .reports-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+        letter-spacing: -0.01em;
     }
 
 
-    
-    .btn-report {
-    padding: 0.625rem 1.25rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-.btn-report::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-}
-.btn-report:hover::before {
-    left: 100%;
-}
- .btn-report-excel {
-    background: #10b981;
-    color: white;
-    border-color: #10b981;
-}
-    
-.btn-report-excel:hover {
-    background: #059669;
-    border-color: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-    color: white;
-}
-.btn-report-excel:hover,
-.btn-report-pdf:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-}
+    ..reports-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+        padding-left: 3rem;
+    }
 
-    
-  .btn-report-pdf {
-    background: #ef4444;
-    color: white;
-    border-color: #ef4444;
-}
-    
-.btn-report-pdf:hover {
-    background: #dc2626;
-    border-color: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-    color: white;
-}
-    
-.btn-report i {
-    font-size: 1rem;
-    transition: transform 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-.btn-report:hover i {
-    transform: scale(1.1);
-}
-.btn-report-alt {
-    background: #f9fafb;
-    color: #374151;
-    border-color: #e5e7eb;
-}
-.btn-report:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-.btn-report:active {
-    transform: translateY(0);
-}
+
+
+    .btn-report {
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-report::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-report:hover::before {
+        left: 100%;
+    }
+
+    .btn-report-excel {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
+    .btn-report-excel:hover {
+        background: #059669;
+        border-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        color: white;
+    }
+
+    .btn-report-excel:hover,
+    .btn-report-pdf:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+
+    .btn-report-pdf {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+    }
+
+    .btn-report-pdf:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        color: white;
+    }
+
+    .btn-report i {
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-report:hover i {
+        transform: scale(1.1);
+    }
+
+    .btn-report-alt {
+        background: #f9fafb;
+        color: #374151;
+        border-color: #e5e7eb;
+    }
+
+    .btn-report:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-report:active {
+        transform: translateY(0);
+    }
+
     .btn-report-alt:hover {
         background: #f3f4f6;
         border-color: #d1d5db;
@@ -627,45 +646,47 @@
         .closure-grid {
             grid-template-columns: 1fr;
         }
+
         .reports-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        position: relative;
-        z-index: 2;
-        padding-left: 3rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 2;
+            padding-left: 3rem;
         }
-    
+
     }
+
     @media (max-width: 768px) {
-    .reports-section {
-        padding: 1.5rem;
-    }
+        .reports-section {
+            padding: 1.5rem;
+        }
 
-    .reports-description,
-    .reports-buttons {
-        padding-left: 0;
-    }
+        .reports-description,
+        .reports-buttons {
+            padding-left: 0;
+        }
 
-    .reports-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
+        .reports-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
 
-    .btn-report {
-        width: 100%;
-        justify-content: center;
-    }
+        .btn-report {
+            width: 100%;
+            justify-content: center;
+        }
 
-    .reports-header h3 {
-        font-size: 1rem;
-    }
+        .reports-header h3 {
+            font-size: 1rem;
+        }
 
-    .reports-description {
-        font-size: 0.8125rem;
-        margin-bottom: 1rem;
+        .reports-description {
+            font-size: 0.8125rem;
+            margin-bottom: 1rem;
+        }
     }
-}
 
 
     @media (max-width: 480px) {
@@ -710,6 +731,7 @@
             opacity: 0;
             transform: translateY(-10px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -890,37 +912,40 @@
             flex: 1;
             justify-content: center;
         }
+
         .btn-report {
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    border: 1px solid;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-.btn-report::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transform: translate(-50%, -50%);
-    transition: width 0.4s ease, height 0.4s ease;
-}
-.btn-report:hover::after {
-    width: 300px;
-    height: 300px;
-}
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-report::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .btn-report:hover::after {
+            width: 300px;
+            height: 300px;
+        }
 
 
 
@@ -929,7 +954,7 @@
 
 <div class="p-6 bg-white rounded-lg shadow-md">
     <h2 class="text-xl font-bold mb-4 text-[#203363]">Lista de Cierres</h2>
-    
+
     <!-- Sección de Reportes -->
     <div class="reports-section">
         <div class="reports-header">
@@ -940,16 +965,16 @@
             Genere reportes completos de caja chica en formato Excel o PDF. Los filtros aplicados se incluirán en los reportes.
         </p>
         <div class="reports-buttons">
-            <a href="{{ route('petty-cash.export.excel', request()->query()) }}" 
-               class="btn-report btn-report-excel"
-               title="Descargar reporte en Excel">
+            <a href="{{ route('petty-cash.export.excel', request()->query()) }}"
+                class="btn-report btn-report-excel"
+                title="Descargar reporte en Excel">
                 <i class="fas fa-file-excel"></i>
                 <span>Exportar a Excel</span>
             </a>
-            <a href="{{ route('petty-cash.export.pdf', request()->query()) }}" 
-               class="btn-report btn-report-pdf"
-               target="_blank"
-               title="Descargar reporte en PDF">
+            <a href="{{ route('petty-cash.export.pdf', request()->query()) }}"
+                class="btn-report btn-report-pdf"
+                target="_blank"
+                title="Descargar reporte en PDF">
                 <i class="fas fa-file-pdf"></i>
                 <span>Exportar a PDF</span>
             </a>
@@ -1145,7 +1170,6 @@
                         <i class="fas fa-plus mr-1"></i> Agregar Gasto
                     </button>
                 </div>
-
                 <div class="expenses-container" id="expensesContainer">
                     <!-- Fila de gasto inicial -->
                     <div class="expense-row">
@@ -1208,46 +1232,41 @@
                 </div>
 
                 <!-- Formulario de cierre -->
-                <!-- En la sección de Resumen de Cierre -->
-<div class="closure-form-section">
-    <div class="section-container">
-        <h4 class="section-title">Resumen de Cierre</h4>
-        <div class="form-grid">
-            <div class="input-group mb-2">
-                <label for="total-gastos" class="small">Total Gastos</label>
-                <input type="number" id="total-gastos" class="form-control form-control-sm"
-                    value="{{ $totalExpenses }}" step="0.01" readonly
-                    style="background-color: #f8f9fa; font-weight: bold; color: #dc3545;">
-            </div>
-
-            <div class="input-group mb-2">
-                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
-                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
-                    value="{{ $totalSalesCash }}" step="0.01" 
-                    oninput="document.getElementById('total_sales_cash').value = this.value">
-            </div>
-
-            <div class="input-group mb-2">
-                <label for="ventas-qr" class="small">Ventas QR</label>
-                <input type="number" id="ventas-qr" class="form-control form-control-sm"
-                    value="{{ $totalSalesQR }}" step="0.01"
-                    oninput="document.getElementById('total_sales_qr').value = this.value">
-            </div>
-
-            <div class="input-group mb-2">
-                <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
-                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
-                    value="{{ $totalSalesCard }}" step="0.01"
-                    oninput="document.getElementById('total_sales_card').value = this.value">
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
-                    <i class="fas fa-save mr-1"></i> Guardar Cierre
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+                <div class="closure-form-section">
+                    <div class="section-container">
+                        <h4 class="section-title">Resumen de Cierre</h4>
+                        <div class="form-grid">
+                            <div class="input-group mb-2">
+                                <label for="total-gastos" class="small">Total Gastos</label>
+                                <input type="number" id="total-gastos" class="form-control form-control-sm"
+                                    value="{{ $totalExpenses }}" step="0.01" readonly>
+                            </div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
+                                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
+                                    value="{{ $totalSalesCash }}" step="0.01"
+                                    oninput="document.getElementById('total_sales_cash').value = this.value">
+                            </div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-qr" class="small">Ventas QR</label>
+                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                                    value="{{ $totalSalesQR }}" step="0.01"
+                                    oninput="document.getElementById('total_sales_qr').value = this.value">
+                            </div>
+                            <div class="input-group mb-2">
+                                <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
+                                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
+                                    value="{{ $totalSalesCard }}" step="0.01"
+                                    oninput="document.getElementById('total_sales_card').value = this.value">
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
+                                    <i class="fas fa-save mr-1"></i> Guardar Cierre
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1278,47 +1297,32 @@
             span.textContent = '$0.00';
         });
         document.getElementById('total').textContent = '$0.00';
-    
-        // Cargar gastos existentes desde la base de datos
-        loadExistingExpenses(id);
-    
-        // Cargar ventas existentes
+
+        // Limpiar completamente el contenedor de gastos y agregar solo UNA fila vacía
+        resetExpensesContainer();
+
+        // Cargar ventas y gastos existentes (solo mostrar el total de gastos)
         loadExistingSales(id);
     }
-    // Función para cargar gastos existentes desde la base de datos
-function loadExistingExpenses(pettyCashId) {
-    // Limpiar contenedor de gastos
-    const expensesContainer = document.getElementById('expensesContainer');
-    expensesContainer.innerHTML = '';
 
-    // Los gastos ya están disponibles en una variable PHP que pasamos a la vista
-    const existingExpenses = @json($existingExpenses);
-    
-    console.log('Gastos existentes:', existingExpenses);
-
-    if (existingExpenses && existingExpenses.length > 0) {
-        // Agregar cada gasto existente
-        existingExpenses.forEach(expense => {
-            addExpenseRow(expense.name, expense.description, expense.amount);
-        });
-    } else {
-        // Si no hay gastos, agregar una fila vacía
-        addExpenseRow();
+    // Función para resetear completamente el contenedor de gastos
+    function resetExpensesContainer() {
+        const expensesContainer = document.getElementById('expensesContainer');
+        // Limpiar todo el contenedor
+        expensesContainer.innerHTML = '';
+        // Agregar solo UNA fila vacía
+        addExpenseRow('', '', '');
     }
-    
-    // Calcular total de gastos
-    calculateTotalExpenses();
-}
-function addExpenseRow(name = '', description = '', amount = '') {
-    const expensesContainer = document.getElementById('expensesContainer');
 
-    const newExpenseRow = document.createElement('div');
-    newExpenseRow.className = 'expense-row';
-    newExpenseRow.innerHTML = `
+    function addExpenseRow(name = '', description = '', amount = '') {
+        const expensesContainer = document.getElementById('expensesContainer');
+        const newExpenseRow = document.createElement('div');
+        newExpenseRow.className = 'expense-row';
+        newExpenseRow.innerHTML = `
         <div class="expense-field">
             <input type="text" class="form-control form-control-sm expense-input" 
                    placeholder="Nombre del gasto" name="expense_name[]" 
-                   value="${name}" oninput="validateExpenseRow(this)">
+                   value="${name}" oninput="validateExpenseRow(this); calculateTotalExpenses()">
         </div>
         <div class="expense-field">
             <input type="text" class="form-control form-control-sm expense-input" 
@@ -1337,63 +1341,40 @@ function addExpenseRow(name = '', description = '', amount = '') {
             </button>
         </div>
     `;
-
-    expensesContainer.appendChild(newExpenseRow);
-}
-function addExpense() {
-    addExpenseRow();
-}
-function loadExistingSales(pettyCashId) {
-    // Usar los valores que ya tenemos en las variables PHP
-    document.getElementById('ventas-efectivo').value = {{ $totalSalesCash }};
-    document.getElementById('ventas-qr').value = {{ $totalSalesQR }};
-    document.getElementById('ventas-tarjeta').value = {{ $totalSalesCard }};
-    document.getElementById('total-gastos').value = {{ $totalExpenses }};
-}
-
-    // Función para agregar nuevo gasto en fila
-function addExpense() {
-    const expensesContainer = document.getElementById('expensesContainer');
-
-    const newExpenseRow = document.createElement('div');
-    newExpenseRow.className = 'expense-row';
-    newExpenseRow.innerHTML = `
-        <div class="expense-field">
-            <input type="text" class="form-control form-control-sm expense-input" 
-                   placeholder="Nombre del gasto" name="expense_name[]"
-                   oninput="validateExpenseRow(this)">
-        </div>
-        <div class="expense-field">
-            <input type="text" class="form-control form-control-sm expense-input" 
-                   placeholder="Descripción/Categoría" name="expense_description[]">
-        </div>
-        <div class="expense-field">
-            <input type="number" class="form-control form-control-sm expense-input" 
-                   placeholder="Monto" step="0.01" min="0" name="expense_amount[]" 
-                   oninput="calculateTotalExpenses(); validateExpenseRow(this)">
-        </div>
-        <div class="expense-actions">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" 
-                    onclick="removeExpense(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-
-    expensesContainer.appendChild(newExpenseRow);
-}
-function validateExpenseRow(input) {
-    const row = input.closest('.expense-row');
-    const nameInput = row.querySelector('input[name="expense_name[]"]');
-    const amountInput = row.querySelector('input[name="expense_amount[]"]');
-    
-    // Marcar como requerido si tiene algún valor
-    if (amountInput.value && !nameInput.value) {
-        nameInput.style.borderColor = '#f87171';
-    } else {
-        nameInput.style.borderColor = '';
+        expensesContainer.appendChild(newExpenseRow);
     }
-}
+
+
+    function addExpense() {
+        addExpenseRow('', '', '');
+    }
+
+    // Función para cargar ventas y total de gastos existentes desde la base de datos
+    function loadExistingSales(pettyCashId) {
+        // Cargar las ventas existentes
+        document.getElementById('ventas-efectivo').value = '{{ $totalSalesCash }}';
+        document.getElementById('ventas-qr').value = '{{ $totalSalesQR }}';
+        document.getElementById('ventas-tarjeta').value = '{{ $totalSalesCard }}';
+
+        // Cargar el total de gastos desde la base de datos
+        const existingExpenses = parseFloat('{{ $totalExpenses }}') || 0;
+        document.getElementById('total-gastos').value = existingExpenses.toFixed(2);
+        document.getElementById('total_expenses').value = existingExpenses.toFixed(2);
+    }
+
+    function validateExpenseRow(input) {
+        const row = input.closest('.expense-row');
+        const nameInput = row.querySelector('input[name="expense_name[]"]');
+        const amountInput = row.querySelector('input[name="expense_amount[]"]');
+
+        // Marcar como requerido si tiene algún valor
+        if (amountInput.value && !nameInput.value) {
+            nameInput.style.borderColor = '#f87171';
+        } else {
+            nameInput.style.borderColor = '';
+        }
+    }
+
     // Función para eliminar fila de gasto
     function removeExpense(button) {
         const expenseRow = button.closest('.expense-row');
@@ -1408,6 +1389,7 @@ function validateExpenseRow(input) {
         }
     }
 
+
     // Función para cerrar el modal
     function closeModal() {
         document.getElementById('modal').classList.remove('active');
@@ -1420,10 +1402,8 @@ function validateExpenseRow(input) {
             const denominacion = parseFloat(input.getAttribute('data-denominacion'));
             const cantidad = parseFloat(input.value) || 0;
             const subtotal = denominacion * cantidad;
-
             const subtotalElement = input.closest('tr').querySelector('.subtotal');
             subtotalElement.textContent = `${subtotal.toFixed(2)}`;
-
             total += subtotal;
         });
 
@@ -1432,161 +1412,151 @@ function validateExpenseRow(input) {
         document.getElementById('total_sales_cash').value = total.toFixed(2);
     }
 
-    // Calcular total de gastos
+    // Calcular total de gastos NUEVOS (de los inputs del modal)
     function calculateTotalExpenses() {
-    let total = 0;
-    let hasValidExpenses = false;
-    
-    document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
-        const value = parseFloat(input.value);
-        const nameInput = input.closest('.expense-row').querySelector('input[name="expense_name[]"]');
-        const name = nameInput ? nameInput.value.trim() : '';
-        
-        // Solo contar gastos que tengan nombre y monto válido
-        if (name && !isNaN(value) && value > 0) {
-            total += value;
-            hasValidExpenses = true;
+        let totalNewExpenses = 0;
+        let hasValidExpenses = false;
+
+        // Calcular solo los gastos nuevos agregados en el modal
+        document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
+            const value = parseFloat(input.value);
+            const nameInput = input.closest('.expense-row').querySelector('input[name="expense_name[]"]');
+            const name = nameInput ? nameInput.value.trim() : '';
+
+            // Solo contar gastos que tengan nombre y monto válido
+            if (name && !isNaN(value) && value > 0) {
+                totalNewExpenses += value;
+                hasValidExpenses = true;
+            }
+        });
+
+        // Obtener el total de gastos existentes desde la base de datos
+        const existingExpenses = parseFloat('{{ $totalExpenses }}') || 0;
+
+        // El total final es la suma de gastos existentes + gastos nuevos
+        const totalExpenses = existingExpenses + totalNewExpenses;
+
+        // CAMBIO PRINCIPAL: Actualizar el campo VISIBLE de total-gastos
+        const totalGastosElement = document.getElementById('total-gastos');
+        if (totalGastosElement) {
+            totalGastosElement.value = totalExpenses.toFixed(2);
         }
-    });
-    
-    const totalGastosElement = document.getElementById('total-gastos');
-    const totalExpensesElement = document.getElementById('total_expenses');
-    
-    if (totalGastosElement) {
-        totalGastosElement.value = total.toFixed(2);
+
+        // Actualizar el campo oculto que se enviará al servidor
+        const totalExpensesElement = document.getElementById('total_expenses');
+        if (totalExpensesElement) {
+            totalExpensesElement.value = totalExpenses.toFixed(2);
+        }
+
+        console.log('Gastos existentes (BD):', existingExpenses.toFixed(2));
+        console.log('Gastos nuevos (Modal):', totalNewExpenses.toFixed(2));
+        console.log('Total gastos final:', totalExpenses.toFixed(2));
+
+        return totalExpenses;
     }
-    if (totalExpensesElement) {
-        totalExpensesElement.value = total.toFixed(2);
-    }
-    
-    console.log('Total gastos calculado:', total, 'Gastos válidos:', hasValidExpenses);
-    return total;
-}
+
 
     // Guardar el cierre
-function saveClosure() {
-    const pettyCashId = document.getElementById('petty_cash_id').value;
-    const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo').value) || 0;
-    const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
-    const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
-    const totalExpenses = calculateTotalExpenses();
+    function saveClosure() {
+        const pettyCashId = document.getElementById('petty_cash_id').value;
+        const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo').value) || 0;
+        const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
+        const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
+        const totalExpenses = calculateTotalExpenses();
 
-    if (!pettyCashId) {
-        alert('Error: No se ha seleccionado una caja chica');
-        return;
-    }
-
-    // Validar que al menos haya un valor ingresado
-    if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && totalExpenses === 0) {
-        if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
+        if (!pettyCashId) {
+            alert('Error: No se ha seleccionado una caja chica');
             return;
         }
-    }
 
-    // Recopilar datos de gastos de manera más robusta
-    const expenses = [];
-    let validExpenses = 0;
-    
-    document.querySelectorAll('.expense-row').forEach((row, index) => {
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const descriptionInput = row.querySelector('input[name="expense_description[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const description = descriptionInput ? descriptionInput.value.trim() : '';
-        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
-        // Solo incluir gastos que tengan nombre y monto válido
-        if (name && amount > 0) {
-            expenses.push({
-                name: name,
-                description: description,
-                amount: amount
-            });
-            validExpenses++;
+        // Validar que al menos haya un valor ingresado
+        const existingExpenses = parseFloat('{{ $totalExpenses }}') || 0;
+        if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && existingExpenses === 0) {
+            if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
+                return;
+            }
         }
-    });
 
-    console.log('Datos a enviar:', {
-        petty_cash_id: pettyCashId,
-        total_sales_cash: totalSalesCash,
-        total_sales_qr: totalSalesQR,
-        total_sales_card: totalSalesCard,
-        total_expenses: totalExpenses,
-        expenses: expenses
-    });
+        // Recopilar datos de gastos NUEVOS solamente
+        const expenses = [];
+        let validExpenses = 0;
 
-    // Mostrar loading
-    const saveBtn = document.querySelector('.save-btn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...';
-    saveBtn.disabled = true;
+        document.querySelectorAll('.expense-row').forEach((row, index) => {
+            const nameInput = row.querySelector('input[name="expense_name[]"]');
+            const descriptionInput = row.querySelector('input[name="expense_description[]"]');
+            const amountInput = row.querySelector('input[name="expense_amount[]"]');
 
-    // Enviar el formulario
-    fetch("{{ route('petty-cash.save-closure') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                petty_cash_id: pettyCashId,
-                total_sales_cash: totalSalesCash,
-                total_sales_qr: totalSalesQR,
-                total_sales_card: totalSalesCard,
-                total_expenses: totalExpenses,
-                expenses: expenses
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta del servidor: ' + response.status);
+            const name = nameInput ? nameInput.value.trim() : '';
+            const description = descriptionInput ? descriptionInput.value.trim() : '';
+            const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
+
+            // Solo incluir gastos que tengan nombre y monto válido
+            if (name && amount > 0) {
+                expenses.push({
+                    name: name,
+                    description: description,
+                    amount: amount
+                });
+                validExpenses++;
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert('Cierre guardado correctamente. Gastos registrados: ' + (data.data.expenses_count || 0));
-                window.location.reload();
-            } else {
-                throw new Error(data.message || 'No se pudo guardar el cierre');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar el cierre: ' + error.message);
-        })
-        .finally(() => {
-            // Restaurar botón
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
         });
-}
 
-// Función mejorada para calcular total de gastos
-function calculateTotalExpenses() {
-    let total = 0;
-    document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
-        const value = parseFloat(input.value);
-        if (!isNaN(value) && value > 0) {
-            total += value;
-        }
-    });
-    
-    const totalGastosElement = document.getElementById('total-gastos');
-    const totalExpensesElement = document.getElementById('total_expenses');
-    
-    if (totalGastosElement) {
-        totalGastosElement.value = total.toFixed(2);
+        console.log('Datos a enviar:', {
+            petty_cash_id: pettyCashId,
+            total_sales_cash: totalSalesCash,
+            total_sales_qr: totalSalesQR,
+            total_sales_card: totalSalesCard,
+            total_expenses: totalExpenses,
+            expenses: expenses
+        });
+
+        // Mostrar loading
+        const saveBtn = document.querySelector('.save-btn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...';
+        saveBtn.disabled = true;
+
+        // Enviar el formulario
+        fetch("{{ route('petty-cash.save-closure') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    petty_cash_id: pettyCashId,
+                    total_sales_cash: totalSalesCash,
+                    total_sales_qr: totalSalesQR,
+                    total_sales_card: totalSalesCard,
+                    total_expenses: totalExpenses,
+                    expenses: expenses
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Cierre guardado correctamente. Gastos registrados: ' + (data.data.expenses_count || 0));
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message || 'No se pudo guardar el cierre');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al guardar el cierre: ' + error.message);
+            })
+            .finally(() => {
+                // Restaurar botón
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
     }
-    if (totalExpensesElement) {
-        totalExpensesElement.value = total.toFixed(2);
-    }
-    
-    console.log('Total gastos calculado:', total);
-    return total;
-}
 
     // Cerrar todas las cajas abiertas
     function closeOpenPettyCash() {
@@ -1620,12 +1590,17 @@ function calculateTotalExpenses() {
             input.addEventListener('input', calcularTotal);
         });
 
-        // Escuchar cambios en los inputs de gastos
+        // Escuchar cambios en los inputs de gastos (nombre y monto)
         document.addEventListener('input', function(e) {
-            if (e.target && e.target.matches('input[name="expense_amount[]"]')) {
+            if (e.target && (
+                    e.target.matches('input[name="expense_amount[]"]') ||
+                    e.target.matches('input[name="expense_name[]"]')
+                )) {
                 calculateTotalExpenses();
             }
         });
+
+        // Calcular total inicial
         calculateTotalExpenses();
     });
 </script>

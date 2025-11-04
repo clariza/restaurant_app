@@ -234,7 +234,7 @@ class PettyCashController extends Controller
 
     public function saveClosure(Request $request)
     {
-        // ✅ CORREGIDO: Usar Validator sin la barra invertida
+        // ✅ Validación de datos
         $validator = Validator::make($request->all(), [
             'petty_cash_id' => 'required|exists:petty_cash,id',
             'total_sales_cash' => 'required|numeric|min:0',
@@ -242,9 +242,9 @@ class PettyCashController extends Controller
             'total_sales_card' => 'required|numeric|min:0',
             'total_expenses' => 'required|numeric|min:0',
             'expenses' => 'nullable|array',
-            'expenses.*.name' => 'required|string|max:255',
+            'expenses.*.name' => 'required_with:expenses.*.amount|string|max:255',
             'expenses.*.description' => 'nullable|string|max:500',
-            'expenses.*.amount' => 'required|numeric|min:0',
+            'expenses.*.amount' => 'required_with:expenses.*.name|numeric|min:0.01',
         ]);
 
         if ($validator->fails()) {
@@ -282,17 +282,20 @@ class PettyCashController extends Controller
                 'status' => 'closed',
             ]);
 
-            // Guardar los gastos si existen
+            // ✅ CORREGIDO: Guardar los gastos con todos los campos requeridos
+            $expensesCreated = 0;
             if ($request->has('expenses') && is_array($request->expenses)) {
                 foreach ($request->expenses as $expenseData) {
                     // Solo crear el gasto si tiene nombre y monto mayor a 0
                     if (!empty($expenseData['name']) && floatval($expenseData['amount']) > 0) {
                         Expense::create([
                             'petty_cash_id' => $pettyCash->id,
-                            'name' => $expenseData['name'],
+                            'expense_name' => $expenseData['name'], // ✅ IMPORTANTE: usar expense_name
                             'description' => $expenseData['description'] ?? null,
                             'amount' => floatval($expenseData['amount']),
+                            'date' => now()->toDateString(), // ✅ AGREGAR: campo date requerido
                         ]);
+                        $expensesCreated++;
                     }
                 }
             }
@@ -304,7 +307,7 @@ class PettyCashController extends Controller
                 'message' => 'Cierre de caja guardado correctamente',
                 'data' => [
                     'petty_cash' => $pettyCash,
-                    'expenses_count' => $pettyCash->expenses()->count()
+                    'expenses_count' => $expensesCreated
                 ]
             ]);
         } catch (\Exception $e) {
