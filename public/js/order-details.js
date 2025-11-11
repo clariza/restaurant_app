@@ -215,17 +215,28 @@ function syncLocalStorageWithDOM(defaults) {
     }
 }
 function removeItem(index) {
-    console.log('🗑️ Eliminando item índice:', index);
+    console.log('🗑️ Disminuyendo cantidad del item índice:', index);
 
     try {
         const order = JSON.parse(localStorage.getItem('order')) || [];
 
         if (index >= 0 && index < order.length) {
-            const removedItem = order.splice(index, 1)[0];
-            console.log('📤 Item removido:', removedItem);
+            const item = order[index];
+            
+            // Si la cantidad es mayor a 1, solo disminuir
+            if (item.quantity > 1) {
+                item.quantity -= 1;
+                console.log(`📉 Cantidad reducida a: ${item.quantity}`);
+            } else {
+                // Si la cantidad es 1, eliminar el item completamente
+                order.splice(index, 1);
+                console.log('🗑️ Item eliminado completamente del pedido');
+            }
 
+            // Guardar cambios en localStorage
             localStorage.setItem('order', JSON.stringify(order));
 
+            // Actualizar la interfaz
             if (typeof window.updateOrderDetails === 'function') {
                 window.updateOrderDetails();
             } else {
@@ -234,7 +245,7 @@ function removeItem(index) {
             }
         }
     } catch (error) {
-        console.error('Error en removeItem:', error);
+        console.error('❌ Error en removeItem:', error);
     }
 }
 /**
