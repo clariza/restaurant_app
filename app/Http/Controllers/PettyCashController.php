@@ -143,7 +143,9 @@ class PettyCashController extends Controller
         }
 
         // Obtener todas las cajas chicas con filtros aplicados
-        $pettyCashes = $query->orderBy('date', 'desc')->paginate(10);
+        $pettyCashes = $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
+            ->orderBy('date', 'desc')
+            ->paginate(10);
 
         // Obtener todos los usuarios para el select
         $users = User::select('id', 'name')->orderBy('name')->get();
@@ -160,8 +162,8 @@ class PettyCashController extends Controller
             'totalSales',
             'hasOpenPettyCash',
             'users',
-            'existingExpenses', // ✅ AGREGAR gastos existentes
-            'openPettyCash'     // ✅ AGREGAR caja abierta
+            'existingExpenses',
+            'openPettyCash'
         ));
     }
 
@@ -425,6 +427,7 @@ class PettyCashController extends Controller
             $query->whereDate('date', '<=', $filters['date_to']);
         }
 
-        return $query->orderBy('date', 'desc');
+        return $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
+            ->orderBy('date', 'desc');
     }
 }

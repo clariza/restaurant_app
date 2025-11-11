@@ -119,7 +119,7 @@
     }
 
 
-    ..reports-description {
+    .reports-description {
         color: #6b7280;
         font-size: 0.875rem;
         margin-bottom: 1.25rem;
@@ -1212,7 +1212,7 @@
                                         <td class="text-left">${{ number_format($denominacion, 2) }}</td>
                                         <td>
                                             <input type="number" min="0" class="form-control form-control-sm denomination-input contar-input"
-                                                data-denominacion="{{ $denominacion }}" placeholder="0">
+                                                data-denominacion="{{ $denominacion }}" placeholder="0" oninput="calcularTotalDenominaciones()">
                                         </td>
                                         <td class="text-right">
                                             <span class="subtotal">$0.00</span>
@@ -1242,10 +1242,9 @@
                                     value="{{ $totalExpenses }}" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
-                                <label for="ventas-efectivo" class="small">Ventas en Efectivo</label>
-                                <input type="number" id="ventas-efectivo" class="form-control form-control-sm"
-                                    value="{{ $totalSalesCash }}" step="0.01"
-                                    oninput="document.getElementById('total_sales_cash').value = this.value">
+                                <label for="total-efectivo" class="small">Total Efectivo</label>
+                                <input type="number" id="total-efectivo" class="form-control form-control-sm"
+                                    value="0" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-qr" class="small">Ventas QR</label>
@@ -1260,9 +1259,9 @@
                                     oninput="document.getElementById('total_sales_card').value = this.value">
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn btn-primary btn-sm save-btn" onclick="saveClosure()">
-                                    <i class="fas fa-save mr-1"></i> Guardar Cierre
-                                </button>
+                                <button type="button" class="btn btn-primary btn-sm save-btn" >
+    <i class="fas fa-save mr-1"></i> Guardar Cierre
+</button>
                             </div>
                         </div>
                     </div>
@@ -1276,7 +1275,7 @@
 <form id="closureForm" action="{{ route('petty-cash.save-closure') }}" method="POST" class="hidden">
     @csrf
     <input type="hidden" name="petty_cash_id" id="petty_cash_id">
-    <input type="hidden" name="total_sales_cash" id="total_sales_cash" value="{{ $totalSalesCash }}">
+    <input type="hidden" name="total_sales_cash" id="total_sales_cash" value="0">
     <input type="hidden" name="total_sales_qr" id="total_sales_qr" value="{{ $totalSalesQR }}">
     <input type="hidden" name="total_sales_card" id="total_sales_card" value="{{ $totalSalesCard }}">
     <input type="hidden" name="total_expenses" id="total_expenses" value="{{ $totalExpenses }}">
@@ -1297,6 +1296,10 @@
             span.textContent = '$0.00';
         });
         document.getElementById('total').textContent = '$0.00';
+
+        // Limpiar campo de Total Efectivo
+        document.getElementById('total-efectivo').value = '0';
+        document.getElementById('total_sales_cash').value = '0';
 
         // Limpiar completamente el contenedor de gastos y agregar solo UNA fila vacía
         resetExpensesContainer();
@@ -1352,7 +1355,6 @@
     // Función para cargar ventas y total de gastos existentes desde la base de datos
     function loadExistingSales(pettyCashId) {
         // Cargar las ventas existentes
-        document.getElementById('ventas-efectivo').value = '{{ $totalSalesCash }}';
         document.getElementById('ventas-qr').value = '{{ $totalSalesQR }}';
         document.getElementById('ventas-tarjeta').value = '{{ $totalSalesCard }}';
 
@@ -1395,24 +1397,26 @@
         document.getElementById('modal').classList.remove('active');
     }
 
-    // Calcular subtotales y total
-    function calcularTotal() {
-        let total = 0;
-        document.querySelectorAll('.contar-input').forEach(input => {
-            const denominacion = parseFloat(input.getAttribute('data-denominacion'));
-            const cantidad = parseFloat(input.value) || 0;
-            const subtotal = denominacion * cantidad;
-            const subtotalElement = input.closest('tr').querySelector('.subtotal');
-            subtotalElement.textContent = `${subtotal.toFixed(2)}`;
-            total += subtotal;
-        });
+    function calcularTotalDenominaciones() {
+    let total = 0;
+    document.querySelectorAll('.denomination-input').forEach(input => {
+        const denominacion = parseFloat(input.getAttribute('data-denominacion'));
+        const cantidad = parseFloat(input.value) || 0;
+        const subtotal = denominacion * cantidad;
+        const subtotalElement = input.closest('tr').querySelector('.subtotal');
+        subtotalElement.textContent = `$${subtotal.toFixed(2)}`; // ← CORREGIDO: Agregado símbolo $
+        total += subtotal;
+    });
 
-        document.getElementById('total').textContent = `${total.toFixed(2)}`;
-        document.getElementById('ventas-efectivo').value = total.toFixed(2);
-        document.getElementById('total_sales_cash').value = total.toFixed(2);
-    }
+    // Actualizar el total visual en la tabla de denominaciones
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    
+    // ACTUALIZAR AUTOMÁTICAMENTE el campo "Total Efectivo" en el formulario
+    document.getElementById('total-efectivo').value = total.toFixed(2);
+    document.getElementById('total_sales_cash').value = total.toFixed(2);
+}
 
-    // Calcular total de gastos NUEVOS (de los inputs del modal)
+
     function calculateTotalExpenses() {
         let totalNewExpenses = 0;
         let hasValidExpenses = false;
@@ -1436,7 +1440,7 @@
         // El total final es la suma de gastos existentes + gastos nuevos
         const totalExpenses = existingExpenses + totalNewExpenses;
 
-        // CAMBIO PRINCIPAL: Actualizar el campo VISIBLE de total-gastos
+        // Actualizar el campo VISIBLE de total-gastos
         const totalGastosElement = document.getElementById('total-gastos');
         if (totalGastosElement) {
             totalGastosElement.value = totalExpenses.toFixed(2);
@@ -1458,8 +1462,14 @@
 
     // Guardar el cierre
     function saveClosure() {
+         console.log('🔍 saveClosure llamado', new Date().toISOString());
+        if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
         const pettyCashId = document.getElementById('petty_cash_id').value;
-        const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo').value) || 0;
+        const totalSalesCash = parseFloat(document.getElementById('total-efectivo').value) || 0;
         const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
         const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
         const totalExpenses = calculateTotalExpenses();
@@ -1586,8 +1596,9 @@
 
     // Event listeners para cálculos automáticos
     document.addEventListener('DOMContentLoaded', function() {
+        // Los inputs de denominaciones actualizan automáticamente el Total Efectivo
         document.querySelectorAll('.contar-input').forEach(input => {
-            input.addEventListener('input', calcularTotal);
+            input.addEventListener('input', calcularTotalDenominaciones);
         });
 
         // Escuchar cambios en los inputs de gastos (nombre y monto)
@@ -1603,5 +1614,24 @@
         // Calcular total inicial
         calculateTotalExpenses();
     });
+    document.addEventListener('DOMContentLoaded', function() {
+    // Los inputs de denominaciones actualizan automáticamente el Total Efectivo
+    document.querySelectorAll('.denomination-input').forEach(input => {
+        input.addEventListener('input', calcularTotalDenominaciones);
+    });
+
+    // Escuchar cambios en los inputs de gastos (nombre y monto)
+    document.addEventListener('input', function(e) {
+        if (e.target && (
+                e.target.matches('input[name="expense_amount[]"]') ||
+                e.target.matches('input[name="expense_name[]"]')
+            )) {
+            calculateTotalExpenses();
+        }
+    });
+
+    // Calcular total inicial
+    calculateTotalExpenses();
+});
 </script>
 @endsection

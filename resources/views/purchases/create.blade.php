@@ -127,20 +127,38 @@
                 </a>
             </div>
 
-            <!-- Tabla mejorada -->
+            <!-- Tabla actualizada con nuevas columnas -->
             <div class="overflow-x-auto rounded-lg border border-[var(--gray-light)] shadow-sm">
                 <table class="w-full border-collapse text-xs">
                     <thead>
                         <tr class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] text-white">
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20">#</th>
-                            <th class="px-3 py-3 text-left font-semibold border-r border-white/20 min-w-[200px]">Producto</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Cantidad</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Costo Unit.<br/>(antes desc.)</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Costo Unit.<br/>(después desc.)</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20">Total</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Precio Venta</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Desc. %</th>
-                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">Fecha Cad.</th>
+                            <th class="px-3 py-3 text-left font-semibold border-r border-white/20 min-w-[200px]">
+                                <i class="fas fa-box mr-2"></i>PRODUCTO
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-sort-numeric-up mr-1"></i>CANTIDAD
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-dollar-sign mr-1"></i>COSTO UNITARIO<br/>(ANTES DE DESC.)
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-percentage mr-1"></i>DESCUENTO
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-dollar-sign mr-1"></i>COSTO UNITARIO<br/>(DESPUÉS DE DESC.)
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20">
+                                <i class="fas fa-calculator mr-1"></i>TOTAL
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-chart-line mr-1"></i>MARGEN DE<br/>UTILIDAD
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-tag mr-1"></i>PRECIO DE<br/>VENTA
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-calendar-times mr-1"></i>FECHA DE<br/>CADUCIDAD
+                            </th>
                             <th class="px-3 py-3 text-center font-semibold w-12">
                                 <i class="fas fa-trash-alt"></i>
                             </th>
@@ -256,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                // Mostrar mensaje de éxito y redirigir
                 alert(data.message);
                 window.location.href = data.redirect_url || "{{ route('purchases.index') }}";
             } else {
@@ -314,7 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors duration-150';
         row.innerHTML = `
-            <td class="px-3 py-3 text-center text-[var(--text-color)] font-medium border-r border-[var(--gray-light)]">${productRowCounter}</td>
             <td class="px-3 py-3 border-r border-[var(--gray-light)]">
                 <div class="font-medium text-[var(--text-color)]">${escapeHtml(product.name)}</div>
                 <div class="text-xs text-gray-500 mt-1">
@@ -333,9 +349,12 @@ document.addEventListener('DOMContentLoaded', function() {
                        step="0.01" min="0" placeholder="0.00" required>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][discount]" value="0"
-                       class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                       step="0.1" min="0" max="100" placeholder="0.0">
+                <div class="flex items-center justify-center gap-1">
+                    <input type="number" name="products[${productRowCounter}][discount]" value="0"
+                           class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                           step="0.1" min="0" max="100" placeholder="0.0">
+                    <span class="text-gray-500">%</span>
+                </div>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
@@ -348,8 +367,11 @@ document.addEventListener('DOMContentLoaded', function() {
                        step="0.01" min="0" readonly placeholder="0.00">
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="profit-margin font-semibold text-sm" style="color: #28a745;">-</div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][selling_price]" value="${(product.price || 0).toFixed(2)}" 
-                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1" 
+                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
                        step="0.01" min="0" required>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
@@ -366,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
         productsTableBody.appendChild(row);
         
         // Agregar event listeners
-        row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input').forEach(input => {
+        row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input, .selling-price').forEach(input => {
             input.addEventListener('input', updateRowCalculations);
             input.addEventListener('change', updateRowCalculations);
         });
@@ -374,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
         row.querySelector('.remove-product').addEventListener('click', function() {
             row.remove();
             updateTotals();
-            renumberRows();
         });
 
         // Calcular valores iniciales
@@ -388,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
         const unitCost = parseFloat(row.querySelector('.unit-cost-input').value) || 0;
         const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
+        const sellingPrice = parseFloat(row.querySelector('.selling-price').value) || 0;
         
         if (unitCost > 0) {
             const discountAmount = unitCost * (discount / 100);
@@ -396,9 +418,29 @@ document.addEventListener('DOMContentLoaded', function() {
             
             row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
             row.querySelector('.line-total').value = lineTotal.toFixed(2);
+            
+            // Calcular margen de utilidad
+            if (sellingPrice > 0 && unitCostAfterDiscount > 0) {
+                const profitMargin = ((sellingPrice - unitCostAfterDiscount) / unitCostAfterDiscount) * 100;
+                const profitMarginElement = row.querySelector('.profit-margin');
+                profitMarginElement.textContent = profitMargin.toFixed(2) + '%';
+                
+                // Cambiar color según el margen
+                if (profitMargin < 0) {
+                    profitMarginElement.style.color = '#dc3545'; // Rojo
+                } else if (profitMargin < 20) {
+                    profitMarginElement.style.color = '#ffc107'; // Amarillo
+                } else {
+                    profitMarginElement.style.color = '#28a745'; // Verde
+                }
+            } else {
+                row.querySelector('.profit-margin').textContent = '-';
+                row.querySelector('.profit-margin').style.color = '#6c757d';
+            }
         } else {
             row.querySelector('.unit-cost-after-discount').value = '';
             row.querySelector('.line-total').value = '';
+            row.querySelector('.profit-margin').textContent = '-';
         }
         
         updateTotals();
@@ -418,15 +460,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         totalProductsSpan.textContent = totalProducts;
         totalAmountSpan.textContent = 'Bs. ' + totalAmount.toFixed(2);
-    }
-
-    // Renumerar filas
-    function renumberRows() {
-        const rows = productsTableBody.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            row.querySelector('td:first-child').textContent = index + 1;
-        });
-        productRowCounter = rows.length;
     }
 
     // Escapar HTML

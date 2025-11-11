@@ -11,10 +11,10 @@ use Carbon\Carbon;
 use App\Models\Category;
 use App\Models\Stock;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
 {
-
     public function index(Request $request)
     {
         $query = Purchase::with('supplier');
@@ -72,10 +72,11 @@ class PurchaseController extends Controller
             'statistics'
         ));
     }
+
     public function create()
     {
         $suppliers = Supplier::all();
-        $categorias = Category::all(); // Obtener todas las categorías
+        $categorias = Category::all();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         return view('purchases.create', compact('suppliers', 'hasOpenPettyCash', 'categorias'));
     }
@@ -89,6 +90,7 @@ class PurchaseController extends Controller
 
         return $this->storeWeb($request);
     }
+
     protected function storeWeb(Request $request)
     {
         $validatedData = $request->validate([
@@ -105,6 +107,8 @@ class PurchaseController extends Controller
         ]);
 
         try {
+            DB::beginTransaction();
+
             $totalAmount = $this->calculateTotalAmount($request->products);
 
             $purchase = Purchase::create([
@@ -117,21 +121,18 @@ class PurchaseController extends Controller
 
             $this->processPurchaseProducts($purchase, $request->products);
 
+            DB::commit();
+
             return redirect()->route('purchases.index')
                 ->with('success', 'Compra registrada exitosamente. ID: ' . $purchase->id);
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()
                 ->with('error', 'Error al registrar la compra: ' . $e->getMessage())
                 ->withInput();
         }
     }
-    protected function calculateTotalAmount($products)
-    {
-        return collect($products)->sum(function ($product) {
-            $unitCostAfterDiscount = $product['unit_cost'] * (1 - ($product['discount'] / 100));
-            return $product['quantity'] * $unitCostAfterDiscount;
-        });
-    }
+
     protected function storeJson(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -156,6 +157,8 @@ class PurchaseController extends Controller
         }
 
         try {
+            DB::beginTransaction();
+
             $totalAmount = $this->calculateTotalAmount($request->products);
 
             $purchase = Purchase::create([
@@ -168,6 +171,8 @@ class PurchaseController extends Controller
 
             $this->processPurchaseProducts($purchase, $request->products);
 
+            DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Compra registrada exitosamente',
@@ -175,36 +180,67 @@ class PurchaseController extends Controller
                 'redirect_url' => route('purchases.index')
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error al registrar la compra: ' . $e->getMessage()
             ], 500);
         }
     }
+
+    protected function calculateTotalAmount($products)
+    {
+        return collect($products)->sum(function ($product) {
+            $discount = isset($product['discount']) ? floatval($product['discount']) : 0;
+            $unitCostAfterDiscount = floatval($product['unit_cost']) * (1 - ($discount / 100));
+            return intval($product['quantity']) * $unitCostAfterDiscount;
+        });
+    }
+
     protected function processPurchaseProducts($purchase, $products)
     {
         foreach ($products as $productData) {
-            $unitCostAfterDiscount = $productData['unit_cost'] * (1 - ($productData['discount'] / 100));
-            $totalCost = $productData['quantity'] * $unitCostAfterDiscount;
+            $discount = isset($productData['discount']) ? floatval($productData['discount']) : 0;
+            $unitCost = floatval($productData['unit_cost']);
+            $quantity = intval($productData['quantity']);
+            $sellingPrice = floatval($productData['selling_price']);
 
+            // Calcular costo unitario después del descuento
+            $unitCostAfterDiscount = $unitCost * (1 - ($discount / 100));
+            $totalCost = $quantity * $unitCostAfterDiscount;
+
+            // Calcular margen de utilidad
+            $profitMargin = 0;
+            if ($unitCostAfterDiscount > 0) {
+                $profitMargin = (($sellingPrice - $unitCostAfterDiscount) / $unitCostAfterDiscount) * 100;
+            }
+
+            // Crear registro en Stock
             Stock::create([
                 'product_id' => $productData['product_id'],
                 'purchase_id' => $purchase->id,
-                'quantity' => $productData['quantity'],
-                'unit_cost' => $productData['unit_cost'],
-                'discount' => $productData['discount'] ?? 0,
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'discount' => $discount,
                 'total_cost' => $totalCost,
-                'selling_price' => $productData['selling_price'],
-                'expiry_date' => $productData['expiry_date'] ?? null,
+                'selling_price' => $sellingPrice,
+                'profit_margin' => $profitMargin, // Guardar margen de utilidad
+                'expiry_date' => isset($productData['expiry_date']) ? $productData['expiry_date'] : null,
             ]);
 
             // Actualizar el stock del producto
             $menuItem = MenuItem::find($productData['product_id']);
             if ($menuItem) {
-                $menuItem->increment('stock', $productData['quantity']);
+                $menuItem->increment('stock', $quantity);
+
+                // Actualizar el precio de venta del producto si es diferente
+                if ($menuItem->price != $sellingPrice) {
+                    $menuItem->update(['price' => $sellingPrice]);
+                }
             }
         }
     }
+
     public function edit(Purchase $purchase)
     {
         $suppliers = Supplier::all();
@@ -222,13 +258,12 @@ class PurchaseController extends Controller
         ]);
 
         $purchaseData = $request->all();
-        // Mantenemos la fecha original de la compra al actualizar
-        // Si quisieras actualizar la fecha también, usarías:
-        // $purchaseData['purchase_date'] = Carbon::now();
-
         $purchase->update($purchaseData);
-        return redirect()->route('purchases.index')->with('success', 'Compra actualizada exitosamente.');
+
+        return redirect()->route('purchases.index')
+            ->with('success', 'Compra actualizada exitosamente.');
     }
+
     public function searchProducts(Request $request)
     {
         try {
@@ -257,6 +292,7 @@ class PurchaseController extends Controller
             ], 500);
         }
     }
+
     public function getProductDetails($id)
     {
         $product = MenuItem::with('category')->findOrFail($id);
@@ -265,14 +301,37 @@ class PurchaseController extends Controller
 
     public function destroy(Purchase $purchase)
     {
-        $purchase->delete();
-        return redirect()->route('purchases.index')->with('success', 'Compra eliminada exitosamente.');
+        try {
+            DB::beginTransaction();
+
+            // Revertir el stock de los productos
+            foreach ($purchase->stocks as $stock) {
+                $menuItem = MenuItem::find($stock->product_id);
+                if ($menuItem) {
+                    $menuItem->decrement('stock', $stock->quantity);
+                }
+            }
+
+            // Eliminar los stocks asociados
+            $purchase->stocks()->delete();
+
+            // Eliminar la compra
+            $purchase->delete();
+
+            DB::commit();
+
+            return redirect()->route('purchases.index')
+                ->with('success', 'Compra eliminada exitosamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Error al eliminar la compra: ' . $e->getMessage());
+        }
     }
 
     public function checkOpen()
     {
         try {
-            // Verificar si hay cajas chicas abiertas
             $hasOpen = PettyCash::where('status', 'open')->exists();
 
             return response()->json([
@@ -285,6 +344,7 @@ class PurchaseController extends Controller
             ], 500);
         }
     }
+
     public function show(Purchase $purchase)
     {
         // Cargar las relaciones necesarias
