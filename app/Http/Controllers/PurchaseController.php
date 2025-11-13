@@ -243,25 +243,79 @@ class PurchaseController extends Controller
 
     public function edit(Purchase $purchase)
     {
+        // Verificar que la compra esté en estado pendiente
+        if ($purchase->status !== 'pending') {
+            return redirect()->route('purchases.show', $purchase->id)
+                ->with('error', 'Solo se pueden editar compras en estado pendiente.');
+        }
+
         $suppliers = Supplier::all();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+
+        // Cargar la compra con sus relaciones
+        $purchase->load(['supplier', 'stocks.item.category']);
+
         return view('purchases.edit', compact('purchase', 'suppliers', 'hasOpenPettyCash'));
     }
-
     public function update(Request $request, Purchase $purchase)
     {
+        // Validar que la compra esté en estado pendiente
+        if ($purchase->status !== 'pending') {
+            return redirect()->route('purchases.index')
+                ->with('error', 'Solo se pueden editar compras en estado pendiente.');
+        }
+
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'product' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
+            'reference_number' => 'nullable|string|max:255',
+            'purchase_date' => 'required|date',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:menu_items,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.unit_cost' => 'required|numeric|min:0',
+            'products.*.discount' => 'nullable|numeric|min:0|max:100',
+            'products.*.selling_price' => 'required|numeric|min:0',
+            'products.*.expiry_date' => 'nullable|date',
         ]);
 
-        $purchaseData = $request->all();
-        $purchase->update($purchaseData);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('purchases.index')
-            ->with('success', 'Compra actualizada exitosamente.');
+            // Revertir el stock de los productos antiguos
+            foreach ($purchase->stocks as $stock) {
+                $menuItem = MenuItem::find($stock->product_id);
+                if ($menuItem) {
+                    $menuItem->decrement('stock', $stock->quantity);
+                }
+            }
+
+            // Eliminar los stocks antiguos
+            $purchase->stocks()->delete();
+
+            // Calcular el nuevo total
+            $totalAmount = $this->calculateTotalAmount($request->products);
+
+            // Actualizar la compra
+            $purchase->update([
+                'supplier_id' => $request->supplier_id,
+                'reference_number' => $request->reference_number,
+                'purchase_date' => $request->purchase_date,
+                'total_amount' => $totalAmount,
+            ]);
+
+            // Procesar los nuevos productos
+            $this->processPurchaseProducts($purchase, $request->products);
+
+            DB::commit();
+
+            return redirect()->route('purchases.show', $purchase->id)
+                ->with('success', 'Compra actualizada exitosamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Error al actualizar la compra: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function searchProducts(Request $request)

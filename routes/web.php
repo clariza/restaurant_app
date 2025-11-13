@@ -115,10 +115,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('purchases.searchProducts');
     Route::get('/purchases/product-details/{id}', [PurchaseController::class, 'getProductDetails'])
         ->name('purchases.productDetails');
-});
-
-// Rutas para compras (solo admin)
-Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
 });
 

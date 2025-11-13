@@ -1,252 +1,218 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h2 class="fw-bold text-dark">
-                <i class="fas fa-file-invoice me-2"></i>Detalle de Compra
-            </h2>
-            <p class="text-muted">Referencia: {{ $purchase->reference_number }}</p>
+<div class="container mx-auto p-6">
+    <!-- Encabezado -->
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-xl font-bold mb-2 text-[var(--primary-color)]">
+                Detalles de Compra #{{ $purchase->reference_number }}
+            </h1>
+            <p class="text-sm text-[var(--text-light)]">
+                Información completa de la compra
+            </p>
         </div>
-        <div class="col-md-6 text-end">
-            <a href="{{ route('purchases.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Volver
+        <div class="flex gap-2">
+            <a href="{{ route('purchases.index') }}" 
+               class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition duration-200 flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Volver</span>
             </a>
-            @if(auth()->user()->role === 'admin' && $purchase->status === 'pending')
-                <a href="{{ route('purchases.edit', $purchase->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit me-2"></i>Editar
+            @if($purchase->status === 'pending' && auth()->user()->role === 'admin')
+                <a href="{{ route('purchases.edit', $purchase->id) }}" 
+                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition duration-200 flex items-center space-x-2">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar</span>
                 </a>
             @endif
         </div>
     </div>
 
-    <div class="row">
-        <!-- Información de la Compra -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Información de la Compra
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small">Número de Referencia</label>
-                            <p class="fw-semibold mb-0">{{ $purchase->reference_number }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small">Fecha de Compra</label>
-                            <p class="fw-semibold mb-0">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small">Estado</label>
-                            <div>
-                                @php
-                                    $statusConfig = [
-                                        'pending' => ['class' => 'warning', 'icon' => 'clock', 'text' => 'Pendiente'],
-                                        'completed' => ['class' => 'success', 'icon' => 'check-circle', 'text' => 'Completado'],
-                                        'cancelled' => ['class' => 'danger', 'icon' => 'times-circle', 'text' => 'Cancelado']
-                                    ];
-                                    $config = $statusConfig[$purchase->status] ?? $statusConfig['pending'];
-                                @endphp
-                                <span class="badge bg-{{ $config['class'] }}">
-                                    <i class="fas fa-{{ $config['icon'] }} me-1"></i>
-                                    {{ $config['text'] }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small">Monto Total</label>
-                            <p class="fw-bold text-success mb-0 fs-4">
-                                Bs. {{ number_format($purchase->total_amount, 2) }}
-                            </p>
-                        </div>
+    <!-- Información General -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Información del Proveedor -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)] p-6">
+            <h3 class="text-lg font-semibold text-[var(--primary-color)] mb-4 flex items-center">
+                <i class="fas fa-truck mr-2"></i>
+                Proveedor
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-[var(--primary-color)] text-white flex items-center justify-center font-bold text-lg mr-3">
+                        {{ substr($purchase->supplier->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <p class="font-semibold text-[var(--text-color)]">{{ $purchase->supplier->name }}</p>
+                        <p class="text-sm text-[var(--text-light)]">NIT: {{ $purchase->supplier->nit ?? 'N/A' }}</p>
                     </div>
                 </div>
+                @if($purchase->supplier->phone)
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-phone text-[var(--text-light)] mr-2 w-5"></i>
+                        <span>{{ $purchase->supplier->phone }}</span>
+                    </div>
+                @endif
+                @if($purchase->supplier->email)
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-envelope text-[var(--text-light)] mr-2 w-5"></i>
+                        <span>{{ $purchase->supplier->email }}</span>
+                    </div>
+                @endif
+                @if($purchase->supplier->address)
+                    <div class="flex items-start text-sm">
+                        <i class="fas fa-map-marker-alt text-[var(--text-light)] mr-2 w-5 mt-1"></i>
+                        <span>{{ $purchase->supplier->address }}</span>
+                    </div>
+                @endif
             </div>
+        </div>
 
-            <!-- Productos de la Compra -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-boxes me-2"></i>Productos
-                    </h5>
+        <!-- Información de la Compra -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)] p-6">
+            <h3 class="text-lg font-semibold text-[var(--primary-color)] mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Información de Compra
+            </h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-[var(--text-light)]">Referencia:</span>
+                    <span class="font-semibold">{{ $purchase->reference_number }}</span>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Producto</th>
-                                    <th class="text-center">Cantidad</th>
-                                    <th class="text-end">Precio Unit.</th>
-                                    <th class="text-end">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($purchase->stocks as $stock)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-circle bg-secondary text-white me-2">
-                                                    {{ substr($stock->item->name ?? 'P', 0, 1) }}
-                                                </div>
-                                                <div>
-                                                    <div class="fw-semibold">
-                                                        {{ $stock->item->name ?? 'Producto sin nombre' }}
-                                                    </div>
-                                                    @if($stock->item->category)
-                                                        <small class="text-muted">
-                                                            {{ $stock->item->category->name }}
-                                                        </small>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-primary">
-                                                {{ $stock->quantity }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            Bs. {{ number_format($stock->unit_price, 2) }}
-                                        </td>
-                                        <td class="text-end fw-semibold">
-                                            Bs. {{ number_format($stock->quantity * $stock->unit_price, 2) }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">
-                                            No hay productos registrados en esta compra
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                            @if($purchase->stocks->count() > 0)
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold">Total:</td>
-                                        <td class="text-end fw-bold text-success fs-5">
-                                            Bs. {{ number_format($purchase->total_amount, 2) }}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            @endif
-                        </table>
-                    </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-[var(--text-light)]">Fecha:</span>
+                    <span class="font-semibold">{{ $purchase->purchase_date->format('d/m/Y') }}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-[var(--text-light)]">Estado:</span>
+                    @php
+                        $statusConfig = [
+                            'pending' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'clock', 'text' => 'Pendiente'],
+                            'completed' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'check-circle', 'text' => 'Completado'],
+                            'cancelled' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'times-circle', 'text' => 'Cancelado']
+                        ];
+                        $config = $statusConfig[$purchase->status] ?? $statusConfig['pending'];
+                    @endphp
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $config['class'] }}">
+                        <i class="fas fa-{{ $config['icon'] }} mr-1"></i>
+                        {{ $config['text'] }}
+                    </span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-[var(--text-light)]">Total Items:</span>
+                    <span class="font-semibold">{{ $purchase->stocks->sum('quantity') }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Información del Proveedor -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-truck me-2"></i>Proveedor
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        <div class="avatar-circle-large bg-success text-white mx-auto mb-2">
-                            {{ substr($purchase->supplier->name, 0, 2) }}
-                        </div>
-                        <h5 class="fw-bold mb-1">{{ $purchase->supplier->name }}</h5>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="mb-3">
-                        <label class="text-muted small d-block">
-                            <i class="fas fa-id-card me-1"></i>NIT
-                        </label>
-                        <p class="mb-0">{{ $purchase->supplier->nit ?? 'No especificado' }}</p>
-                    </div>
+   
+    </div>
 
-                    <div class="mb-3">
-                        <label class="text-muted small d-block">
-                            <i class="fas fa-user me-1"></i>Contacto
-                        </label>
-                        <p class="mb-0">{{ $purchase->supplier->contact }}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="text-muted small d-block">
-                            <i class="fas fa-phone me-1"></i>Teléfono
-                        </label>
-                        <p class="mb-0">
-                            <a href="tel:{{ $purchase->supplier->phone }}" class="text-decoration-none">
-                                {{ $purchase->supplier->phone }}
-                            </a>
-                        </p>
-                    </div>
-
-                    <div class="mb-0">
-                        <label class="text-muted small d-block">
-                            <i class="fas fa-map-marker-alt me-1"></i>Dirección
-                        </label>
-                        <p class="mb-0">{{ $purchase->supplier->address }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resumen -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-warning">
-                    <h6 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Resumen
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Productos:</span>
-                        <span class="fw-semibold">{{ $purchase->stocks->count() }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Unidades:</span>
-                        <span class="fw-semibold">{{ $purchase->stocks->sum('quantity') }}</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <span class="fw-bold">Total Compra:</span>
-                        <span class="fw-bold text-success">
+    <!-- Detalle de Productos -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)]">
+        <div class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] text-white p-4">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-boxes mr-2"></i>
+                Productos Comprados
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-[var(--gray-light)]">
+                        <th class="px-4 py-3 text-left font-semibold text-[var(--text-color)]">Producto</th>
+                        <th class="px-4 py-3 text-center font-semibold text-[var(--text-color)]">Cantidad</th>
+                        <th class="px-4 py-3 text-right font-semibold text-[var(--text-color)]">Costo Unit.</th>
+                        <th class="px-4 py-3 text-center font-semibold text-[var(--text-color)]">Descuento</th>
+                        <th class="px-4 py-3 text-right font-semibold text-[var(--text-color)]">Costo Final</th>
+                        <th class="px-4 py-3 text-right font-semibold text-[var(--text-color)]">Total</th>
+                        <th class="px-4 py-3 text-right font-semibold text-[var(--text-color)]">P. Venta</th>
+                        <th class="px-4 py-3 text-center font-semibold text-[var(--text-color)]">Margen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--gray-light)]">
+                    @foreach($purchase->stocks as $stock)
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    @if($stock->item && $stock->item->image)
+                                        <img src="{{ $stock->item->image && filter_var($stock->item->image, FILTER_VALIDATE_URL) 
+                                                    ? $stock->item->image 
+                                                    : asset('storage/' . $stock->item->image) }}" 
+                                             alt="{{ $stock->item->name }}"
+                                             class="w-10 h-10 rounded object-cover mr-3"
+                                             onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                                    @else
+                                        <div class="w-10 h-10 rounded bg-gray-200 flex items-center justify-center mr-3">
+                                            <i class="fas fa-box text-gray-400"></i>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <p class="font-semibold text-[var(--text-color)]">
+                                            {{ $stock->item->name ?? 'Producto no encontrado' }}
+                                        </p>
+                                        @if($stock->item && $stock->item->category)
+                                            <small class="text-[var(--text-light)]">
+                                                {{ $stock->item->category->name }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-center font-semibold">
+                                {{ $stock->quantity }}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                Bs. {{ number_format($stock->unit_cost, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($stock->discount > 0)
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        {{ $stock->discount }}%
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                Bs. {{ number_format($stock->unit_cost * (1 - $stock->discount / 100), 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-right font-bold text-green-600">
+                                Bs. {{ number_format($stock->total_cost, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                Bs. {{ number_format($stock->selling_price, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($stock->profit_margin >= 30)
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        {{ number_format($stock->profit_margin, 1) }}%
+                                    </span>
+                                @elseif($stock->profit_margin >= 15)
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                        {{ number_format($stock->profit_margin, 1) }}%
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                        {{ number_format($stock->profit_margin, 1) }}%
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot class="bg-gray-50 border-t-2 border-[var(--primary-color)]">
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-right font-bold text-[var(--text-color)]">
+                            TOTAL:
+                        </td>
+                        <td class="px-4 py-3 text-right font-bold text-green-600 text-lg">
                             Bs. {{ number_format($purchase->total_amount, 2) }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
 </div>
-
-<style>
-.avatar-circle {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.avatar-circle-large {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.5rem;
-}
-</style>
 @endsection

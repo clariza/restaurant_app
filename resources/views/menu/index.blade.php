@@ -197,9 +197,12 @@
 
                         <!-- Imagen responsiva -->
                         <img alt="{{ $item->name }}" 
-                             class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2" 
-                             src="{{ $item->image }}" 
-                             onclick="openItemModal({{ json_encode($item) }})"/>
+     class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2" 
+     src="{{ $item->image && filter_var($item->image, FILTER_VALIDATE_URL) 
+            ? $item->image 
+            : asset('storage/' . $item->image) }}" 
+     onerror="this.src='{{ asset('images/placeholder.png') }}'"
+     onclick="openItemModal({{ json_encode($item) }})"/>
 
                         <!-- Nombre del ítem -->
                         <p class="text-md font-semibold text-[#203363] mb-2 text-center">{{ $item->name }}</p>
