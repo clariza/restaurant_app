@@ -430,4 +430,15 @@ class PettyCashController extends Controller
         return $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
             ->orderBy('date', 'desc');
     }
+    public function checkStatus(Request $request)
+    {
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->first();
+
+        return response()->json([
+            'open' => $openPettyCash ? true : false,
+            'petty_cash' => $openPettyCash
+        ]);
+    }
 }

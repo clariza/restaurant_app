@@ -8,52 +8,82 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
-        $expenses = Expense::with('pettyCash')->latest()->get();
-        $totalExpenses = $openPettyCash ? $openPettyCash->expenses()->sum('amount') : 0;
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+        $expenses = Expense::orderBy('date', 'desc')->get();
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->first();
 
-        return view('expenses.index', compact('expenses', 'openPettyCash', 'totalExpenses','hasOpenPettyCash'));
+        // Si la petición solicita JSON, devolver datos para el modal
+        if ($request->wantsJson() || $request->has('json')) {
+            return response()->json([
+                'expenses' => $expenses,
+                'openPettyCash' => $openPettyCash ? true : false
+            ]);
+        }
+
+        // Vista normal
+        return view('expenses.index', compact('expenses', 'openPettyCash'));
     }
 
     public function create()
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        
+
         if (!$hasOpenPettyCash) {
             return redirect()->route('expenses.index')
                 ->with('error', 'No hay una caja chica abierta. Abre una caja chica antes de registrar gastos.');
         }
-        
+
         return view('expenses.create', compact('hasOpenPettyCash'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'expense_name' => 'required|string|max:255',
-            'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'amount' => 'required|numeric|min:0.01',
+            'date' => 'required|date',
         ]);
 
-        $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
-    
+        // Verificar que hay caja chica abierta
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->first();
+
         if (!$openPettyCash) {
-            return back()->with('error', 'No hay una caja chica abierta. Abre una caja chica antes de registrar gastos.');
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No hay caja chica abierta'
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'No hay caja chica abierta');
         }
 
-        $expense = new Expense();
-        $expense->expense_name = $request->expense_name;
-        $expense->description = $request->description;
-        $expense->amount = $request->amount;
-        $expense->date = now(); // Asigna la fecha y hora actual
-        $expense->petty_cash_id = $openPettyCash->id;
-        $expense->save();
+        $expense = Expense::create([
+            'expense_name' => $validated['expense_name'],
+            'description' => $validated['description'],
+            'amount' => $validated['amount'],
+            'date' => $validated['date'],
+            'petty_cash_id' => $openPettyCash->id,
+            'user_id' => auth()->id(),
+        ]);
 
-        return redirect()->route('expenses.index')->with('success', 'Gasto creado exitosamente.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gasto creado exitosamente',
+                'expense' => $expense
+            ], 201);
+        }
+
+        return redirect()->route('expenses.index')
+            ->with('success', 'Gasto creado exitosamente');
     }
+
 
     public function show(Expense $expense)
     {
@@ -63,26 +93,44 @@ class ExpenseController extends Controller
     public function edit(Expense $expense)
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('expenses.edit', compact('expense','hasOpenPettyCash'));
+        return view('expenses.edit', compact('expense', 'hasOpenPettyCash'));
     }
 
     public function update(Request $request, Expense $expense)
     {
-        $request->validate([
+        $validated = $request->validate([
             'expense_name' => 'required|string|max:255',
-            'description' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date',
         ]);
 
-        $expense->update($request->all());
+        $expense->update($validated);
 
-        return redirect()->route('expenses.index')->with('success', 'Gasto actualizado exitosamente.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gasto actualizado exitosamente',
+                'expense' => $expense
+            ]);
+        }
+
+        return redirect()->route('expenses.index')
+            ->with('success', 'Gasto actualizado exitosamente');
     }
 
-    public function destroy(Expense $expense)
+    public function destroy(Request $request, Expense $expense)
     {
         $expense->delete();
-        return redirect()->route('expenses.index')->with('success', 'Gasto eliminado exitosamente.');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gasto eliminado exitosamente'
+            ]);
+        }
+
+        return redirect()->route('expenses.index')
+            ->with('success', 'Gasto eliminado exitosamente');
     }
 }

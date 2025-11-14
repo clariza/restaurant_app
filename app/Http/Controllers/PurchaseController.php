@@ -244,10 +244,10 @@ class PurchaseController extends Controller
     public function edit(Purchase $purchase)
     {
         // Verificar que la compra esté en estado pendiente
-        if ($purchase->status !== 'pending') {
-            return redirect()->route('purchases.show', $purchase->id)
-                ->with('error', 'Solo se pueden editar compras en estado pendiente.');
-        }
+        // if ($purchase->status !== 'pending') {
+        //     return redirect()->route('purchases.show', $purchase->id)
+        //         ->with('error', 'Solo se pueden editar compras en estado pendiente.');
+        // }
 
         $suppliers = Supplier::all();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();

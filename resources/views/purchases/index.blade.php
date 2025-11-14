@@ -177,13 +177,13 @@
                                     </a>
                                     
                                     @if(auth()->user()->role === 'admin')
-                                        @if($purchase->status === 'pending')
+                                       
                                             <a href="{{ route('purchases.edit', $purchase->id) }}" 
                                                class="inline-flex items-center justify-center w-8 h-8 rounded bg-yellow-500 hover:bg-yellow-600 text-white transition-colors duration-150"
                                                title="Editar">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </a>
-                                        @endif
+                                       
 
                                         <form action="{{ route('purchases.destroy', $purchase->id) }}" 
                                               method="POST" 

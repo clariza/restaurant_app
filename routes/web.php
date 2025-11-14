@@ -104,11 +104,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Rutas para la búsqueda de productos (Items)
 
     // Rutas para compras
-    Route::post('/purchases', [PurchaseController::class, 'store'])
-        ->name('purchases.store');
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
-
+    Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchases.edit');
+    Route::put('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
+    Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
 
     // Rutas para la búsqueda de productos
     Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])
@@ -138,6 +140,14 @@ Route::get('/items/{item}/edit', [ItemsController::class, 'edit'])->name('items.
 Route::resource('suppliers', SupplierController::class);
 
 Route::resource('expenses', ExpenseController::class);
+// Rutas de Gastos
+Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+// Ruta para verificar estado de caja chica
+Route::get('/petty-cash/check-status', [PettyCashController::class, 'checkStatus'])->name('petty-cash.check-status');
 //Ruta para procesar calcular el total efectivo de denominaciones
 
 Route::post('/proformas/{proforma}/convert', [ProformaController::class, 'convertToOrder'])->name('proformas.convert');
