@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -149,5 +151,89 @@ class OrderController extends Controller
 
         // Retornar la vista con todas las variables
         return view('orders.show', compact('order', 'previousOrder', 'nextOrder', 'hasOpenPettyCash'));
+    }
+    public function destroy($id)
+    {
+        try {
+            // Buscar la orden
+            $order = Sale::with(['items.menuItem'])->findOrFail($id);
+
+            // Verificar que exista una caja chica abierta
+            $openPettyCash = PettyCash::where('status', 'open')->first();
+
+            if (!$openPettyCash) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No hay una caja chica abierta. No se puede eliminar la orden.'
+                    ], 400);
+                }
+
+                return redirect()->back()->with('error', 'No hay una caja chica abierta. No se puede eliminar la orden.');
+            }
+
+            // Verificar que la orden pertenezca a la caja chica actual
+            if ($order->petty_cash_id !== $openPettyCash->id) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta orden pertenece a otra caja chica y no puede ser eliminada.'
+                    ], 400);
+                }
+
+                return redirect()->back()->with('error', 'Esta orden pertenece a otra caja chica y no puede ser eliminada.');
+            }
+
+            DB::beginTransaction();
+
+            try {
+                // Revertir el stock de los items
+                foreach ($order->items as $item) {
+                    if ($item->menuItem) {
+                        // Incrementar el stock del producto
+                        $item->menuItem->increment('stock', $item->quantity);
+
+                        Log::info("Stock revertido para producto ID {$item->menu_item_id}: +{$item->quantity}");
+                    }
+                }
+
+                // Eliminar los items de la orden
+                $order->items()->delete();
+
+                // Eliminar la orden
+                $orderNumber = $order->transaction_number;
+                $order->delete();
+
+                // Actualizar el total de la caja chica
+                $openPettyCash->update();
+
+                DB::commit();
+
+                Log::info("Orden eliminada exitosamente: {$orderNumber} por usuario " . auth()->user()->name);
+
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "La orden {$orderNumber} ha sido eliminada exitosamente."
+                    ]);
+                }
+
+                return redirect()->route('orders.index')->with('success', "La orden {$orderNumber} ha sido eliminada exitosamente.");
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            Log::error("Error al eliminar orden: " . $e->getMessage());
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al eliminar la orden: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Error al eliminar la orden: ' . $e->getMessage());
+        }
     }
 }

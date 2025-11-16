@@ -26,11 +26,13 @@ const TABLES_API = {
 // Estado global del modal - ACTUALIZADO PARA 3 PASOS
 window.paymentModalState = {
     currentStep: 1,
-    maxSteps: 3, // Ahora son 3 pasos
+    maxSteps: 3,
     selectedOrderType: 'comer-aqui',
     selectedTable: null,
     paymentRows: [],
-    customerData: {} // Nuevo: Datos del cliente
+    customerData: {},
+    selectedDeliveryService: null,
+    pickupNotes: ''
 };
 
 // Estado de configuración de mesas
@@ -121,7 +123,14 @@ function calculateOrderTotal() {
 
 function openPaymentModal() {
     console.log('🚀 Abriendo modal de pagos (3 pasos)...');
-
+    const order = JSON.parse(localStorage.getItem('order')) || [];
+    if (order.length === 0) {
+        alert('No hay ítems en el pedido');
+        return;
+    }
+    window.paymentModalState.currentStep = 1;
+    window.paymentRows = [];
+    paymentRowCounter = 0;
     const modal = document.getElementById('payment-modal');
     if (!modal) {
         console.error('❌ No se encontró el modal');
@@ -129,7 +138,10 @@ function openPaymentModal() {
     }
 
     modal.classList.remove('hidden');
+    goToStep(1);
+    updateOrderTotal();
     loadOrderData();
+    const orderType = localStorage.getItem('orderType') || 'Comer aquí';
 
     setTimeout(() => {
         initializeModal();
@@ -138,41 +150,7 @@ function openPaymentModal() {
         }
     }, 50);
 }
-// function addPaymentRow() {
-//     console.log('➕ === AGREGANDO NUEVA FILA ===');
 
-//     if (!window.paymentRows) {
-//         window.paymentRows = [];
-//         console.log('📦 window.paymentRows inicializado');
-//     }
-
-//     const rowId = Date.now();
-
-//     const row = {
-//         id: rowId,
-//         method: '',
-//         reference: '',
-//         amount: 0
-//     };
-
-//     window.paymentRows.push(row);
-//     console.log(`✅ Fila agregada al array (ID: ${rowId})`);
-//     console.log(`📦 Total filas en array: ${window.paymentRows.length}`);
-
-//     renderPaymentRows();
-//     updateNoPaymentsMessage();
-//     // Verificar después de renderizar
-//     setTimeout(() => {
-//         const domCount = document.querySelectorAll('.payment-row').length;
-//         console.log(`🎯 Verificación post-agregar:`);
-//         console.log(`   - Array: ${window.paymentRows.length}`);
-//         console.log(`   - DOM: ${domCount}`);
-
-//         if (domCount !== window.paymentRows.length) {
-//             console.error(`❌ DESINCRONIZACIÓN después de agregar`);
-//         }
-//     }, 100);
-// }
 function closePaymentModal() {
     console.log('🔒 Cerrando modal de pago...');
 
@@ -982,7 +960,8 @@ function validateStep1() {
             alert('Por favor selecciona una mesa');
             return false;
         }
-    } else if (orderType === 'Recojo por Delivery') {
+    }
+    else if (orderType === 'Recojo por Delivery') {
         const deliverySelect = document.getElementById('modal-delivery-service');
         selectedDeliveryService = deliverySelect?.value;
 
@@ -994,6 +973,22 @@ function validateStep1() {
 
     return true;
 }
+function generateDailyOrderNumber() {
+    const today = new Date().toISOString().split('T')[0];
+    const savedDate = localStorage.getItem('orderNumberDate');
+    let counter = parseInt(localStorage.getItem('orderNumberCounter') || '0');
+
+    if (savedDate !== today) {
+        counter = 1;
+        localStorage.setItem('orderNumberDate', today);
+    } else {
+        counter++;
+    }
+
+    localStorage.setItem('orderNumberCounter', counter.toString());
+    return counter;
+}
+
 function validateStep2() {
     console.log('🔍 Validando paso 2 (leyendo del DOM)...');
 
@@ -1081,17 +1076,55 @@ function loadStep3OrderSummary() {
     }
 
     const total = order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const step3Total = document.getElementById('step3-order-total');
+    if (step3Total) {
+        step3Total.textContent = total.toFixed(2);
+    }
+    const orderNumber = generateDailyOrderNumber();
 
-    summaryContainer.innerHTML = order.map(item => `
-        <div class="summary-item">
-            <span class="summary-item-name">${item.quantity}x ${item.name}</span>
-            <span class="summary-item-price">${(item.price * item.quantity).toFixed(2)}</span>
-        </div>
-    `).join('');
+    // ✅ GUARDAR EN LOCALSTORAGE PARA USO POSTERIOR
+    localStorage.setItem('currentOrderNumber', orderNumber);
+    if (summaryContainer) {
+        let summaryHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 2px solid #e5e7eb; padding: 20px 24px; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease;">
+                <span style="font-size: 0.875rem; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Pedido</span>
+                <span style="font-size: 2.5rem; font-weight: 700; color: #111827; letter-spacing: 1px; line-height: 1;">#${orderNumber}</span>
+            </div>
+        `;
+
+
+
+
+        summaryContainer.innerHTML = summaryHTML;
+    }
 
     if (totalElement) {
         totalElement.textContent = total.toFixed(2);
     }
+
+}
+function getOrderTypeLabel(type) {
+    const labels = {
+        'comer-aqui': 'Comer aquí',
+        'para-llevar': 'Para llevar',
+        'recoger': 'Recoger'
+    };
+    return labels[type] || type;
+}
+function generateDailyOrderNumber() {
+    const today = new Date().toISOString().split('T')[0];
+    const savedDate = localStorage.getItem('orderNumberDate');
+    let counter = parseInt(localStorage.getItem('orderNumberCounter') || '0');
+
+    if (savedDate !== today) {
+        counter = 1;
+        localStorage.setItem('orderNumberDate', today);
+    } else {
+        counter++;
+    }
+
+    localStorage.setItem('orderNumberCounter', counter.toString());
+    return counter;
 }
 
 function loadStep3PaymentDetails() {
@@ -1123,15 +1156,13 @@ function loadStep3PaymentDetails() {
 
 function getPaymentIcon(method) {
     const icons = {
-        'Efectivo': '<i class="fas fa-money-bill-wave payment-method-icon"></i>',
-        'QR': '<i class="fas fa-qrcode payment-method-icon"></i>',
-        'Tarjeta': '<i class="fas fa-credit-card payment-method-icon"></i>',
-        'Transferencia': '<i class="fas fa-exchange-alt payment-method-icon"></i>'
+        'QR': '📱',
+        'Efectivo': '💵',
+        'Tarjeta': '💳',
+        'Transferencia': '🏦'
     };
-
-    return icons[method] || '<i class="fas fa-dollar-sign payment-method-icon"></i>';
+    return icons[method] || '💰';
 }
-
 function loadStep3CustomerData() {
     // Cargar datos del cliente desde localStorage si existen
     const savedCustomerName = localStorage.getItem('customerName');
@@ -2356,6 +2387,83 @@ function diagnosePaymentRowStructure() {
 
     console.log('🔍 === FIN DIAGNÓSTICO ===\n');
 }
+window.goToStep = function (step) {
+    console.log(`📍 Navegando al paso ${step}`);
+
+    // Validar paso anterior antes de avanzar
+    if (step > window.paymentModalState.currentStep) {
+        if (!validateCurrentStep()) {
+            return;
+        }
+    }
+
+    // Ocultar todos los pasos
+    document.querySelectorAll('#payment-modal .step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Mostrar paso actual
+    const currentStepElement = document.getElementById(`step-${step}`);
+    if (currentStepElement) {
+        currentStepElement.classList.add('active');
+    }
+
+    // Actualizar navegación
+    document.querySelectorAll('#payment-modal .step-item').forEach(item => {
+        const itemStep = parseInt(item.getAttribute('data-step'));
+        item.classList.remove('active', 'completed');
+
+        if (itemStep === step) {
+            item.classList.add('active');
+        } else if (itemStep < step) {
+            item.classList.add('completed');
+        }
+    });
+
+    // Actualizar estado
+    window.paymentModalState.currentStep = step;
+
+    // Acciones específicas por paso
+    if (step === 2) {
+        updateOrderTotal();
+        showNoPaymentsMessage();
+    } else if (step === 3) {
+        loadStep3Summary();
+    }
+};
+window.nextStep = function () {
+    if (window.paymentModalState.currentStep < 3) {
+        goToStep(window.paymentModalState.currentStep + 1);
+    }
+};
+window.prevStep = function () {
+    if (window.paymentModalState.currentStep > 1) {
+        goToStep(window.paymentModalState.currentStep - 1);
+    }
+};
+window.addPaymentRow = function () {
+    paymentRowCounter++;
+    const rowId = Date.now() + paymentRowCounter;
+
+    const orderTotal = calculateOrderTotal();
+    const totalPaid = window.paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+    const remaining = Math.max(0, orderTotal - totalPaid);
+
+    const row = {
+        id: rowId,
+        method: 'Efectivo',
+        reference: '',
+        amount: 0
+    };
+
+    window.paymentRows.push(row);
+
+    const container = document.getElementById('payment-rows-container');
+    const rowHTML = createPaymentRowHTML(row, remaining);
+    container.insertAdjacentHTML('beforeend', rowHTML);
+
+    hideNoPaymentsMessage();
+};
 
 window.updatePaymentRowFromSelect = updatePaymentRowFromSelect;
 window.updatePaymentRowFromInput = updatePaymentRowFromInput;
@@ -2411,4 +2519,3 @@ window.syncPaymentRowsFromDOM = syncPaymentRowsFromDOM;
 window.updatePaymentRowField = updatePaymentRowField;
 window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
 window.diagnosePaymentRowStructure = diagnosePaymentRowStructure;
-

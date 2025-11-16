@@ -15,10 +15,10 @@ class ExpenseController extends Controller
             ->where('user_id', auth()->id())
             ->first();
 
-        // Si la petición solicita JSON, devolver datos para el modal
+        // Si la petición solicita JSON
         if ($request->wantsJson() || $request->has('json')) {
             return response()->json([
-                'expenses' => $expenses,
+                'expenses' => $expenses,  // ✅ Asegúrate que sea un array
                 'openPettyCash' => $openPettyCash ? true : false
             ]);
         }

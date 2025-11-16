@@ -305,7 +305,7 @@ function closeExpensesModal() {
 async function checkPettyCashStatus() {
     try {
         // Usar la ruta existente de Laravel
-        const response = await fetch('{{ route("petty-cash.check-status") }}', {
+        const response = await fetch('/petty-cash/check-status', {
             headers: {
                 'X-CSRF-TOKEN': window.csrfToken,
                 'Accept': 'application/json'
@@ -345,33 +345,62 @@ async function loadExpenses() {
     `;
     
     try {
-        const response = await fetch('/api/expenses', {
+        const response = await fetch('/expenses?json=1', {
+            method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': window.csrfToken,
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
         });
         
-        if (!response.ok) throw new Error('Error al cargar gastos');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response status:', response.status);
+            console.error('Response text:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText}`);
+        }
         
-        expensesData = await response.json();
+        const data = await response.json();
+        console.log('📦 Datos recibidos completos:', data);
+        console.log('📦 Tipo de datos:', typeof data);
+        
+        // Manejar ambos formatos de respuesta
+        if (Array.isArray(data)) {
+            console.log('✅ Data es un array directo');
+            expensesData = data;
+        } else if (data.expenses && Array.isArray(data.expenses)) {
+            console.log('✅ Data tiene propiedad expenses (array)');
+            expensesData = data.expenses;
+        } else {
+            console.error('❌ Formato inesperado:', data);
+            expensesData = [];
+        }
+        
+        console.log('📊 expensesData final:', expensesData);
         renderExpensesTable();
     } catch (error) {
-        console.error('Error:', error);
+        console.error('💥 Error completo:', error);
         container.innerHTML = `
             <div class="text-center py-12">
                 <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
                 <p class="text-gray-600">Error al cargar los gastos</p>
+                <p class="text-sm text-gray-500 mt-2">${error.message}</p>
             </div>
         `;
     }
 }
-
 // Renderizar tabla de gastos
 function renderExpensesTable() {
     const container = document.getElementById('expenses-table-container');
     
-    if (expensesData.length === 0) {
+    console.log('Renderizando tabla. Datos:', expensesData);
+    console.log('Es array?', Array.isArray(expensesData));
+    console.log('Tipo:', typeof expensesData);
+    
+    // Validación robusta
+    if (!Array.isArray(expensesData) || expensesData.length === 0) {
         container.innerHTML = `
             <div class="text-center py-12">
                 <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>

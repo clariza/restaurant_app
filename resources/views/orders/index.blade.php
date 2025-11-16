@@ -23,6 +23,19 @@
         </div>
     </div>
 
+    <!-- Mensaje de éxito/error -->
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+        </div>
+    @endif
+
     <!-- Filtros -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form id="filter-form">
@@ -143,7 +156,7 @@
                     </span>
                 </div>
                 
-                <!-- Items (solo desktop) -->
+                <!-- Items -->
                 <div class="hidden md:block md:col-span-1 text-center">
                     {{ $record->items->count() }}
                 </div>
@@ -174,6 +187,14 @@
                             <i class="fas fa-exchange-alt"></i>
                         </button>
                     @endif
+                    
+                    @if(!$isProforma && $hasOpenPettyCash)
+                        <button class="text-red-600 hover:text-red-800 p-1"
+                                onclick="deleteOrder('{{ $record->id }}', '{{ $record->transaction_number }}')"
+                                title="Eliminar orden">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    @endif
                 </div>
 
                 <!-- Acciones móvil -->
@@ -192,6 +213,13 @@
                         <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
                                 onclick="convertToOrder('{{ $record->id }}')">
                             <i class="fas fa-exchange-alt mr-1"></i> Convertir
+                        </button>
+                    @endif
+                    
+                    @if(!$isProforma && $hasOpenPettyCash)
+                        <button class="text-red-600 hover:text-red-800 text-sm flex items-center"
+                                onclick="deleteOrder('{{ $record->id }}', '{{ $record->transaction_number }}')">
+                            <i class="fas fa-trash-alt mr-1"></i> Eliminar
                         </button>
                     @endif
                 </div>
@@ -224,6 +252,12 @@
         @endif
     </div>
 </div>
+
+<!-- Formulario oculto para eliminación -->
+<form id="delete-order-form" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 <!-- Scripts para manejar interacciones -->
 <script>
@@ -265,6 +299,58 @@
             : `/orders/${id}/print`;
             
         window.open(url, '_blank');
+    }
+    
+    // Función para eliminar orden
+    function deleteOrder(orderId, orderNumber) {
+        Swal.fire({
+            title: '¿Eliminar orden?',
+            html: `¿Estás seguro de eliminar la orden <strong>${orderNumber}</strong>?<br><br>
+                   <span class="text-red-600">Esta acción revertirá el stock de los productos y no se puede deshacer.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return fetch(`/orders/${orderId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(
+                        `Error: ${error.message || 'Error al eliminar la orden'}`
+                    );
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value.success) {
+                    Swal.fire({
+                        title: '¡Eliminada!',
+                        text: result.value.message,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', result.value.message, 'error');
+                }
+            }
+        });
     }
     
     // Función para convertir proforma a orden
