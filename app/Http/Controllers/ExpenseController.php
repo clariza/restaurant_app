@@ -45,7 +45,6 @@ class ExpenseController extends Controller
             'expense_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:0.01',
-            'date' => 'required|date',
         ]);
 
         // Verificar que hay caja chica abierta
@@ -67,7 +66,7 @@ class ExpenseController extends Controller
             'expense_name' => $validated['expense_name'],
             'description' => $validated['description'],
             'amount' => $validated['amount'],
-            'date' => $validated['date'],
+            'date' => now(), // 🔥 Fecha y hora actual
             'petty_cash_id' => $openPettyCash->id,
             'user_id' => auth()->id(),
         ]);
