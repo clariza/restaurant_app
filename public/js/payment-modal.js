@@ -1062,7 +1062,7 @@ function loadStep3Summary() {
     loadStep3CustomerData();
 }
 
-function loadStep3OrderSummary() {
+async function loadStep3OrderSummary() {
     const summaryContainer = document.getElementById('step3-order-summary');
     const totalElement = document.getElementById('step3-order-total');
 
@@ -1080,20 +1080,50 @@ function loadStep3OrderSummary() {
     if (step3Total) {
         step3Total.textContent = total.toFixed(2);
     }
-    const orderNumber = generateDailyOrderNumber();
 
-    // ✅ GUARDAR EN LOCALSTORAGE PARA USO POSTERIOR
-    localStorage.setItem('currentOrderNumber', orderNumber);
+    // ✅ OBTENER EL NÚMERO DE PEDIDO DESDE EL BACKEND
+    let orderNumber = '...';
+
+    try {
+        summaryContainer.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 2px solid #e5e7eb; padding: 20px 24px; border-radius: 8px; margin-bottom: 20px;">
+                <span style="font-size: 0.875rem; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Pedido</span>
+                <span style="font-size: 2.5rem; font-weight: 700; color: #111827; letter-spacing: 1px; line-height: 1;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: #6b7280;"></i>
+                </span>
+            </div>
+        `;
+
+        const response = await fetch('/api/sales/next-order-number', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            orderNumber = data.next_order_number; // Ya viene con formato "PED-00001"
+            localStorage.setItem('currentOrderNumber', orderNumber);
+        } else {
+            throw new Error('No se pudo obtener el número de pedido');
+        }
+    } catch (error) {
+        console.error('❌ Error al obtener número de pedido:', error);
+        orderNumber = generateDailyOrderNumber();
+        localStorage.setItem('currentOrderNumber', orderNumber);
+    }
+
     if (summaryContainer) {
         let summaryHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 2px solid #e5e7eb; padding: 20px 24px; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease;">
                 <span style="font-size: 0.875rem; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Pedido</span>
-                <span style="font-size: 2.5rem; font-weight: 700; color: #111827; letter-spacing: 1px; line-height: 1;">#${orderNumber}</span>
+                <span style="font-size: 2rem; font-weight: 700; color: #111827; letter-spacing: 0.5px; line-height: 1;">${orderNumber}</span>
             </div>
         `;
-
-
-
 
         summaryContainer.innerHTML = summaryHTML;
     }
@@ -1101,7 +1131,6 @@ function loadStep3OrderSummary() {
     if (totalElement) {
         totalElement.textContent = total.toFixed(2);
     }
-
 }
 function getOrderTypeLabel(type) {
     const labels = {
@@ -1220,7 +1249,6 @@ async function processPayment() {
     const order = JSON.parse(localStorage.getItem('order')) || [];
 
     if (order.length === 0) {
-        alert('No hay items en el pedido');
         return;
     }
 
@@ -1346,32 +1374,84 @@ function loadModalTables() {
     const tableLoading = document.getElementById('table-loading');
     const tableError = document.getElementById('table-error');
 
-    if (!tableGrid) return;
+    if (!tableGrid) {
+        console.warn('⚠️ table-grid no encontrado');
+        return;
+    }
 
-    tableLoading.classList.remove('hidden');
-    tableError.classList.add('hidden');
+    // Mostrar loading
+    tableLoading?.classList.remove('hidden');
+    tableError?.classList.add('hidden');
     tableGrid.innerHTML = '';
 
-    fetch(window.routes.tablesAvailable)
-        .then(response => response.json())
-        .then(data => {
-            tableLoading.classList.add('hidden');
+    console.log('📡 Cargando mesas desde:', window.routes?.tablesAvailable || '/tables/available');
 
-            if (data.tables && data.tables.length > 0) {
+    fetch(window.routes?.tablesAvailable || '/tables/available', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Mesas recibidas:', data);
+
+            tableLoading?.classList.add('hidden');
+
+            if (data.success && data.tables && data.tables.length > 0) {
                 renderTables(data.tables);
+
+                // ✅ RESTAURAR SELECCIÓN PREVIA SI EXISTE
+                if (selectedTable && selectedTable.id) {
+                    const previouslySelectedBtn = document.querySelector(`[data-table-id="${selectedTable.id}"]`);
+                    if (previouslySelectedBtn && !previouslySelectedBtn.disabled) {
+                        previouslySelectedBtn.classList.add('selected');
+                        console.log('✅ Selección de mesa restaurada:', selectedTable.number);
+                    } else {
+                        // Si la mesa ya no está disponible, limpiar selección
+                        console.log('⚠️ Mesa previamente seleccionada ya no está disponible');
+                        selectedTable = null;
+                    }
+                }
             } else {
                 tableGrid.innerHTML = '<p class="text-center text-gray-500 py-4">No hay mesas disponibles</p>';
             }
         })
         .catch(error => {
-            console.error('Error loading tables:', error);
-            tableLoading.classList.add('hidden');
-            tableError.classList.remove('hidden');
+            console.error('❌ Error al cargar mesas:', error);
+            tableLoading?.classList.add('hidden');
+            tableError?.classList.remove('hidden');
+
+            const errorMessage = document.getElementById('table-error-message');
+            if (errorMessage) {
+                errorMessage.textContent = error.message || 'Error al cargar las mesas';
+            }
         });
 }
+
 function renderTables(tables) {
     const tableGrid = document.getElementById('table-grid');
+
+    if (!tableGrid) {
+        console.error('❌ table-grid no encontrado');
+        return;
+    }
+
     tableGrid.innerHTML = '';
+
+    if (!tables || tables.length === 0) {
+        tableGrid.innerHTML = '<p class="text-center text-gray-500 py-4">No hay mesas configuradas</p>';
+        return;
+    }
+
+    console.log(`🎨 Renderizando ${tables.length} mesas`);
 
     tables.forEach(table => {
         const button = document.createElement('button');
@@ -1381,11 +1461,21 @@ function renderTables(tables) {
         button.dataset.tableId = table.id;
         button.dataset.tableNumber = table.number;
 
-        const state = table.state.toLowerCase().replace(' ', '-');
+        // Normalizar estado
+        const state = (table.state || 'Disponible').toLowerCase().replace(/\s+/g, '-');
+
+        console.log(`📍 Mesa ${table.number} - Estado: ${table.state} (${state})`);
 
         if (state === 'disponible') {
+            // ✅ Mesa disponible - puede ser seleccionada
             button.addEventListener('click', () => selectTable(table.id, table.number));
+
+            // Si esta mesa estaba previamente seleccionada, marcarla
+            if (selectedTable && selectedTable.id === table.id) {
+                button.classList.add('selected');
+            }
         } else {
+            // ❌ Mesa no disponible
             button.classList.add(state);
             button.disabled = true;
             button.title = `Estado: ${table.state}`;
@@ -1393,6 +1483,8 @@ function renderTables(tables) {
 
         tableGrid.appendChild(button);
     });
+
+    console.log('✅ Mesas renderizadas correctamente');
 }
 function selectTable(tableId, tableNumber) {
     selectedTable = { id: tableId, number: tableNumber };
@@ -1464,11 +1556,36 @@ function openTablesConfigModal() {
     modal.classList.add('show');
     loadCurrentTablesConfig();
 }
+function openTablesConfigModalFromPayment() {
+    console.log('🔧 Abriendo configuración de mesas desde modal de pago...');
+
+    // Marcar que venimos del modal de pago
+    window.openedFromPaymentModal = true;
+
+    openTablesConfigModal();
+}
 
 function closeTablesConfigModal() {
     const modal = document.getElementById('tables-config-modal');
     if (modal) {
         modal.classList.remove('show');
+
+        console.log('🔒 Modal de configuración cerrado');
+
+        // ✅ SI EL MODAL DE PAGO ESTÁ ABIERTO, RECARGAR MESAS
+        const paymentModal = document.getElementById('payment-modal');
+        if (paymentModal && !paymentModal.classList.contains('hidden')) {
+            console.log('🔄 Recargando mesas en modal de pago...');
+
+            // Pequeño delay para asegurar que el modal de configuración se cerró completamente
+            setTimeout(() => {
+                const tablesEnabled = window.tablesConfigState?.tablesEnabled || false;
+
+                if (tablesEnabled) {
+                    loadModalTables();
+                }
+            }, 300);
+        }
     }
 }
 
@@ -2023,11 +2140,42 @@ async function saveTablesConfig() {
 
         showSuccessMessage('✓ Configuración guardada correctamente');
 
+        // ✅ ACTUALIZAR ESTADO GLOBAL
+        window.tablesConfigState.tablesEnabled = toggleInput.checked;
+
         setTimeout(() => {
             closeTablesConfigModal();
 
+            // ✅ RECARGAR MESAS EN EL MODAL DE PAGO SI ESTÁ ABIERTO
+            const paymentModal = document.getElementById('payment-modal');
+            if (paymentModal && !paymentModal.classList.contains('hidden')) {
+                console.log('🔄 Modal de pago abierto, recargando mesas...');
+
+                // Si las mesas están habilitadas, recargar
+                if (toggleInput.checked) {
+                    loadModalTables();
+
+                    // Asegurarse de que la sección de mesas sea visible
+                    const tableSelection = document.getElementById('modal-table-selection');
+                    const orderType = window.paymentModalState?.selectedOrderType || 'comer-aqui';
+
+                    if (tableSelection && orderType === 'comer-aqui') {
+                        tableSelection.classList.remove('hidden');
+                    }
+                } else {
+                    // Si se deshabilitaron las mesas, ocultar la sección
+                    const tableSelection = document.getElementById('modal-table-selection');
+                    if (tableSelection) {
+                        tableSelection.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Si las mesas fueron deshabilitadas, recargar la página
             if (!toggleInput.checked) {
-                window.location.reload();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             }
         }, 1500);
 
@@ -2039,7 +2187,6 @@ async function saveTablesConfig() {
         saveBtn.innerHTML = originalText;
     }
 }
-
 function showSuccessMessage(message) {
     const successEl = document.getElementById('config-success-message');
     const messageText = document.getElementById('success-message-text');
@@ -2274,7 +2421,24 @@ function debugPaymentRowsInRealTime() {
 // ============================================
 // INICIALIZACIÓN
 // ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    const configBtnInPaymentModal = document.querySelector('#modal-table-selection .tables-config-btn');
 
+    if (configBtnInPaymentModal) {
+        // Remover listeners anteriores
+        const newBtn = configBtnInPaymentModal.cloneNode(true);
+        configBtnInPaymentModal.parentNode.replaceChild(newBtn, configBtnInPaymentModal);
+
+        // Agregar nuevo listener
+        newBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openTablesConfigModal();
+        });
+
+        console.log('✅ Botón de configuración actualizado en modal de pago');
+    }
+});
 document.addEventListener('DOMContentLoaded', function () {
     console.log('🚀 Inicializando sistema de pagos y mesas (3 pasos)...');
 
@@ -2480,6 +2644,7 @@ window.updatePaymentRow = updatePaymentRow;
 window.removePaymentRow = removePaymentRow;
 window.updateNoPaymentsMessage = updateNoPaymentsMessage;
 window.openTablesConfigModal = openTablesConfigModal;
+window.openTablesConfigModalFromPayment = openTablesConfigModalFromPayment;
 window.closeTablesConfigModal = closeTablesConfigModal;
 window.loadCurrentTablesConfig = loadCurrentTablesConfig;
 window.loadTablesFromDB = loadTablesFromDB;
@@ -2496,6 +2661,7 @@ window.closeBulkStateModal = closeBulkStateModal;
 window.handleBulkStateChange = handleBulkStateChange;
 
 window.loadModalTables = loadModalTables;
+window.renderTables = renderTables;
 window.selectTable = selectTable;
 window.goToStep = goToStep;
 window.prevStep = prevStep;

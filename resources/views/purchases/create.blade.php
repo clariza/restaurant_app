@@ -159,16 +159,42 @@
                             <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
                                 <i class="fas fa-calendar-times mr-1"></i>FECHA DE<br/>CADUCIDAD
                             </th>
-                            <th class="px-3 py-3 text-center font-semibold w-12">
-                                <i class="fas fa-trash-alt"></i>
+                            <th class="px-3 py-3 text-center font-semibold w-24">
+                                <i class="fas fa-cog"></i> ACCIONES
                             </th>
                         </tr>
                     </thead>
                     <tbody id="products-table-body" class="divide-y divide-[var(--gray-light)]">
-                        <!-- Filas de productos se agregarán dinámicamente aquí -->
+                        <!-- Fila vacía con mensaje inicial -->
+                        <tr id="empty-table-message">
+                            <td colspan="10" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-4">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-box-open text-3xl text-gray-400"></i>
+                                    </div>
+                                    <p class="text-gray-500 text-sm">No hay productos agregados</p>
+                                    <button type="button" id="add-empty-row-btn" 
+                                            class="bg-[var(--primary-color)] hover:bg-[var(--primary-light)] text-white px-6 py-2 rounded-lg transition duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg transform hover:scale-105">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Agregar Producto</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Botón flotante para agregar más productos (aparece cuando ya hay productos) -->
+           <div id="add-product-footer" class="hidden mt-6 pt-4 border-t-2 border-dashed border-[var(--gray-light)] flex justify-end">
+    <button type="button" id="add-product-btn" 
+            class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] hover:from-[var(--primary-light)] hover:to-[var(--primary-color)] text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-md hover:shadow-xl transform hover:scale-105">
+        <i class="fas fa-plus-circle text-lg"></i>
+        <span class="font-semibold">Agregar Producto</span>
+        <i class="fas fa-arrow-down ml-2 text-sm animate-bounce"></i>
+    </button>
+</div>
+
 
             <!-- Totales -->
             <div class="flex justify-end space-x-8 text-sm text-[var(--text-color)] font-semibold mt-4 pt-4 border-t border-[var(--gray-light)]">
@@ -203,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const productsTableBody = document.getElementById('products-table-body');
     const totalProductsSpan = document.getElementById('total-products');
     const totalAmountSpan = document.getElementById('total-amount');
+    const emptyMessage = document.getElementById('empty-table-message');
+    const addProductFooter = document.getElementById('add-product-footer');
 
     // Actualizar NIT y dirección del proveedor
     document.getElementById('proveedor').addEventListener('change', function() {
@@ -213,6 +241,232 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nit').value = nit;
         document.getElementById('supplier-address').textContent = address;
     });
+
+    // Botón para agregar fila vacía desde el mensaje inicial
+    document.getElementById('add-empty-row-btn').addEventListener('click', function() {
+        addEmptyProductRow();
+    });
+
+    // Botón para agregar más productos (footer)
+    document.getElementById('add-product-btn').addEventListener('click', function() {
+        addEmptyProductRow();
+    });
+
+    // Función para agregar una fila vacía
+    function addEmptyProductRow() {
+        // Ocultar mensaje de tabla vacía
+        if (emptyMessage) {
+            emptyMessage.style.display = 'none';
+        }
+        
+        // Mostrar botón de agregar en el footer
+        addProductFooter.classList.remove('hidden');
+
+        productRowCounter++;
+        
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors duration-150';
+        row.innerHTML = `
+            <td class="px-3 py-3 border-r border-[var(--gray-light)]">
+                <div class="relative">
+                    <input type="text" 
+                           class="product-name-input w-full border border-[var(--gray-light)] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                           placeholder="Escriba para buscar producto..."
+                           autocomplete="off"
+                           data-row-id="${productRowCounter}">
+                    <div class="product-dropdown absolute z-30 top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md hidden max-h-48 overflow-y-auto border border-gray-200"></div>
+                    <input type="hidden" name="products[${productRowCounter}][product_id]" class="product-id-input">
+                    <div class="product-info mt-2 hidden">
+                        <div class="font-medium text-[var(--text-color)] text-sm product-display-name"></div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-tag mr-1"></i><span class="product-category">-</span>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][quantity]" value="1" min="1" 
+                       class="w-20 text-center quantity-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][unit_cost]" 
+                       class="w-24 text-center unit-cost-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                       step="0.01" min="0" placeholder="0.00" required>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="flex items-center justify-center gap-1">
+                    <input type="number" name="products[${productRowCounter}][discount]" value="0"
+                           class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                           step="0.1" min="0" max="100" placeholder="0.0">
+                    <span class="text-gray-500">%</span>
+                </div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
+                       class="w-24 text-center unit-cost-after-discount bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-medium text-[var(--primary-color)]" 
+                       step="0.01" min="0" readonly placeholder="0.00">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][line_total]" 
+                       class="w-24 text-center line-total bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-bold text-[var(--primary-color)]" 
+                       step="0.01" min="0" readonly placeholder="0.00">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="profit-margin font-semibold text-sm" style="color: #6c757d;">-</div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][selling_price]" value="0.00"
+                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                       step="0.01" min="0" required>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="date" name="products[${productRowCounter}][expiry_date]" 
+                       class="w-full text-xs border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
+            </td>
+            <td class="px-3 py-3 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  
+                    <button type="button" class="text-[var(--red)] hover:text-white hover:bg-[var(--red)] p-2 rounded transition-all duration-150 remove-product" title="Eliminar producto">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        productsTableBody.appendChild(row);
+        
+        // Agregar funcionalidad de búsqueda inline
+        setupInlineProductSearch(row);
+        
+        // Agregar event listeners para cálculos
+        row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input, .selling-price').forEach(input => {
+            input.addEventListener('input', updateRowCalculations);
+            input.addEventListener('change', updateRowCalculations);
+        });
+        
+        // Botón eliminar
+        row.querySelector('.remove-product').addEventListener('click', function() {
+            row.remove();
+            updateTotals();
+            checkEmptyTable();
+        });
+
+        // Botón agregar fila debajo
+        row.querySelector('.add-row-below').addEventListener('click', function() {
+            addEmptyProductRowAfter(row);
+        });
+
+        // Focus en el input de búsqueda
+        row.querySelector('.product-name-input').focus();
+        
+        updateTotals();
+    }
+
+    // Configurar búsqueda inline de productos
+    function setupInlineProductSearch(row) {
+        const searchInput = row.querySelector('.product-name-input');
+        const dropdown = row.querySelector('.product-dropdown');
+        const productIdInput = row.querySelector('.product-id-input');
+        const productInfo = row.querySelector('.product-info');
+        const productDisplayName = row.querySelector('.product-display-name');
+        const productCategory = row.querySelector('.product-category');
+        const sellingPriceInput = row.querySelector('.selling-price');
+
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (searchTerm.length > 2) {
+                dropdown.innerHTML = '<div class="p-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Buscando...</div>';
+                dropdown.classList.remove('hidden');
+                
+                searchTimeout = setTimeout(() => {
+                    fetch(`{{ route('purchases.searchProducts') }}?search=${encodeURIComponent(searchTerm)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(products => {
+                        if (products && products.length > 0) {
+                            let html = '';
+                            products.forEach(product => {
+                                html += `
+                                    <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 flex justify-between items-center transition-colors duration-150 product-option" 
+                                         data-id="${product.id}"
+                                         data-name="${escapeHtml(product.name)}"
+                                         data-price="${parseFloat(product.price) || 0}"
+                                         data-category="${escapeHtml(product.category || 'Sin categoría')}">
+                                        <div>
+                                            <div class="font-medium text-[var(--text-color)]">${escapeHtml(product.name)}</div>
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                <i class="fas fa-tag mr-1"></i>${escapeHtml(product.category || 'Sin categoría')}
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-semibold text-[var(--primary-color)]">Bs. ${(parseFloat(product.price) || 0).toFixed(2)}</span>
+                                    </div>
+                                `;
+                            });
+                            dropdown.innerHTML = html;
+                            
+                            // Agregar event listeners a las opciones
+                            dropdown.querySelectorAll('.product-option').forEach(option => {
+                                option.addEventListener('click', function() {
+                                    const id = this.getAttribute('data-id');
+                                    const name = this.getAttribute('data-name');
+                                    const price = parseFloat(this.getAttribute('data-price'));
+                                    const category = this.getAttribute('data-category');
+                                    
+                                    // Asignar valores
+                                    productIdInput.value = id;
+                                    searchInput.value = '';
+                                    searchInput.classList.add('hidden');
+                                    productDisplayName.textContent = name;
+                                    productCategory.textContent = category;
+                                    productInfo.classList.remove('hidden');
+                                    sellingPriceInput.value = price.toFixed(2);
+                                    dropdown.classList.add('hidden');
+                                    
+                                    // Trigger cálculos
+                                    updateRowCalculations({ target: row.querySelector('.unit-cost-input') });
+                                });
+                            });
+                        } else {
+                            dropdown.innerHTML = '<div class="p-3 text-gray-500 text-center"><i class="fas fa-search mr-2"></i>No se encontraron productos</div>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        dropdown.innerHTML = '<div class="p-3 text-red-500 text-center"><i class="fas fa-exclamation-triangle mr-2"></i>Error al buscar</div>';
+                    });
+                }, 300);
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!row.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Verificar si la tabla está vacía
+    function checkEmptyTable() {
+        const rows = productsTableBody.querySelectorAll('tr:not(#empty-table-message)');
+        if (rows.length === 0) {
+            emptyMessage.style.display = '';
+            addProductFooter.classList.add('hidden');
+        }
+    }
 
     // Manejar el envío del formulario
     document.getElementById('purchase-form').addEventListener('submit', function(e) {
@@ -293,8 +547,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Obtener datos de productos
     function getProductsData() {
         const products = [];
-        document.querySelectorAll('#products-table-body tr').forEach(row => {
-            const productId = row.querySelector('input[name*="[product_id]"]').value;
+        document.querySelectorAll('#products-table-body tr:not(#empty-table-message)').forEach(row => {
+            const productId = row.querySelector('.product-id-input').value;
             const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
             const unitCost = parseFloat(row.querySelector('.unit-cost-input').value) || 0;
             const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
@@ -315,97 +569,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return products;
     }
 
-    // Función debounce para búsqueda
-    function debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
-    // Agregar producto a la tabla
-    function addProductToTable(product) {
-        productRowCounter++;
-        
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50 transition-colors duration-150';
-        row.innerHTML = `
-            <td class="px-3 py-3 border-r border-[var(--gray-light)]">
-                <div class="font-medium text-[var(--text-color)]">${escapeHtml(product.name)}</div>
-                <div class="text-xs text-gray-500 mt-1">
-                    <i class="fas fa-tag mr-1"></i>${escapeHtml(product.category || 'Sin categoría')}
-                </div>
-                <input type="hidden" name="products[${productRowCounter}][product_id]" value="${product.id}">
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][quantity]" value="1" min="1" 
-                       class="w-20 text-center quantity-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                       data-product-id="${product.id}">
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][unit_cost]" 
-                       class="w-24 text-center unit-cost-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                       step="0.01" min="0" placeholder="0.00" required>
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <div class="flex items-center justify-center gap-1">
-                    <input type="number" name="products[${productRowCounter}][discount]" value="0"
-                           class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                           step="0.1" min="0" max="100" placeholder="0.0">
-                    <span class="text-gray-500">%</span>
-                </div>
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
-                       class="w-24 text-center unit-cost-after-discount bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-medium text-[var(--primary-color)]" 
-                       step="0.01" min="0" readonly placeholder="0.00">
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][line_total]" 
-                       class="w-24 text-center line-total bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-bold text-[var(--primary-color)]" 
-                       step="0.01" min="0" readonly placeholder="0.00">
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <div class="profit-margin font-semibold text-sm" style="color: #28a745;">-</div>
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="number" name="products[${productRowCounter}][selling_price]" value="${(product.price || 0).toFixed(2)}" 
-                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
-                       step="0.01" min="0" required>
-            </td>
-            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
-                <input type="date" name="products[${productRowCounter}][expiry_date]" 
-                       class="w-full text-xs border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-            </td>
-            <td class="px-3 py-3 text-center">
-                <button type="button" class="text-[var(--red)] hover:text-red-700 hover:bg-red-50 p-2 rounded transition-colors duration-150 remove-product">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        `;
-        
-        productsTableBody.appendChild(row);
-        
-        // Agregar event listeners
-        row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input, .selling-price').forEach(input => {
-            input.addEventListener('input', updateRowCalculations);
-            input.addEventListener('change', updateRowCalculations);
-        });
-        
-        row.querySelector('.remove-product').addEventListener('click', function() {
-            row.remove();
-            updateTotals();
-        });
-
-        // Calcular valores iniciales
-        updateRowCalculations({ target: row.querySelector('.unit-cost-input') });
-        updateTotals();
-    }
-
     // Actualizar cálculos de fila
     function updateRowCalculations(event) {
         const row = event.target.closest('tr');
+        if (!row || row.id === 'empty-table-message') return;
+        
         const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
         const unitCost = parseFloat(row.querySelector('.unit-cost-input').value) || 0;
         const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
@@ -448,14 +616,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Actualizar totales
     function updateTotals() {
-        const rows = productsTableBody.querySelectorAll('tr');
+        const rows = productsTableBody.querySelectorAll('tr:not(#empty-table-message)');
         let totalProducts = 0;
         let totalAmount = 0;
         
         rows.forEach(row => {
-            totalProducts++;
-            const lineTotal = parseFloat(row.querySelector('.line-total').value) || 0;
-            totalAmount += lineTotal;
+            const productId = row.querySelector('.product-id-input').value;
+            if (productId) {
+                totalProducts++;
+                const lineTotal = parseFloat(row.querySelector('.line-total').value) || 0;
+                totalAmount += lineTotal;
+            }
         });
         
         totalProductsSpan.textContent = totalProducts;
@@ -473,13 +644,116 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/'/g, "&#039;");
     }
 
-    // Búsqueda de productos
+    // Búsqueda global de productos (mantener funcionalidad existente)
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Agregar producto desde búsqueda global
+    function addProductToTable(product) {
+        // Ocultar mensaje vacío
+        if (emptyMessage) {
+            emptyMessage.style.display = 'none';
+        }
+        addProductFooter.classList.remove('hidden');
+
+        productRowCounter++;
+        
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors duration-150';
+        row.innerHTML = `
+            <td class="px-3 py-3 border-r border-[var(--gray-light)]">
+                <div class="font-medium text-[var(--text-color)]">${escapeHtml(product.name)}</div>
+                <div class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-tag mr-1"></i>${escapeHtml(product.category || 'Sin categoría')}
+                </div>
+                <input type="hidden" name="products[${productRowCounter}][product_id]" value="${product.id}" class="product-id-input">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][quantity]" value="1" min="1" 
+                       class="w-20 text-center quantity-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][unit_cost]" 
+                       class="w-24 text-center unit-cost-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                       step="0.01" min="0" placeholder="0.00" required>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="flex items-center justify-center gap-1">
+                    <input type="number" name="products[${productRowCounter}][discount]" value="0"
+                           class="w-16 text-center discount-input border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                           step="0.1" min="0" max="100" placeholder="0.0">
+                    <span class="text-gray-500">%</span>
+                </div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
+                       class="w-24 text-center unit-cost-after-discount bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-medium text-[var(--primary-color)]" 
+                       step="0.01" min="0" readonly placeholder="0.00">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][line_total]" 
+                       class="w-24 text-center line-total bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-bold text-[var(--primary-color)]" 
+                       step="0.01" min="0" readonly placeholder="0.00">
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="profit-margin font-semibold text-sm" style="color: #28a745;">-</div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="number" name="products[${productRowCounter}][selling_price]" value="${(product.price || 0).toFixed(2)}" 
+                       class="w-24 text-center selling-price border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                       step="0.01" min="0" required>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <input type="date" name="products[${productRowCounter}][expiry_date]" 
+                       class="w-full text-xs border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
+            </td>
+            <td class="px-3 py-3 text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <button type="button" class="text-[var(--primary-color)] hover:text-white hover:bg-[var(--primary-color)] p-2 rounded transition-all duration-150 add-row-below" title="Agregar producto debajo">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <button type="button" class="text-[var(--red)] hover:text-white hover:bg-[var(--red)] p-2 rounded transition-all duration-150 remove-product" title="Eliminar producto">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        productsTableBody.appendChild(row);
+        
+        // Agregar event listeners
+        row.querySelectorAll('.quantity-input, .unit-cost-input, .discount-input, .selling-price').forEach(input => {
+            input.addEventListener('input', updateRowCalculations);
+            input.addEventListener('change', updateRowCalculations);
+        });
+        
+        row.querySelector('.remove-product').addEventListener('click', function() {
+            row.remove();
+            updateTotals();
+            checkEmptyTable();
+        });
+
+        // Botón agregar fila debajo
+        row.querySelector('.add-row-below').addEventListener('click', function() {
+            addEmptyProductRowAfter(row);
+        });
+
+        updateRowCalculations({ target: row.querySelector('.unit-cost-input') });
+        updateTotals();
+    }
+
+    // Búsqueda global de productos
     document.getElementById('product-search').addEventListener('input', debounce(function(e) {
         const searchTerm = e.target.value.trim();
         const searchResults = document.getElementById('search-results');
         
         if (searchTerm.length > 2) {
-            fetch(`/purchases/search-products?search=${encodeURIComponent(searchTerm)}`)
+            fetch(`{{ route('purchases.searchProducts') }}?search=${encodeURIComponent(searchTerm)}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Error en la respuesta del servidor');
                     return response.json();

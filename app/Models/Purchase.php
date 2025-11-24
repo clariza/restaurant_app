@@ -11,6 +11,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'supplier_id',
+        'user_id',
         'reference_number',
         'purchase_date',
         'total_amount',
@@ -31,6 +32,10 @@ class Purchase extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     /**
      * Relación con Stock (detalles de la compra)
      */
@@ -56,9 +61,9 @@ class Purchase extends Model
             MenuItem::class,
             Stock::class,
             'purchase_id', // Foreign key en stocks
-            'id',          // Foreign key en menu_items
-            'id',          // Local key en purchases
-            'product_id'   // Local key en stocks
+            'id', // Foreign key en menu_items
+            'id', // Local key en purchases
+            'product_id' // Local key en stocks
         );
     }
 
@@ -124,5 +129,12 @@ class Purchase extends Model
     public function scopeBySupplier($query, $supplierId)
     {
         return $query->where('supplier_id', $supplierId);
+    }
+    public function hasItemsNearExpiry($days = 30)
+    {
+        return $this->stocks()
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '<=', now()->addDays($days))
+            ->exists();
     }
 }

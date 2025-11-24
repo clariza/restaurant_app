@@ -11,6 +11,7 @@ class ProformaItem extends Model
 
     protected $fillable = [
         'proforma_id',
+        'menu_item_id',
         'name',
         'price',
         'quantity'
@@ -19,5 +20,9 @@ class ProformaItem extends Model
     public function proforma()
     {
         return $this->belongsTo(Proforma::class);
+    }
+    public function menuItem()
+    {
+        return $this->belongsTo(MenuItem::class, 'menu_item_id');
     }
 }

@@ -10,10 +10,21 @@ class MenuItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 
-    'price', 'image', 
-    'category_id','stock','min_stock',
-        'stock_type','stock_unit','manage_inventory'];
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'cost',
+        'image',
+        'category_id',
+        'stock',
+        'is_available',
+        'preparation_time',
+        'min_stock',
+        'stock_type',
+        'stock_unit',
+        'manage_inventory'
+    ];
 
     // Relación con la categoría
     public function category()
@@ -25,26 +36,26 @@ class MenuItem extends Model
     {
         return $this->hasMany(InventoryMovement::class);
     }
-    public function updateStock($quantity, $movementType, $notes = null,$userId = null)
+    public function updateStock($quantity, $movementType, $notes = null, $userId = null)
     {
         $oldStock = $this->stock;
-        
-        $this->stock = $movementType === 'addition' 
+
+        $this->stock = $movementType === 'addition'
             ? $this->stock + $quantity
             : $this->stock - $quantity;
-            
+
         $this->save();
         $currentUserId = null;
-         if ($userId) {
-        // Si se proporciona un userId específico
+        if ($userId) {
+            // Si se proporciona un userId específico
             $currentUserId = $userId;
         } elseif (function_exists('auth') && auth() && auth()->check()) {
-        // Si auth() está disponible y hay usuario autenticado
+            // Si auth() está disponible y hay usuario autenticado
             $currentUserId = auth()->id();
         }
 
         // Usar el userId proporcionado o el usuario autenticado
-       // $currentUserId = $userId ?? (auth()->check() ? auth()->id() : null);
+        // $currentUserId = $userId ?? (auth()->check() ? auth()->id() : null);
         // Registrar movimiento
         return $this->inventoryMovements()->create([
             'user_id' => $currentUserId,
@@ -55,12 +66,12 @@ class MenuItem extends Model
             'notes' => $notes
         ]);
     }
-      // Método para verificar bajo stock
+    // Método para verificar bajo stock
     public function isLowStock()
     {
         return $this->stock < $this->min_stock;
     }
-    
+
     public function stocks()
     {
         return $this->hasMany(Stock::class, 'product_id');

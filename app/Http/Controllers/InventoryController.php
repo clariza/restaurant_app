@@ -47,7 +47,7 @@ class InventoryController extends Controller
 
             // Obtener usuario autenticado - CORRECCIÓN PRINCIPAL
             $user = auth()->user();
-            
+
             // Verificar que hay un usuario autenticado
             if (!$user) {
                 DB::rollBack();
@@ -71,7 +71,7 @@ class InventoryController extends Controller
             }
 
             // Calcular nuevo stock
-            $newStock = $request->movement_type === 'addition' 
+            $newStock = $request->movement_type === 'addition'
                 ? $item->stock + $request->quantity
                 : $item->stock - $request->quantity;
 
@@ -101,7 +101,6 @@ class InventoryController extends Controller
             ]);
 
             return back()->with('success', 'Stock actualizado correctamente');
-            
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error en updateStock', [
@@ -116,7 +115,7 @@ class InventoryController extends Controller
     public function getMovements($itemId)
     {
         $item = MenuItem::findOrFail($itemId);
-        
+
         // Verificar que el producto tenga gestión de inventario habilitada
         if (!$item->manage_inventory) {
             return response()->json(['error' => 'Producto sin gestión de inventario'], 403);
@@ -134,13 +133,13 @@ class InventoryController extends Controller
     public function movements()
     {
         // Solo mostrar movimientos de productos con gestión de inventario
-        $movements = InventoryMovement::whereHas('menuItem', function($query) {
+        $movements = InventoryMovement::whereHas('menuItem', function ($query) {
             $query->where('manage_inventory', true);
         })
-        ->with(['menuItem.category', 'user'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(50);
-            
+            ->with(['menuItem.category', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
+
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
 
         return view('inventory.movements', compact('movements', 'hasOpenPettyCash'));
@@ -153,7 +152,7 @@ class InventoryController extends Controller
             ->latest()
             ->take(10)
             ->get();
-            
+
         return response()->json($movements);
     }
 
@@ -174,13 +173,13 @@ class InventoryController extends Controller
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
 
         // Solo reportes de productos con gestión de inventario
-        $movements = InventoryMovement::whereHas('menuItem', function($query) {
+        $movements = InventoryMovement::whereHas('menuItem', function ($query) {
             $query->where('manage_inventory', true);
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->with(['menuItem.category', 'user'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with(['menuItem.category', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $summary = [
             'total_additions' => $movements->where('movement_type', 'addition')->sum('quantity'),

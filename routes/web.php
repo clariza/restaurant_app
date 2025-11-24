@@ -42,8 +42,15 @@ Route::middleware(['auth'])->group(function () {
         ->name('petty-cash.create');
     Route::post('/petty-cash', [PettyCashController::class, 'store'])
         ->name('petty-cash.store');
+
+    // 🔥 NUEVA RUTA: Para obtener datos JSON del cierre
+    Route::get('/petty-cash/closure-data', [PettyCashController::class, 'getClosureData'])
+        ->name('petty-cash.closure-data');
+
+    // Esta ruta sigue retornando HTML para el modal principal
     Route::get('/petty-cash/modal-content', [PettyCashController::class, 'modalContent'])
         ->name('petty-cash.modal-content');
+
     Route::get('/petty-cash/check-status', [PettyCashController::class, 'checkStatus'])
         ->name('petty-cash.check-status');
     Route::get('/petty-cash/check-open', [PettyCashController::class, 'checkOpen'])
@@ -94,6 +101,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tables', [TableController::class, 'index'])->name('tables.index');
     Route::get('/tables/{table}', [TableController::class, 'show'])->name('tables.show');
     // --- SALES (Ventas - Solo consulta) ---
+    Route::get('/api/sales/next-order-number', [SaleController::class, 'getNextOrderNumber'])
+        ->name('sales.nextOrderNumber');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
@@ -176,6 +185,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // --- PURCHASES ---
+    // Dentro del grupo de rutas de purchases
+    Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])->name('purchases.searchProducts');
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
@@ -183,8 +194,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/purchases/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchases.edit');
     Route::put('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
     Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
-    Route::get('/purchases/search-products', [PurchaseController::class, 'searchProducts'])
-        ->name('purchases.searchProducts');
     Route::get('/purchases/product-details/{id}', [PurchaseController::class, 'getProductDetails'])
         ->name('purchases.productDetails');
 });

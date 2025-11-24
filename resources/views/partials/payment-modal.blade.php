@@ -247,10 +247,10 @@
                             <i class="fas fa-utensils"></i>Comer aquí
                         </button>
                         <button class="order-type-btn" data-type="para-llevar">
-                            <i class="fas fa-shopping-bag"></i>Recojo por Delivery
+                            <i class="fas fa-shopping-bag"></i>Retiro por Delivery
                         </button>
                         <button class="order-type-btn" data-type="recoger">
-                            <i class="fas fa-box"></i>Recoger
+                            <i class="fas fa-box"></i>Retiro del Local
                         </button>
                     </div>
                 </div>

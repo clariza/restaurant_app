@@ -490,12 +490,12 @@
         <div class="modal-content">
             <!-- Sección de Gastos -->
             <div class="expenses-section">
-                <div class="expenses-header">
-                    <h4 class="font-medium" style="margin: 0; font-size: 1.125rem; color: #374151;">Registro de Gastos</h4>
-                    <button type="button" class="add-expense-btn" onclick="addExpenseModalClosure()">
-                        <i class="fas fa-plus"></i> Agregar Gasto
-                    </button>
-                </div>
+    <div class="expenses-header">
+        <h4 class="font-medium" style="margin: 0; font-size: 1.125rem; color: #374151;">Registro de Gastos</h4>
+        <button type="button" class="add-expense-btn" onclick="addExpenseModalClosure()">
+            <i class="fas fa-plus"></i> Agregar Gasto
+        </button>
+    </div>
 
                 <div class="expenses-container" id="expensesContainerClosure">
                     <!-- Fila de gasto inicial -->
@@ -507,7 +507,7 @@
                             <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
                         </div>
                         <div class="expense-field">
-                            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpensesClosure()">
+                            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" >
                         </div>
                         <div class="expense-actions">
                             <button type="button" class="btn btn-danger" onclick="removeExpenseClosure(this)">
@@ -563,30 +563,31 @@
                     <div class="section-container">
                         <h4 class="section-title">Resumen de Cierre</h4>
                         <div class="form-grid">
-                            <div class="input-group">
-                                <label for="total-gastos-closure">Total Gastos</label>
-                                <input type="number" id="total-gastos-closure" class="form-control"
-                                    value="0" step="0.01" readonly>
-                            </div>
+                   <div class="input-group">
+    <label for="total-gastos-closure">Total Gastos</label>
+    <input type="number" id="total-gastos-closure" class="form-control"
+        value="{{ $totalExpenses ?? 0 }}" 
+        data-gastos-bd="{{ $totalExpenses ?? 0 }}"
+        step="0.01" readonly>
+</div>
 
-                            <div class="input-group">
-                                <label for="ventas-efectivo-closure">Ventas en Efectivo</label>
-                                <input type="number" id="ventas-efectivo-closure" class="form-control"
-                                    value="0" step="0.01" readonly>
-                            </div>
+<div class="input-group">
+    <label for="ventas-efectivo-closure">Ventas en Efectivo</label>
+    <input type="number" id="ventas-efectivo-closure" class="form-control"
+        value="{{ $totalSalesCash ?? 0 }}" step="0.01" readonly>
+</div>
 
-                            <div class="input-group">
-                                <label for="ventas-qr-closure">Ventas QR</label>
-                                <input type="number" id="ventas-qr-closure" class="form-control"
-                                    value="{{ $totalSalesQR ?? 0 }}" step="0.01">
-                            </div>
+<div class="input-group">
+    <label for="ventas-qr-closure">Ventas QR</label>
+    <input type="number" id="ventas-qr-closure" class="form-control"
+        value="{{ $totalSalesQR ?? 0 }}" step="0.01">
+</div>
 
-                            <div class="input-group">
-                                <label for="ventas-tarjeta-closure">Ventas Tarjeta</label>
-                                <input type="number" id="ventas-tarjeta-closure" class="form-control"
-                                    value="{{ $totalSalesCard ?? 0 }}" step="0.01">
-                            </div>
-                            
+<div class="input-group">
+    <label for="ventas-tarjeta-closure">Ventas Tarjeta</label>
+    <input type="number" id="ventas-tarjeta-closure" class="form-control"
+        value="{{ $totalSalesCard ?? 0 }}" step="0.01">
+</div>
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary" onclick="closeInternalModalClosure()">
                                     <i class="fas fa-times"></i> Cancelar

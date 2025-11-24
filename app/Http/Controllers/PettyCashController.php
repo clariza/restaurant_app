@@ -87,6 +87,46 @@ class PettyCashController extends Controller
             'users'
         ));
     }
+    public function getClosureData()
+    {
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$openPettyCash) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay caja chica abierta'
+            ], 404);
+        }
+
+        // Calcular el total de gastos de esta caja chica
+        $totalExpenses = Expense::where('petty_cash_id', $openPettyCash->id)
+            ->sum('amount');
+
+        // Calcular ventas por método de pago
+        $totalSalesCash = Sale::where('petty_cash_id', $openPettyCash->id)
+            ->where('payment_method', 'Efectivo')
+            ->sum('total');
+
+        $totalSalesQR = Sale::where('petty_cash_id', $openPettyCash->id)
+            ->where('payment_method', 'QR')
+            ->sum('total');
+
+        $totalSalesCard = Sale::where('petty_cash_id', $openPettyCash->id)
+            ->whereIn('payment_method', ['Tarjeta', 'Card'])
+            ->sum('total');
+
+        return response()->json([
+            'success' => true,
+            'petty_cash_id' => $openPettyCash->id,
+            'initial_amount' => $openPettyCash->initial_amount,
+            'total_expenses' => $totalExpenses,
+            'total_sales_cash' => $totalSalesCash,
+            'total_sales_qr' => $totalSalesQR,
+            'total_sales_card' => $totalSalesCard,
+        ]);
+    }
 
     // Mostrar la lista de cierres de caja chica
     public function index(Request $request)
@@ -236,88 +276,96 @@ class PettyCashController extends Controller
 
     public function saveClosure(Request $request)
     {
-        // ✅ Validación de datos
-        $validator = Validator::make($request->all(), [
-            'petty_cash_id' => 'required|exists:petty_cash,id',
-            'total_sales_cash' => 'required|numeric|min:0',
-            'total_sales_qr' => 'required|numeric|min:0',
-            'total_sales_card' => 'required|numeric|min:0',
-            'total_expenses' => 'required|numeric|min:0',
-            'expenses' => 'nullable|array',
-            'expenses.*.name' => 'required_with:expenses.*.amount|string|max:255',
-            'expenses.*.description' => 'nullable|string|max:500',
-            'expenses.*.amount' => 'required_with:expenses.*.name|numeric|min:0.01',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de validación',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         try {
-            DB::beginTransaction();
-
-            $pettyCash = PettyCash::findOrFail($request->petty_cash_id);
-
-            if ($pettyCash->status !== 'open') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La caja chica ya está cerrada'
-                ], 400);
-            }
-
-            $totalSales = $request->total_sales_cash + $request->total_sales_qr + $request->total_sales_card;
-            $totalGeneral = $totalSales - $request->total_expenses;
-
-            // Actualizar la caja chica
-            $pettyCash->update([
-                'total_sales_cash' => $request->total_sales_cash,
-                'total_sales_qr' => $request->total_sales_qr,
-                'total_sales_card' => $request->total_sales_card,
-                'total_expenses' => $request->total_expenses,
-                'total_general' => $totalGeneral,
-                'current_amount' => $totalGeneral,
-                'closed_at' => now(),
-                'status' => 'closed',
+            $validated = $request->validate([
+                'petty_cash_id' => 'required|exists:petty_cashes,id',
+                'total_expenses' => 'required|numeric|min:0',
+                'cash_sales' => 'required|numeric|min:0',
+                'qr_sales' => 'nullable|numeric|min:0',
+                'card_sales' => 'nullable|numeric|min:0',
+                'denominations' => 'nullable|array',
+                'new_expenses' => 'nullable|array',
+                'new_expenses.*.expense_name' => 'required_with:new_expenses|string',
+                'new_expenses.*.description' => 'nullable|string',
+                'new_expenses.*.amount' => 'required_with:new_expenses|numeric|min:0.01',
             ]);
 
-            // ✅ CORREGIDO: Guardar los gastos con todos los campos requeridos
-            $expensesCreated = 0;
-            if ($request->has('expenses') && is_array($request->expenses)) {
-                foreach ($request->expenses as $expenseData) {
-                    // Solo crear el gasto si tiene nombre y monto mayor a 0
-                    if (!empty($expenseData['name']) && floatval($expenseData['amount']) > 0) {
-                        Expense::create([
-                            'petty_cash_id' => $pettyCash->id,
-                            'expense_name' => $expenseData['name'], // ✅ IMPORTANTE: usar expense_name
-                            'description' => $expenseData['description'] ?? null,
-                            'amount' => floatval($expenseData['amount']),
-                            'date' => now()->toDateString(), // ✅ AGREGAR: campo date requerido
-                        ]);
-                        $expensesCreated++;
-                    }
+            DB::beginTransaction();
+
+            $pettyCash = PettyCash::findOrFail($validated['petty_cash_id']);
+
+            // Verificar que la caja chica pertenece al usuario actual
+            if ($pettyCash->user_id !== auth()->id()) {
+                throw new \Exception('No tienes permiso para cerrar esta caja chica');
+            }
+
+            // Verificar que la caja esté abierta
+            if ($pettyCash->status !== 'open') {
+                throw new \Exception('Esta caja chica ya está cerrada');
+            }
+
+            // Guardar gastos adicionales (manuales) si existen
+            if (!empty($validated['new_expenses'])) {
+                foreach ($validated['new_expenses'] as $expense) {
+                    Expense::create([
+                        'expense_name' => $expense['expense_name'],
+                        'description' => $expense['description'] ?? null,
+                        'amount' => $expense['amount'],
+                        'date' => now(),
+                        'petty_cash_id' => $pettyCash->id,
+                        'user_id' => auth()->id(),
+                    ]);
                 }
             }
+
+            // Recalcular el total de gastos después de agregar los nuevos
+            $totalExpenses = Expense::where('petty_cash_id', $pettyCash->id)->sum('amount');
+
+            // Calcular totales
+            $totalSales = $validated['cash_sales'] + ($validated['qr_sales'] ?? 0) + ($validated['card_sales'] ?? 0);
+            $expectedCash = $pettyCash->initial_amount + $validated['cash_sales'] - $totalExpenses;
+            $actualCash = $validated['cash_sales'];
+            $difference = $actualCash - $expectedCash;
+
+            // Actualizar caja chica
+            $pettyCash->update([
+                'status' => 'closed',
+                'final_amount' => $actualCash,
+                'total_sales' => $totalSales,
+                'total_expenses' => $totalExpenses,
+                'cash_sales' => $validated['cash_sales'],
+                'qr_sales' => $validated['qr_sales'] ?? 0,
+                'card_sales' => $validated['card_sales'] ?? 0,
+                'denominations' => json_encode($validated['denominations'] ?? []),
+                'difference' => $difference,
+                'closed_at' => now(),
+            ]);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Cierre de caja guardado correctamente',
+                'message' => 'Cierre de caja guardado exitosamente',
                 'data' => [
-                    'petty_cash' => $pettyCash,
-                    'expenses_count' => $expensesCreated
+                    'petty_cash_id' => $pettyCash->id,
+                    'total_expenses' => $totalExpenses,
+                    'total_sales' => $totalSales,
+                    'difference' => $difference
                 ]
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al guardar el cierre: ' . $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }

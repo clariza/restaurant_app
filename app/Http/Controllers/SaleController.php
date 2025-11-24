@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class SaleController extends Controller
 {
@@ -268,5 +271,64 @@ class SaleController extends Controller
         }
 
         return response()->json(['available' => true]);
+    }
+    // En SalesController.php
+
+
+    /**
+     * Obtiene el siguiente número de pedido del día
+     */
+    /**
+     * Obtiene el siguiente número de pedido del día
+     */
+    /**
+     * Obtiene el siguiente número de pedido del día con formato PED-00001
+     */
+    public function getNextOrderNumber()
+    {
+        try {
+            $today = Carbon::today();
+
+            // Buscar el último pedido del día actual
+            $lastSale = Sale::whereDate('order_date', $today)
+                ->whereNotNull('daily_order_number')
+                ->orderBy('daily_order_number', 'desc')
+                ->first();
+
+            // Extraer el número del último pedido
+            if ($lastSale && $lastSale->daily_order_number) {
+                // Extraer solo los dígitos del formato "PED-00001"
+                if (preg_match('/PED-(\d+)/', $lastSale->daily_order_number, $matches)) {
+                    $lastNumber = (int) $matches[1];
+                    $nextNumber = $lastNumber + 1;
+                } else {
+                    // Si no tiene el formato esperado, empezar en 1
+                    $nextNumber = 1;
+                }
+            } else {
+                // Si no hay pedidos hoy, empezar en 1
+                $nextNumber = 1;
+            }
+
+            // Formatear con prefijo y ceros a la izquierda (5 dígitos)
+            $formattedOrderNumber = 'PED-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
+
+
+            return response()->json([
+                'success' => true,
+                'next_order_number' => $formattedOrderNumber,
+                'next_number_raw' => $nextNumber,
+                'date' => $today->toDateString()
+            ]);
+        } catch (\Exception $e) {
+
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener el número de pedido',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

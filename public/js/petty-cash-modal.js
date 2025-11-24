@@ -7,23 +7,167 @@ console.log('📦 petty-cash-modal.js cargado');
 /**
  * Abrir el modal interno de cierre
  */
-window.openInternalModalClosure = function (id) {
+window.openInternalModalClosure = async function (id) {
     console.log('🔓 Abriendo modal de cierre interno para caja:', id);
 
     const modal = document.getElementById('modal-closure-internal');
     const overlay = document.getElementById('closure-internal-overlay');
 
-    if (modal && overlay) {
-        overlay.classList.add('active');
-        modal.classList.add('active');
-        document.getElementById('petty_cash_id_closure').value = id;
-        resetClosureModal();
-
-        console.log('✅ Modal de cierre activado');
-    } else {
+    if (!modal || !overlay) {
         console.error('❌ No se encontraron los elementos del modal de cierre');
+        return;
+    }
+
+    // Mostrar el modal inmediatamente
+    overlay.classList.add('active');
+    modal.classList.add('active');
+    document.getElementById('petty_cash_id_closure').value = id;
+
+    console.log('✅ Modal de cierre activado, cargando datos...');
+
+    // 🔥 CARGAR DATOS DINÁMICAMENTE DESDE EL SERVIDOR (nueva ruta JSON)
+    try {
+        console.log('📡 Solicitando datos a /petty-cash/closure-data...');
+
+        const response = await fetch('/petty-cash/closure-data', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('📊 Datos recibidos del servidor:', data);
+
+            // Establecer el ID de la caja chica
+            document.getElementById('petty_cash_id_closure').value = data.petty_cash_id;
+
+            // ✅ CARGAR LOS TOTALES
+            const totalGastosInput = document.getElementById('total-gastos-closure');
+            const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
+            const ventasQRInput = document.getElementById('ventas-qr-closure');
+            const ventasTarjetaInput = document.getElementById('ventas-tarjeta-closure');
+
+            if (totalGastosInput) {
+                // 🔥 GUARDAR el total de gastos de BD en data-attribute
+                const totalGastosBD = parseFloat(data.total_expenses || 0);
+                totalGastosInput.value = totalGastosBD.toFixed(2);
+                totalGastosInput.setAttribute('data-gastos-bd', totalGastosBD.toFixed(2));
+
+                console.log('✅ Total gastos de BD guardado en data-attribute:', totalGastosBD.toFixed(2));
+                console.log('🔍 Verificación - data-gastos-bd:', totalGastosInput.getAttribute('data-gastos-bd'));
+            } else {
+                console.error('❌ No se encontró el input total-gastos-closure');
+            }
+
+            if (ventasEfectivoInput) {
+                ventasEfectivoInput.value = parseFloat(data.total_sales_cash || 0).toFixed(2);
+                console.log('✅ Ventas efectivo cargadas:', ventasEfectivoInput.value);
+            }
+
+            if (ventasQRInput) {
+                ventasQRInput.value = parseFloat(data.total_sales_qr || 0).toFixed(2);
+                console.log('✅ Ventas QR cargadas:', ventasQRInput.value);
+            }
+
+            if (ventasTarjetaInput) {
+                ventasTarjetaInput.value = parseFloat(data.total_sales_card || 0).toFixed(2);
+                console.log('✅ Ventas tarjeta cargadas:', ventasTarjetaInput.value);
+            }
+
+            // ✅ LIMPIAR el contenedor de gastos y agregar UNA fila vacía
+            const container = document.getElementById('expensesContainerClosure');
+            if (container) {
+                container.innerHTML = '';
+                addExpenseRowClosure(null); // Una fila vacía inicial
+                console.log('✅ Contenedor de nuevos gastos inicializado');
+            }
+
+            console.log('✅ Datos del modal de cierre cargados exitosamente');
+        } else {
+            throw new Error(data.message || 'Error al cargar datos');
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar datos del modal:', error);
+        alert('Error al cargar los datos del cierre. Por favor, intenta nuevamente.');
+
+        // En caso de error, inicializar con valores por defecto
+        const totalGastosInput = document.getElementById('total-gastos-closure');
+        if (totalGastosInput) {
+            totalGastosInput.value = '0.00';
+            totalGastosInput.setAttribute('data-gastos-bd', '0.00');
+        }
+
+        resetClosureModal();
     }
 };
+
+/**
+ * Agregar una fila de gasto (SOLO para nuevos gastos)
+ */
+function addExpenseRowClosure(expense = null) {
+    const container = document.getElementById('expensesContainerClosure');
+    if (!container) {
+        console.error('❌ Contenedor de gastos no encontrado');
+        return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'expense-row';
+
+    const expenseName = expense ? expense.expense_name : '';
+    const expenseDescription = expense ? (expense.description || '') : '';
+    const expenseAmount = expense ? expense.amount : '';
+
+    row.innerHTML = `
+        <div class="expense-field">
+            <input type="text" class="expense-input" placeholder="Nombre del gasto" 
+                name="expense_name[]" value="${expenseName}">
+        </div>
+        <div class="expense-field">
+            <input type="text" class="expense-input" placeholder="Descripción/Categoría" 
+                name="expense_description[]" value="${expenseDescription}">
+        </div>
+        <div class="expense-field">
+            <input type="number" class="expense-input expense-amount-input" placeholder="Monto" 
+                step="0.01" min="0" name="expense_amount[]" value="${expenseAmount}">
+        </div>
+        <div class="expense-actions">
+            <button type="button" class="btn btn-danger" onclick="removeExpenseClosure(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(row);
+
+    // ✅ AGREGAR EVENT LISTENERS al input de monto recién creado
+    const amountInput = row.querySelector('input[name="expense_amount[]"]');
+    if (amountInput) {
+        // Usar múltiples eventos para asegurar que funcione en todos los casos
+        amountInput.addEventListener('input', handleExpenseInputChange);
+        amountInput.addEventListener('change', handleExpenseInputChange);
+        amountInput.addEventListener('keyup', handleExpenseInputChange);
+        amountInput.addEventListener('blur', handleExpenseInputChange); // Cuando pierde el foco
+
+        console.log('✅ Event listeners agregados al input de gasto');
+    }
+}
+
+/**
+ * Manejador unificado para cambios en inputs de gastos
+ */
+function handleExpenseInputChange(e) {
+    console.log('📝 Input de gasto modificado:', e.target.value);
+    calculateTotalExpensesClosure();
+}
 
 /**
  * Cerrar el modal interno de cierre
@@ -37,7 +181,6 @@ window.closeInternalModalClosure = function () {
     if (modal && overlay) {
         modal.classList.remove('active');
         overlay.classList.remove('active');
-
         console.log('✅ Modal de cierre cerrado');
     }
 };
@@ -46,6 +189,8 @@ window.closeInternalModalClosure = function () {
  * Resetear inputs del modal de cierre interno
  */
 window.resetClosureModal = function () {
+    console.log('🔄 Reseteando modal de cierre...');
+
     // Resetear inputs de denominaciones
     document.querySelectorAll('.contar-input-closure').forEach(input => {
         input.value = '';
@@ -60,51 +205,27 @@ window.resetClosureModal = function () {
 
     if (totalElement) totalElement.textContent = '$0.00';
     if (ventasEfectivo) ventasEfectivo.value = '0';
-    if (totalGastos) totalGastos.value = '0';
+    if (totalGastos) {
+        totalGastos.value = '0';
+        totalGastos.removeAttribute('data-gastos-bd');
+    }
 
-    // Limpiar gastos excepto el primero
+    // Limpiar gastos y dejar solo uno vacío
     const expensesContainer = document.getElementById('expensesContainerClosure');
     if (expensesContainer) {
-        while (expensesContainer.children.length > 1) {
-            expensesContainer.removeChild(expensesContainer.lastChild);
-        }
-
-        // Resetear el primer gasto
-        const firstExpense = expensesContainer.firstElementChild;
-        if (firstExpense) {
-            const inputs = firstExpense.querySelectorAll('input');
-            inputs.forEach(input => input.value = '');
-        }
+        expensesContainer.innerHTML = '';
+        addExpenseRowClosure(null);
     }
+
+    console.log('✅ Modal reseteado');
 };
 
 /**
  * Agregar gasto en el modal de cierre interno
  */
 window.addExpenseModalClosure = function () {
-    const expensesContainer = document.getElementById('expensesContainerClosure');
-    if (!expensesContainer) return;
-
-    const newExpenseRow = document.createElement('div');
-    newExpenseRow.className = 'expense-row';
-    newExpenseRow.innerHTML = `
-        <div class="expense-field">
-            <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-        </div>
-        <div class="expense-field">
-            <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-        </div>
-        <div class="expense-field">
-            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpensesClosure()">
-        </div>
-        <div class="expense-actions">
-            <button type="button" class="btn btn-danger" onclick="removeExpenseClosure(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-
-    expensesContainer.appendChild(newExpenseRow);
+    console.log('➕ Agregando nuevo gasto...');
+    addExpenseRowClosure(null);
 };
 
 /**
@@ -113,14 +234,24 @@ window.addExpenseModalClosure = function () {
 window.removeExpenseClosure = function (button) {
     const expenseRow = button.closest('.expense-row');
     const container = document.getElementById('expensesContainerClosure');
-    if (container && container.children.length > 1) {
+
+    if (!container) {
+        console.error('❌ Contenedor de gastos no encontrado');
+        return;
+    }
+
+    // Verificar que al menos quede una fila
+    if (container.children.length > 1) {
+        console.log('🗑️ Eliminando gasto...');
         expenseRow.remove();
-        calculateTotalExpensesClosure();
-    } else if (container) {
+    } else {
+        console.log('ℹ️ Limpiando último gasto (debe quedar al menos uno vacío)');
         const inputs = expenseRow.querySelectorAll('input');
         inputs.forEach(input => input.value = '');
-        calculateTotalExpensesClosure();
     }
+
+    // Recalcular después de eliminar o limpiar
+    calculateTotalExpensesClosure();
 };
 
 /**
@@ -150,17 +281,54 @@ window.calcularTotalClosure = function () {
 
 /**
  * Calcular total de gastos en el modal de cierre interno
+ * SUMA: Gastos de BD + Nuevos gastos ingresados manualmente
  */
 window.calculateTotalExpensesClosure = function () {
-    let total = 0;
-    document.querySelectorAll('#expensesContainerClosure input[name="expense_amount[]"]').forEach(input => {
-        total += parseFloat(input.value) || 0;
+    const totalGastosInput = document.getElementById('total-gastos-closure');
+
+    if (!totalGastosInput) {
+        console.error('❌ Input total-gastos-closure no encontrado');
+        return 0;
+    }
+
+    // 🔥 Obtener el total de gastos de la BD (guardado como data-attribute)
+    const gastosBD = parseFloat(totalGastosInput.getAttribute('data-gastos-bd') || '0');
+
+    console.log(`💰 Gastos de BD (data-attribute): ${gastosBD.toFixed(2)}`);
+
+    // 🔥 Calcular SOLO los nuevos gastos del contenedor
+    let gastosNuevos = 0;
+    const inputs = document.querySelectorAll('#expensesContainerClosure input[name="expense_amount[]"]');
+
+    console.log(`📝 Contando ${inputs.length} inputs de gastos nuevos...`);
+
+    inputs.forEach((input, index) => {
+        const nameInput = input.closest('.expense-row')?.querySelector('input[name="expense_name[]"]');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const value = parseFloat(input.value) || 0;
+
+        // Solo contar si tiene nombre Y monto
+        if (name && value > 0) {
+            gastosNuevos += value;
+            console.log(`  ✓ Gasto ${index + 1}: "${name}" = ${value.toFixed(2)}`);
+        } else {
+            console.log(`  ✗ Gasto ${index + 1}: Vacío o sin nombre`);
+        }
     });
 
-    const totalGastos = document.getElementById('total-gastos-closure');
-    if (totalGastos) totalGastos.value = total.toFixed(2);
+    // 🔥 TOTAL = BD + Nuevos
+    const totalFinal = gastosBD + gastosNuevos;
 
-    return total;
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📊 Gastos de BD:     ${gastosBD.toFixed(2)}`);
+    console.log(`📊 Gastos nuevos:    ${gastosNuevos.toFixed(2)}`);
+    console.log(`✅ TOTAL GASTOS:     ${totalFinal.toFixed(2)}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+    // Actualizar el campo visible
+    totalGastosInput.value = totalFinal.toFixed(2);
+
+    return totalFinal;
 };
 
 /**
@@ -185,14 +353,15 @@ window.saveClosureClosure = async function () {
         }
     }
 
-    // Recopilar gastos
+    // Recopilar SOLO los nuevos gastos (no vacíos)
     const expenses = [];
     document.querySelectorAll('#expensesContainerClosure .expense-row').forEach((row) => {
-        const name = row.querySelector('input[name="expense_name[]"]').value;
-        const description = row.querySelector('input[name="expense_description[]"]').value;
+        const name = row.querySelector('input[name="expense_name[]"]').value.trim();
+        const description = row.querySelector('input[name="expense_description[]"]').value.trim();
         const amount = row.querySelector('input[name="expense_amount[]"]').value;
 
-        if (name && amount) {
+        // Solo agregar si tiene nombre Y monto
+        if (name && amount && parseFloat(amount) > 0) {
             expenses.push({
                 name: name,
                 description: description,
@@ -200,6 +369,8 @@ window.saveClosureClosure = async function () {
             });
         }
     });
+
+    console.log('💾 Guardando cierre con nuevos gastos:', expenses);
 
     try {
         const response = await fetch('/petty-cash/save-closure', {
@@ -243,9 +414,6 @@ window.saveClosureClosure = async function () {
 // FUNCIONES EXISTENTES DEL MODAL PRINCIPAL
 // =============================================
 
-/**
- * Abrir el modal de caja chica
- */
 async function openPettyCashModal() {
     console.log('🔓 Abriendo modal de caja chica...');
 
@@ -257,23 +425,17 @@ async function openPettyCashModal() {
         return;
     }
 
-    // ✅ VERIFICAR que la ruta esté definida
     if (!window.routes || !window.routes.pettyCashModalContent) {
         console.error('❌ Ruta pettyCashModalContent no definida');
-        console.log('Rutas disponibles:', window.routes);
-
-        // Intentar construir la URL manualmente como fallback
         const baseUrl = window.location.origin;
         window.routes = window.routes || {};
         window.routes.pettyCashModalContent = `${baseUrl}/petty-cash/modal-content`;
         console.log('✅ Ruta construida manualmente:', window.routes.pettyCashModalContent);
     }
 
-    // Mostrar el modal
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Cargar el contenido
     try {
         console.log('📡 Cargando desde:', window.routes.pettyCashModalContent);
 
@@ -291,8 +453,6 @@ async function openPettyCashModal() {
 
         const html = await response.text();
         content.innerHTML = html;
-
-        // Inicializar funcionalidades después de cargar el contenido
         initializePettyCashModal();
 
         console.log('✅ Contenido de caja chica cargado correctamente');
@@ -311,12 +471,8 @@ async function openPettyCashModal() {
     }
 }
 
-/**
- * Cerrar el modal de caja chica
- */
 function closePettyCashModal() {
     console.log('🔒 Cerrando modal de caja chica...');
-
     const modal = document.getElementById('petty-cash-modal');
     if (modal) {
         modal.classList.add('hidden');
@@ -324,19 +480,14 @@ function closePettyCashModal() {
     }
 }
 
-/**
- * Inicializar funcionalidades del modal
- */
 function initializePettyCashModal() {
     console.log('⚙️ Inicializando funcionalidades del modal...');
 
-    // Inicializar event listeners para los inputs de denominaciones
     const denominationInputs = document.querySelectorAll('.contar-input');
     denominationInputs.forEach(input => {
         input.addEventListener('input', calcularTotalModal);
     });
 
-    // Inicializar event listeners para gastos
     const expenseInputs = document.querySelectorAll('input[name="expense_amount[]"]');
     expenseInputs.forEach(input => {
         input.addEventListener('input', calculateTotalExpensesModal);
@@ -345,9 +496,6 @@ function initializePettyCashModal() {
     console.log('✅ Funcionalidades inicializadas');
 }
 
-/**
- * Calcular total de efectivo en el modal
- */
 function calcularTotalModal() {
     let total = 0;
     document.querySelectorAll('#petty-cash-modal .contar-input').forEach(input => {
@@ -374,9 +522,6 @@ function calcularTotalModal() {
     }
 }
 
-/**
- * Calcular total de gastos en el modal
- */
 function calculateTotalExpensesModal() {
     let total = 0;
     document.querySelectorAll('#petty-cash-modal input[name="expense_amount[]"]').forEach(input => {
@@ -391,23 +536,15 @@ function calculateTotalExpensesModal() {
     return total;
 }
 
-/**
- * Abrir modal de cierre dentro del modal principal
- */
 function openModalInModal(id) {
     const closureModal = document.getElementById('closure-modal');
     if (closureModal) {
         closureModal.classList.remove('hidden');
         document.getElementById('petty_cash_id_modal').value = id;
-
-        // Resetear inputs
         resetClosureModalInputs();
     }
 }
 
-/**
- * Cerrar modal de cierre
- */
 function closeClosureModal() {
     const closureModal = document.getElementById('closure-modal');
     if (closureModal) {
@@ -415,9 +552,6 @@ function closeClosureModal() {
     }
 }
 
-/**
- * Resetear inputs del modal de cierre
- */
 function resetClosureModalInputs() {
     document.querySelectorAll('#closure-modal .contar-input').forEach(input => {
         input.value = '';
@@ -441,13 +575,11 @@ function resetClosureModalInputs() {
         totalGastosInput.value = '0';
     }
 
-    // Limpiar gastos
     const expensesContainer = document.getElementById('expensesContainer-modal');
     if (expensesContainer) {
         while (expensesContainer.children.length > 1) {
             expensesContainer.removeChild(expensesContainer.lastChild);
         }
-        // Resetear primer gasto
         const firstExpense = expensesContainer.firstChild;
         if (firstExpense) {
             firstExpense.querySelector('input[name="expense_name[]"]').value = '';
@@ -457,9 +589,6 @@ function resetClosureModalInputs() {
     }
 }
 
-/**
- * Agregar gasto en el modal
- */
 function addExpenseModal() {
     const expensesContainer = document.getElementById('expensesContainer-modal');
     if (!expensesContainer) return;
@@ -486,9 +615,6 @@ function addExpenseModal() {
     expensesContainer.appendChild(newExpenseRow);
 }
 
-/**
- * Eliminar gasto del modal
- */
 function removeExpenseModal(button) {
     const expenseRow = button.closest('.expense-row');
     const expensesContainer = document.getElementById('expensesContainer-modal');
@@ -497,16 +623,12 @@ function removeExpenseModal(button) {
         expenseRow.remove();
         calculateTotalExpensesModal();
     } else if (expenseRow) {
-        // Si es el último, solo limpiar
         const inputs = expenseRow.querySelectorAll('input');
         inputs.forEach(input => input.value = '');
         calculateTotalExpensesModal();
     }
 }
 
-/**
- * Guardar cierre desde el modal
- */
 async function saveClosureModal() {
     const pettyCashId = document.getElementById('petty_cash_id_modal').value;
     const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo-modal').value) || 0;
@@ -519,14 +641,12 @@ async function saveClosureModal() {
         return;
     }
 
-    // Validar que al menos haya un valor ingresado
     if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && totalExpenses === 0) {
         if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
             return;
         }
     }
 
-    // Recopilar gastos
     const expenses = [];
     document.querySelectorAll('#closure-modal .expense-row').forEach((row) => {
         const name = row.querySelector('input[name="expense_name[]"]').value;
@@ -565,7 +685,6 @@ async function saveClosureModal() {
         if (data.success) {
             alert('Cierre guardado correctamente');
             closeClosureModal();
-            // Recargar el contenido del modal
             openPettyCashModal();
         } else {
             alert('Error: ' + (data.message || 'No se pudo guardar el cierre'));
@@ -576,16 +695,12 @@ async function saveClosureModal() {
     }
 }
 
-/**
- * Filtrar cajas chicas
- */
 function filterPettyCash() {
     const form = document.getElementById('filtersFormModal');
     if (form) {
         const formData = new FormData(form);
         const params = new URLSearchParams(formData);
 
-        // Recargar el contenido con los filtros
         fetch(`${window.routes.pettyCashModalContent}?${params.toString()}`, {
             method: 'GET',
             headers: {
@@ -605,9 +720,6 @@ function filterPettyCash() {
     }
 }
 
-/**
- * Cerrar todas las cajas abiertas
- */
 async function closeOpenPettyCashModal() {
     if (!confirm('¿Estás seguro de cerrar todas las cajas chicas abiertas?')) {
         return;
@@ -627,7 +739,6 @@ async function closeOpenPettyCashModal() {
 
         if (data.success) {
             alert('Cajas cerradas correctamente');
-            // Recargar contenido
             openPettyCashModal();
         } else {
             alert('Error: ' + (data.message || 'No se pudieron cerrar las cajas'));
@@ -642,7 +753,6 @@ async function closeOpenPettyCashModal() {
 // EVENT LISTENERS GLOBALES
 // =============================================
 
-// Cerrar modal con ESC
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('petty-cash-modal');
@@ -650,7 +760,6 @@ document.addEventListener('keydown', function (e) {
             closePettyCashModal();
         }
 
-        // También cerrar modal de cierre interno si está abierto
         const closureModal = document.getElementById('modal-closure-internal');
         if (closureModal && closureModal.classList.contains('active')) {
             closeInternalModalClosure();
@@ -658,9 +767,9 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-// Inicializar event listeners del modal de cierre interno cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function () {
-    // Overlay para cerrar modal interno
+    console.log('🚀 Inicializando event listeners del modal de cierre...');
+
     const overlay = document.getElementById('closure-internal-overlay');
     if (overlay) {
         overlay.addEventListener('click', function (e) {
@@ -670,24 +779,62 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Event listeners para cálculos automáticos del modal de cierre interno
+    // Event listeners para denominaciones
     document.querySelectorAll('.contar-input-closure').forEach(input => {
         input.addEventListener('input', calcularTotalClosure);
     });
 
-    // Escuchar cambios en los inputs de gastos del modal de cierre interno
+    // ✅ EVENT DELEGATION GLOBAL: Escuchar cambios en TODO el documento
+    // Esto captura eventos de inputs dinámicos que se agregan después
     document.addEventListener('input', function (e) {
+        // Verificar si es un input de MONTO de gasto
         if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
+            console.log('📝 [Delegation - Input] Monto detectado:', e.target.value);
+            calculateTotalExpensesClosure();
+        }
+
+        // Verificar si es un input de NOMBRE de gasto
+        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
+            console.log('📝 [Delegation - Input] Nombre detectado:', e.target.value);
             calculateTotalExpensesClosure();
         }
     });
+
+    // Escuchar el evento 'change' como respaldo
+    document.addEventListener('change', function (e) {
+        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
+            console.log('📝 [Delegation - Change] Monto detectado:', e.target.value);
+            calculateTotalExpensesClosure();
+        }
+
+        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
+            console.log('📝 [Delegation - Change] Nombre detectado:', e.target.value);
+            calculateTotalExpensesClosure();
+        }
+    });
+
+    // Escuchar el evento 'blur' (cuando el input pierde el foco)
+    document.addEventListener('blur', function (e) {
+        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
+            console.log('📝 [Delegation - Blur] Monto finalizado:', e.target.value);
+            calculateTotalExpensesClosure();
+        }
+
+        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
+            console.log('📝 [Delegation - Blur] Nombre finalizado:', e.target.value);
+            calculateTotalExpensesClosure();
+        }
+    }, true); // true = captura en fase de captura
+
+    console.log('✅ Event listeners inicializados (incluyendo event delegation triple)');
 });
 
 // =============================================
 // EXPORTAR FUNCIONES AL SCOPE GLOBAL
 // =============================================
 
-// Funciones del modal principal
+window.addExpenseRowClosure = addExpenseRowClosure;
+window.handleExpenseInputChange = handleExpenseInputChange;
 window.openPettyCashModal = openPettyCashModal;
 window.closePettyCashModal = closePettyCashModal;
 window.openModalInModal = openModalInModal;
@@ -697,11 +844,7 @@ window.removeExpenseModal = removeExpenseModal;
 window.saveClosureModal = saveClosureModal;
 window.filterPettyCash = filterPettyCash;
 window.closeOpenPettyCashModal = closeOpenPettyCashModal;
-
-// Funciones de cálculos del modal principal
 window.calcularTotalModal = calcularTotalModal;
 window.calculateTotalExpensesModal = calculateTotalExpensesModal;
-
-// Funciones del modal de cierre interno (ya están en window desde su definición)
 
 console.log('✅ petty-cash-modal.js inicializado correctamente - Todas las funciones exportadas');

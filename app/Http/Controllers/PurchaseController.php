@@ -12,6 +12,8 @@ use App\Models\Category;
 use App\Models\Stock;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\InventoryMovement;
 
 class PurchaseController extends Controller
 {
@@ -83,12 +85,126 @@ class PurchaseController extends Controller
 
     public function store(Request $request)
     {
-        // Determinar si es una solicitud JSON
-        if ($request->wantsJson() || $request->isJson()) {
-            return $this->storeJson($request);
-        }
 
-        return $this->storeWeb($request);
+
+        // Validación
+        $validated = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'reference_number' => 'nullable|string|max:100',
+            'purchase_date' => 'required|date',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:menu_items,id',
+            'products.*.quantity' => 'required|numeric|min:0.01',
+            'products.*.unit_cost' => 'required|numeric|min:0',
+            'products.*.discount' => 'nullable|numeric|min:0|max:100',
+            'products.*.selling_price' => 'required|numeric|min:0',
+            'products.*.expiry_date' => 'nullable|date|after:today',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Crear la compra
+            $purchase = Purchase::create([
+                'supplier_id' => $validated['supplier_id'],
+                'reference_number' => $validated['reference_number'],
+                'purchase_date' => $validated['purchase_date'],
+                'total_amount' => 0, // Lo calculamos después
+                'user_id' => Auth::id(),
+            ]);
+
+            $totalAmount = 0;
+
+            // Procesar cada producto
+            foreach ($validated['products'] as $productData) {
+                $product = MenuItem::findOrFail($productData['product_id']);
+
+                // Calcular valores
+                $quantity = floatval($productData['quantity']);
+                $unitCost = floatval($productData['unit_cost']);
+                $discount = floatval($productData['discount'] ?? 0);
+                $sellingPrice = floatval($productData['selling_price']);
+
+                // Costo unitario después del descuento
+                $unitCostAfterDiscount = $unitCost * (1 - ($discount / 100));
+
+                // Total de la línea
+                $lineTotal = $quantity * $unitCostAfterDiscount;
+
+                // Calcular margen de utilidad
+                $profitMargin = $unitCostAfterDiscount > 0
+                    ? (($sellingPrice - $unitCostAfterDiscount) / $unitCostAfterDiscount) * 100
+                    : 0;
+
+                // 1. CREAR REGISTRO EN LA TABLA STOCK
+                $stock = Stock::create([
+                    'product_id' => $product->id,
+                    'purchase_id' => $purchase->id,
+                    'quantity' => $quantity,
+                    'unit_cost' => $unitCost,
+                    'discount' => $discount,
+                    'total_cost' => $lineTotal,
+                    'selling_price' => $sellingPrice,
+                    'profit_margin' => $profitMargin,
+                    'expiry_date' => $productData['expiry_date'] ?? null,
+                ]);
+
+
+                // 2. ACTUALIZAR EL STOCK DEL PRODUCTO (si tiene gestión de inventario)
+                if ($product->manage_inventory) {
+                    $oldStock = $product->stock;
+                    $newStock = $oldStock + $quantity;
+
+                    $product->stock = $newStock;
+                    $product->save();
+
+                    // 3. REGISTRAR MOVIMIENTO DE INVENTARIO
+                    $movement = InventoryMovement::create([
+                        'menu_item_id' => $product->id,
+                        'user_id' => Auth::id(),
+                        'movement_type' => 'addition', // Siempre es adición en compras
+                        'quantity' => $quantity,
+                        'old_stock' => $oldStock,
+                        'new_stock' => $newStock,
+                        'notes' => "Compra #" . $purchase->id .
+                            ($purchase->reference_number ? " - Ref: {$purchase->reference_number}" : "")
+                    ]);
+                }
+
+                // 4. ACTUALIZAR PRECIO DE VENTA DEL PRODUCTO (opcional)
+                // Si quieres actualizar automáticamente el precio de venta del producto
+                if ($sellingPrice > 0) {
+                    $product->price = $sellingPrice;
+                    $product->save();
+                }
+
+                $totalAmount += $lineTotal;
+            }
+
+            // Actualizar el total de la compra
+            $purchase->total_amount = $totalAmount;
+            $purchase->save();
+
+            DB::commit();
+
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Compra registrada exitosamente',
+                'redirect_url' => route('purchases.index'),
+                'purchase_id' => $purchase->id
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar la compra: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     protected function storeWeb(Request $request)
