@@ -1,10 +1,8 @@
-@extends('layouts.app')
-
-@section('content')
-@php
+<?php $__env->startSection('content'); ?>
+<?php
 $isAdmin = auth()->user()->type === 'Admin';
 $showOrderDetails = true; // Asegurar que se muestre el panel
-@endphp
+?>
 
 <!-- Barra de búsqueda -->
 <div class="flex justify-between items-center mb-6 mt-0">
@@ -31,30 +29,30 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
     <div id="orders-container" class="hidden transition-all duration-300 ease-in-out">
         <div class="order-filters flex flex-wrap gap-3 my-4">
             <button onclick="filterOrders('all')" class="filter-btn filter-all px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-                <span class="w-6 h-6 rounded-full bg-[#203363] flex items-center justify-center text-white text-xs mr-2">{{ $counts['all'] }}</span>
+                <span class="w-6 h-6 rounded-full bg-[#203363] flex items-center justify-center text-white text-xs mr-2"><?php echo e($counts['all']); ?></span>
                 Todos
             </button>
             <button onclick="filterOrders('Comer aquí')" class="filter-btn filter-dine-in px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-                <span class="w-6 h-6 rounded-full bg-[#FFD166] flex items-center justify-center text-[#203363] text-xs mr-2">{{ $counts['dine_in'] }}</span>
+                <span class="w-6 h-6 rounded-full bg-[#FFD166] flex items-center justify-center text-[#203363] text-xs mr-2"><?php echo e($counts['dine_in']); ?></span>
                 Comer Aquí
             </button>
             <button onclick="filterOrders('Para llevar')" class="filter-btn filter-take-away px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-                <span class="w-6 h-6 rounded-full bg-[#06D6A0] flex items-center justify-center text-white text-xs mr-2">{{ $counts['take_away'] }}</span>
+                <span class="w-6 h-6 rounded-full bg-[#06D6A0] flex items-center justify-center text-white text-xs mr-2"><?php echo e($counts['take_away']); ?></span>
                 Para llevar
             </button>
             <button onclick="filterOrders('Recoger')" class="filter-btn filter-pickup px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-                <span class="w-6 h-6 rounded-full bg-[#118AB2] flex items-center justify-center text-white text-xs mr-2">{{ $counts['pickup'] }}</span>
+                <span class="w-6 h-6 rounded-full bg-[#118AB2] flex items-center justify-center text-white text-xs mr-2"><?php echo e($counts['pickup']); ?></span>
                 Recoger
             </button>
             <button onclick="filterOrders('proforma')" class="filter-btn filter-proforma px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
-                <span class="w-6 h-6 rounded-full bg-[#EF476F] flex items-center justify-center text-white text-xs mr-2">{{ $counts['proforma'] }}</span>
+                <span class="w-6 h-6 rounded-full bg-[#EF476F] flex items-center justify-center text-white text-xs mr-2"><?php echo e($counts['proforma']); ?></span>
                 Proforma
             </button>
         </div>
 
         <div class="orders-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            @foreach($orders as $order)
-                @php
+            <?php $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
                     $borderClass = '';
                     $orderTypeText = '';
                     $isProforma = $order instanceof \App\Models\Proforma;
@@ -89,51 +87,54 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
                     } else {
                         $statusBadge = '<span class="absolute top-2 right-2 bg-[#203363] text-white text-xs px-2 py-1 rounded-full">Venta</span>';
                     }
-                @endphp
+                ?>
 
-                <div class="border-l-4 {{ $borderClass }} rounded-lg p-4 bg-white hover:shadow-md transition-shadow cursor-pointer relative" 
-                     onclick="openOrderDetails('{{ $isProforma ? 'proforma' : 'order' }}', '{{ $order->id }}')">
-                    {!! $statusBadge !!}
+                <div class="border-l-4 <?php echo e($borderClass); ?> rounded-lg p-4 bg-white hover:shadow-md transition-shadow cursor-pointer relative" 
+                     onclick="openOrderDetails('<?php echo e($isProforma ? 'proforma' : 'order'); ?>', '<?php echo e($order->id); ?>')">
+                    <?php echo $statusBadge; ?>
+
                     
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <p class="font-bold text-[#203363]">#{{ $order->transaction_number ?? 'PROF-'.$order->id }}</p>
-                            <p class="text-sm text-[#6380a6]">{{ $orderTypeText }}</p>
+                            <p class="font-bold text-[#203363]">#<?php echo e($order->transaction_number ?? 'PROF-'.$order->id); ?></p>
+                            <p class="text-sm text-[#6380a6]"><?php echo e($orderTypeText); ?></p>
                         </div>
-                        <span class="text-xs text-gray-500">{{ $createdAt }}</span>
+                        <span class="text-xs text-gray-500"><?php echo e($createdAt); ?></span>
                     </div>
                     
                     <div class="my-2">
-                        @if($order->notes)
+                        <?php if($order->notes): ?>
                             <p class="text-xs text-gray-500 mt-1 truncate">
-                                <i class="fas fa-sticky-note mr-1"></i> {{ $order->notes }}
+                                <i class="fas fa-sticky-note mr-1"></i> <?php echo e($order->notes); ?>
+
                             </p>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
                     <div class="flex justify-between items-center mt-3">
                         <p class="text-sm font-medium text-[#203363]">
-                            <i class="fas fa-list-ul mr-1"></i> {{ $itemsCount }} ítems
+                            <i class="fas fa-list-ul mr-1"></i> <?php echo e($itemsCount); ?> ítems
                         </p>
-                        @if($isAdmin)
+                        <?php if($isAdmin): ?>
                         <p class="text-sm font-medium text-[#203363]">
-                            <i class="fas fa-dollar-sign mr-1"></i> {{ $totalAmount }}
+                            <i class="fas fa-dollar-sign mr-1"></i> <?php echo e($totalAmount); ?>
+
                         </p>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     
-                    @if($isProforma)
+                    <?php if($isProforma): ?>
                         <div class="mt-3 flex justify-end">
-                            @if(!$order->order)
-                                <button onclick="event.stopPropagation(); convertProformaToOrder('{{ $order->id }}')" 
+                            <?php if(!$order->order): ?>
+                                <button onclick="event.stopPropagation(); convertProformaToOrder('<?php echo e($order->id); ?>')" 
                                         class="bg-[#203363] text-white px-3 py-1 rounded text-xs hover:bg-[#47517c] transition-colors">
                                     Convertir a Orden
                                 </button>
-                            @endif
+                            <?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
 </div> -->
@@ -144,9 +145,9 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
     <div class="block mobile-categories md:hidden">
         <select id="category-dropdown" onchange="filterItems(this.value)" class="w-full p-2 border rounded-lg bg-[#a4b6ce] text-[#203363] focus:outline-none">
             <option value="all">Todos</option>
-            @foreach ($categories as $category)
-            <option value="{{ $category->id }}">{{ $category->name }}</option>
-            @endforeach
+            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
     </div>
     <div class="category-filters desktop-categories hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -154,75 +155,77 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
             <i class="fas fa-th-list text-2xl mb-2"></i>
             <span>Todos</span>
         </button>
-        @foreach ($categories as $category)
-        <button onclick="filterItems('{{ $category->id }}')" class="flex flex-col items-center p-4 border rounded-lg bg-[#a4b6ce] hover:bg-[#203363] hover:text-white transition-colors">
-            <i class="{{ $category->icon }} text-2xl mb-2"></i>
-            <span>{{ $category->name }}</span>
+        <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <button onclick="filterItems('<?php echo e($category->id); ?>')" class="flex flex-col items-center p-4 border rounded-lg bg-[#a4b6ce] hover:bg-[#203363] hover:text-white transition-colors">
+            <i class="<?php echo e($category->icon); ?> text-2xl mb-2"></i>
+            <span><?php echo e($category->name); ?></span>
         </button>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </div>
 
 <div class="overflow-y-auto scrollbar-hidden" id="menu-container" style="max-height: calc(100vh - 300px);">
     <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Menú especial para ti</h2>
     <div id="menu-items">
-        @foreach ($categories as $category)
-        @if($category->menuItems->count() > 0)
-        <div id="category-{{ $category->id }}" class="mb-8" style="display: none;">
-            <h3 class="text-lg font-bold text-[#203363] mb-4">{{ $category->name }}</h3>
+        <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php if($category->menuItems->count() > 0): ?>
+        <div id="category-<?php echo e($category->id); ?>" class="mb-8" style="display: none;">
+            <h3 class="text-lg font-bold text-[#203363] mb-4"><?php echo e($category->name); ?></h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                @foreach ($category->menuItems as $item)
+                <?php $__currentLoopData = $category->menuItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="border rounded-lg p-4 flex flex-col items-center hover:shadow-lg transition-shadow relative"
-                    data-item-id="{{ $item->id }}"
-                    data-stock-type="{{ $item->stock_type }}"
-                    data-stock="{{ $item->stock }}"
-                    data-stock-unit="{{ $item->stock_unit }}"
-                    data-min-stock="{{ $item->min_stock }}">
+                    data-item-id="<?php echo e($item->id); ?>"
+                    data-stock-type="<?php echo e($item->stock_type); ?>"
+                    data-stock="<?php echo e($item->stock); ?>"
+                    data-stock-unit="<?php echo e($item->stock_unit); ?>"
+                    data-min-stock="<?php echo e($item->min_stock); ?>">
 
                     <!-- Label de stock en esquina superior izquierda -->
                     <div class="absolute top-2 left-2">
-                        @if($item->manage_inventory)
+                        <?php if($item->manage_inventory): ?>
                         <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
-            @if($item->stock <= 0) bg-gray-500 text-white
-            @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
-            @else bg-green-500 text-white @endif">
-                            @if($item->stock_type == 'discrete')
-                            {{ (int)$item->stock }} UNI
-                            @else
-                            {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
-                            @endif
+            <?php if($item->stock <= 0): ?> bg-gray-500 text-white
+            <?php elseif($item->stock < $item->min_stock): ?> bg-yellow-500 text-white
+            <?php else: ?> bg-green-500 text-white <?php endif; ?>">
+                            <?php if($item->stock_type == 'discrete'): ?>
+                            <?php echo e((int)$item->stock); ?> UNI
+                            <?php else: ?>
+                            <?php echo e((int)$item->stock); ?> <?php echo e(strtoupper($item->stock_unit)); ?>
+
+                            <?php endif; ?>
                         </span>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Imagen responsiva -->
-                    @php
+                    <?php
                     $imageSrc = $item->image
                     ? (filter_var($item->image, FILTER_VALIDATE_URL)
                     ? $item->image
                     : asset('storage/' . ltrim($item->image, '/')))
                     : asset('images/placeholder.png');
-                    @endphp
+                    ?>
 
-                    <img alt="{{ $item->name }}"
+                    <img alt="<?php echo e($item->name); ?>"
                         class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2"
-                        src="{{ $imageSrc }}"
-                        onerror="this.onerror=null; this.src='{{ asset('images/placeholder.png') }}';"
+                        src="<?php echo e($imageSrc); ?>"
+                        onerror="this.onerror=null; this.src='<?php echo e(asset('images/placeholder.png')); ?>';"
                         loading="lazy"
-                        onclick="openItemModal({{ json_encode($item) }})" />
+                        onclick="openItemModal(<?php echo e(json_encode($item)); ?>)" />
 
                     <!-- Nombre del ítem -->
-                    <p class="text-md font-semibold text-[#203363] mb-2 text-center">{{ $item->name }}</p>
+                    <p class="text-md font-semibold text-[#203363] mb-2 text-center"><?php echo e($item->name); ?></p>
 
                     <!-- Contenedor para precio y botón -->
                     <div class="w-full flex flex-col items-center mt-auto">
                         <!-- Precio del ítem -->
                         <p class="text-lg font-bold text-[#203363] mb-2">
-                            ${{ number_format($item->price, 2) }}
+                            $<?php echo e(number_format($item->price, 2)); ?>
+
                         </p>
 
                         <button type="button"
-                            onclick="addToOrder({{ json_encode([
+                            onclick="addToOrder(<?php echo e(json_encode([
             'id' => $item->id,
             'name' => $item->name,
             'price' => $item->price,
@@ -231,19 +234,19 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
             'stock_unit' => $item->stock_unit,
             'min_stock' => $item->min_stock,
             'manage_inventory' => $item->manage_inventory
-        ]) }}, event)"
+        ])); ?>, event)"
                             class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
-               @if($item->manage_inventory && $item->stock <= 0) opacity-50 cursor-not-allowed @endif"
-                            @if($item->manage_inventory && $item->stock <= 0) disabled @endif>
+               <?php if($item->manage_inventory && $item->stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
+                            <?php if($item->manage_inventory && $item->stock <= 0): ?> disabled <?php endif; ?>>
                                 Agregar
                         </button>
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
-        @endif
-        @endforeach
+        <?php endif; ?>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </div>
 
@@ -969,7 +972,7 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
     }
 </style>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     // Función mejorada para filtrar órdenes
     function filterOrders(type) {
@@ -1053,7 +1056,7 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                     }
                 })
                 .then(response => response.json())
@@ -1256,7 +1259,7 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
     function goBack() {
         // Aquí puedes implementar la lógica para volver atrás
         // Por ejemplo, recargar la página del menú:
-        window.location.href = "{{ route('menu.index') }}";
+        window.location.href = "<?php echo e(route('menu.index')); ?>";
 
         // O si estás usando un sistema de vistas dinámicas:
         // loadMenuView();
@@ -1597,5 +1600,6 @@ $showOrderDetails = true; // Asegurar que se muestre el panel
     });
 </script>
 
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\User\Documents\laravel_clary\restaurant_app\resources\views/menu/index.blade.php ENDPATH**/ ?>
