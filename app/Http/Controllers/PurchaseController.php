@@ -451,9 +451,7 @@ class PurchaseController extends Controller
                         'name' => $product->name,
                         'price' => (float)$product->price,
                         'description' => $product->description,
-                        'category' => $product->category ? $product->category->name : 'Sin categoría',
-                        'current_stock' => $product->stock,
-                        'manage_inventory' => $product->manage_inventory
+                        'category' => $product->category ? $product->category->name : 'Sin categoría'
                     ];
                 });
 
@@ -471,52 +469,33 @@ class PurchaseController extends Controller
         return response()->json($product);
     }
 
-     public function destroy($id)
+    public function destroy(Purchase $purchase)
     {
         try {
             DB::beginTransaction();
 
-            $purchase = Purchase::with('stocks')->findOrFail($id);
-
-            // Revertir movimientos de inventario
+            // Revertir el stock de los productos
             foreach ($purchase->stocks as $stock) {
-                $product = $stock->product;
-                
-                if ($product && $product->manage_inventory) {
-                    $oldStock = $product->stock;
-                    $newStock = $oldStock - $stock->quantity;
-                    
-                    $product->stock = max(0, $newStock); // No permitir stock negativo
-                    $product->save();
-
-                    // Registrar movimiento de corrección
-                    InventoryMovement::create([
-                        'menu_item_id' => $product->id,
-                        'user_id' => Auth::id(),
-                        'movement_type' => 'subtraction',
-                        'quantity' => $stock->quantity,
-                        'old_stock' => $oldStock,
-                        'new_stock' => max(0, $newStock),
-                        'notes' => "Eliminación de compra #" . $purchase->id
-                    ]);
+                $menuItem = MenuItem::find($stock->product_id);
+                if ($menuItem) {
+                    $menuItem->decrement('stock', $stock->quantity);
                 }
             }
 
-            // Eliminar stocks asociados
+            // Eliminar los stocks asociados
             $purchase->stocks()->delete();
-            
+
             // Eliminar la compra
             $purchase->delete();
 
             DB::commit();
 
             return redirect()->route('purchases.index')
-                ->with('success', 'Compra eliminada exitosamente');
-
+                ->with('success', 'Compra eliminada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return back()->with('error', 'Error al eliminar la compra: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al eliminar la compra: ' . $e->getMessage());
         }
     }
 

@@ -147,13 +147,51 @@ class InventoryController extends Controller
 
     public function itemMovements($id)
     {
-        $movements = InventoryMovement::where('menu_item_id', $id)
-            ->with('user')
-            ->latest()
-            ->take(10)
-            ->get();
+        try {
+            Log::info('itemMovements llamado', ['item_id' => $id]);
 
-        return response()->json($movements);
+            // Buscar el item
+            $item = MenuItem::find($id);
+
+            if (!$item) {
+                Log::warning('Item no encontrado', ['item_id' => $id]);
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            // Verificar que el producto tenga gestión de inventario
+            if (!$item->manage_inventory) {
+                Log::warning('Item sin gestión de inventario', ['item_id' => $id]);
+                return response()->json([
+                    'error' => 'Este producto no tiene gestión de inventario'
+                ], 403);
+            }
+
+            // Obtener movimientos
+            $movements = InventoryMovement::where('menu_item_id', $id)
+                ->with(['user', 'menuItem'])
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
+
+            Log::info('Movimientos encontrados', [
+                'item_id' => $id,
+                'count' => $movements->count()
+            ]);
+
+            return response()->json($movements);
+        } catch (\Exception $e) {
+            Log::error('Error en itemMovements', [
+                'item_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error al cargar movimientos: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function lowStock()

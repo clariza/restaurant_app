@@ -36,8 +36,21 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // RUTAS CON AUTENTICACIÓN (Sin caja chica)
 // ============================================
 Route::middleware(['auth'])->group(function () {
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        // Vista principal del inventario
+        Route::get('/', [InventoryController::class, 'index'])->name('index');
 
-    // --- PETTY CASH (Caja Chica) ---
+        // Historial de movimientos (vista)
+        Route::get('/movements', [InventoryController::class, 'movements'])->name('movements');
+
+        // API: Obtener movimientos de un item específico (JSON)
+        Route::get('/{id}/movements', [InventoryController::class, 'itemMovements'])->name('itemMovements');
+
+        // Reportes
+        Route::get('/low-stock', [InventoryController::class, 'lowStock'])->name('lowStock');
+        Route::get('/report', [InventoryController::class, 'report'])->name('report');
+    });
+
     Route::get('/petty-cash/create', [PettyCashController::class, 'create'])
         ->name('petty-cash.create');
     Route::post('/petty-cash', [PettyCashController::class, 'store'])
@@ -88,9 +101,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])->name('proformas.print');
 
     // --- INVENTORY (Inventario) ---
-    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
-    Route::get('/inventory/{id}/movements', [InventoryController::class, 'itemMovements'])->name('inventory.item-movements');
+    // Rutas de Inventario
+    Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('inventory/update-stock', [InventoryController::class, 'updateStock'])->name('inventory.updateStock');
+    Route::get('inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
+    Route::get('inventory/{id}/movements', [InventoryController::class, 'itemMovements'])
+        ->name('inventory.itemMovements');
+    Route::get('inventory/low-stock', [InventoryController::class, 'lowStock'])->name('inventory.lowStock');
+    Route::get('inventory/report', [InventoryController::class, 'report'])->name('inventory.report');
 
     // --- TABLES (Mesas - Consulta) ---
 
@@ -122,7 +140,8 @@ Route::middleware(['auth'])->group(function () {
 // RUTAS QUE REQUIEREN CAJA CHICA ABIERTA
 // ============================================
 Route::middleware(['auth', 'check.pettycash'])->group(function () {
-
+    Route::post('/inventory/update-stock', [InventoryController::class, 'updateStock'])
+        ->name('inventory.updateStock');
     // --- DASHBOARD ---
     Route::get('/admin/dashboard', [SaleController::class, 'dashboard'])->name('admin.dashboard');
 

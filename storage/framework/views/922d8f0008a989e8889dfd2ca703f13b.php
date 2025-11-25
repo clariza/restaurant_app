@@ -1,32 +1,31 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-xl font-bold text-[#203363]">Gestión de Inventario</h2>
     <div class="flex space-x-2">
-        <a href="{{ route('inventory.movements') }}" 
+        <a href="<?php echo e(route('inventory.movements')); ?>" 
            class="bg-[#6380a6] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors">
             <i class="fas fa-history mr-2"></i> Historial de Movimientos
         </a>
     </div>
 </div>
-@if(session('success'))
+<?php if(session('success')): ?>
 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-    {{ session('success') }}
-</div>
-@endif
+    <?php echo e(session('success')); ?>
 
-@if($errors->any())
+</div>
+<?php endif; ?>
+
+<?php if($errors->any()): ?>
 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
     <ul>
-        @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-        @endforeach
+        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <li><?php echo e($error); ?></li>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </ul>
 </div>
-@endif
+<?php endif; ?>
 <!-- Alerta informativa -->
-@if($items->isEmpty())
+<?php if($items->isEmpty()): ?>
 <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
     <div class="flex">
         <div class="flex-shrink-0">
@@ -35,14 +34,14 @@
         <div class="ml-3">
             <p class="text-sm">
                 No hay productos configurados para gestión de inventario. 
-                <a href="{{ route('items.create') }}" class="font-medium underline hover:text-yellow-800">
+                <a href="<?php echo e(route('items.create')); ?>" class="font-medium underline hover:text-yellow-800">
                     Crear un producto con inventario habilitado
                 </a>
             </p>
         </div>
     </div>
 </div>
-@endif
+<?php endif; ?>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Panel izquierdo: Lista de productos -->
@@ -63,7 +62,7 @@
         </div>
         
         <div class="overflow-y-auto" style="max-height: 60vh;">
-            @if($items->count() > 0)
+            <?php if($items->count() > 0): ?>
             <table class="w-full">
                 <thead>
                     <tr class="border-b">
@@ -72,46 +71,48 @@
                     </tr>
                 </thead>
                 <tbody id="inventory-items">
-                    @foreach($items as $item)
-                    @if($item->manage_inventory)
+                    <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php if($item->manage_inventory): ?>
                     <tr class="border-b hover:bg-gray-50 cursor-pointer inventory-item" 
-                        data-id="{{ $item->id }}"
-                        data-name="{{ $item->name }}"
-                        data-stock="{{ $item->stock }}"
-                        data-min-stock="{{ $item->min_stock }}"
-                        data-category="{{ $item->category->name }}"
-                        data-stock-type="{{ $item->stock_type }}"
-                        data-stock-unit="{{ $item->stock_unit }}">
+                        data-id="<?php echo e($item->id); ?>"
+                        data-name="<?php echo e($item->name); ?>"
+                        data-stock="<?php echo e($item->stock); ?>"
+                        data-min-stock="<?php echo e($item->min_stock); ?>"
+                        data-category="<?php echo e($item->category->name); ?>"
+                        data-stock-type="<?php echo e($item->stock_type); ?>"
+                        data-stock-unit="<?php echo e($item->stock_unit); ?>">
                         <td class="py-2">
-                            <div class="font-medium">{{ $item->name }}</div>
+                            <div class="font-medium"><?php echo e($item->name); ?></div>
                             <div class="text-sm text-gray-500">
-                                {{ $item->category->name }}
+                                <?php echo e($item->category->name); ?>
+
                                 <span class="inline-block ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
                                     <i class="fas fa-boxes mr-1"></i>Inventario
                                 </span>
                             </div>
                         </td>
                         <td class="text-right py-2">
-                            <span class="font-bold {{ $item->stock < $item->min_stock ? 'text-red-600' : ($item->stock == 0 ? 'text-red-700' : 'text-[#203363]') }}">
-                                {{ $item->stock }} {{ $item->stock_type == 'discrete' ? ($item->stock_unit ?? 'unid.') : ($item->stock_unit ?? 'gr/ml') }}
+                            <span class="font-bold <?php echo e($item->stock < $item->min_stock ? 'text-red-600' : ($item->stock == 0 ? 'text-red-700' : 'text-[#203363]')); ?>">
+                                <?php echo e($item->stock); ?> <?php echo e($item->stock_type == 'discrete' ? ($item->stock_unit ?? 'unid.') : ($item->stock_unit ?? 'gr/ml')); ?>
+
                             </span>
-                            @if($item->stock == 0)
+                            <?php if($item->stock == 0): ?>
                                 <span class="text-xs text-red-700 block font-semibold">(Sin stock)</span>
-                            @elseif($item->stock < $item->min_stock)
+                            <?php elseif($item->stock < $item->min_stock): ?>
                                 <span class="text-xs text-red-500 block">(Bajo stock)</span>
-                            @endif
+                            <?php endif; ?>
                         </td>
                     </tr>
-                    @endif
-                    @endforeach
+                    <?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
             </table>
-            @else
+            <?php else: ?>
             <div class="text-center py-8 text-gray-500">
                 <i class="fas fa-box-open text-4xl mb-4"></i>
                 <p>No hay productos con gestión de inventario</p>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -124,8 +125,8 @@
             <p>Seleccione un producto de la lista para gestionar su inventario</p>
         </div>
         
-        <form id="update-stock-form" action="{{ route('inventory.update-stock') }}" method="POST" style="display: none;">
-            @csrf
+        <form id="update-stock-form" action="<?php echo e(route('inventory.update-stock')); ?>" method="POST" style="display: none;">
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="item_id" id="item_id">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -432,4 +433,5 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/inventory/index.blade.php ENDPATH**/ ?>
