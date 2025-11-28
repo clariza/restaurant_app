@@ -326,12 +326,7 @@
             Agregar método de pago
         </button>
 
-        <!-- ✅ Mensaje cuando no hay métodos de pago -->
-        <div id="no-payments-message" style="display: none; text-align: center; padding: 20px; color: #64748b; font-size: 0.9rem;">
-            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
-            <p style="margin: 0;">No hay métodos de pago agregados</p>
-            <small>Haz clic en "Agregar método de pago" para comenzar</small>
-        </div>
+      
 
         <div class="payment-rows-container" id="payment-rows-container">
             <!-- Las filas de pago se agregarán aquí dinámicamente -->
@@ -467,6 +462,51 @@ console.log('✅ Estado inicial de mesas:', window.tablesConfigState.tablesEnabl
 </script>
 
 <style>
+    /* Estilos para items de método de pago en Paso 3 */
+#payment-modal .payment-method-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 16px !important;
+    background: #f8fafc !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    transition: all 0.2s ease !important;
+    margin-bottom: 12px !important;
+}
+
+#payment-modal .payment-method-item:hover {
+    background: white !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 2px 8px rgba(32, 51, 99, 0.08) !important;
+}
+
+#payment-modal .payment-method-name {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-size: 0.95rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+}
+
+#payment-modal .payment-method-icon {
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+}
+
+#payment-modal .payment-method-amount {
+    font-size: 1.1rem !important;
+    color: var(--success-color) !important;
+    font-weight: 700 !important;
+}
              /* Estilos para el modal de configuración de mesas */
          #payment-modal .customer-details-section {
             display: flex !important;

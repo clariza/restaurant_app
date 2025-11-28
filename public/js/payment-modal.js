@@ -505,6 +505,8 @@ function removePaymentRow(id) {
     console.log(`📦 Filas: ${lengthBefore} → ${window.paymentRows.length}`);
 
     renderPaymentRows();
+
+    // ✅ ACTUALIZAR MENSAJE
     updateNoPaymentsMessage();
 }
 function updateStepDisplay() {
@@ -716,6 +718,7 @@ function goToStep(step) {
                 return;
             }
             // Cargar resumen en el paso 3
+            syncPaymentRowsFromDOM();
             loadStep3Summary();
         }
     }
@@ -751,44 +754,51 @@ function goToStep(step) {
 }
 
 function nextStep() {
-    console.log(`🔄 Intentando avanzar del paso ${currentStep} al paso ${currentStep + 1}`);
+    console.log(`\n🔄 === AVANZANDO DE PASO ${currentStep} A ${currentStep + 1} ===`);
 
-    // ✅ Sincronizar SOLO si estamos SALIENDO del paso 2
+    // ✅ CRÍTICO: Si estamos en el Paso 2, sincronizar ANTES de validar
     if (currentStep === 2) {
-        console.log('🔄 Paso 2 detectado, sincronizando datos de pago...');
+        console.log('💳 Sincronizando métodos de pago antes de avanzar...');
         syncPaymentRowsFromDOM();
+        console.log('📦 window.paymentRows sincronizado:', window.paymentRows);
     }
 
-    // ✅ Validar el paso ACTUAL antes de avanzar
+    // ✅ Validar el paso actual
     if (!validateCurrentStep()) {
-        console.warn('⚠️ Validación fallida, no se avanza al siguiente paso');
+        console.warn('⚠️ Validación fallida, no se puede avanzar');
         return;
     }
 
     // ✅ Avanzar al siguiente paso
     if (currentStep < totalSteps) {
         currentStep++;
-        updateStepDisplay();
-
         console.log(`✅ Avanzando al paso ${currentStep}`);
 
-        // ✅ AHORA SÍ: Si acabamos de LLEGAR al paso 2, agregar fila automáticamente
+        updateStepDisplay();
+
+        // ✅ Acciones específicas por paso
         if (currentStep === 2) {
             setTimeout(() => {
                 const rowsContainer = document.getElementById('payment-rows-container');
                 if (rowsContainer && rowsContainer.children.length === 0) {
-                    console.log('📝 Llegamos al Paso 2 sin filas, agregando una automáticamente...');
+                    console.log('➕ Agregando primera fila automáticamente...');
                     addPaymentRow();
                 }
             }, 100);
         }
+        else if (currentStep === 3) {
+            // ✅✅ CRÍTICO: Actualizar resumen en el Paso 3
+            console.log('📋 Preparando Paso 3...');
 
-        // ✅ Si llegamos al paso 3, actualizar el resumen
-        if (currentStep === 3) {
-            syncPaymentRowsFromDOM();
-            updateStep3Summary();
+            setTimeout(() => {
+                console.log('🔄 Ejecutando updateStep3Summary...');
+                updateStep3Summary();
+                console.log('✅ Resumen del Paso 3 actualizado');
+            }, 150);
         }
     }
+
+    console.log('=== FIN AVANCE DE PASO ===\n');
 }
 function updateNoPaymentsMessage() {
     const container = document.getElementById('payment-rows-container');
@@ -814,64 +824,86 @@ function debugPaymentRows() {
 window.debugPaymentRows = debugPaymentRows;
 // 7. MODIFICAR updateStep3Summary() para usar window.paymentRows
 function updateStep3Summary() {
-    console.log('📋 Actualizando resumen del paso 3...');
-    syncPaymentRowsFromDOM();
-    console.log('💳 Datos de pago para resumen:', window.paymentRows);
-    // Actualizar resumen del pedido
+    console.log('\n📋 === INICIANDO updateStep3Summary ===');
 
-    const orderSummary = document.getElementById('step3-order-summary');
-    const orderDetails = document.getElementById('order-details');
+    // ============================================
+    // PASO 1: VERIFICAR DATOS
+    // ============================================
+    console.log('📦 window.paymentRows:', window.paymentRows);
+    console.log('📦 Cantidad:', window.paymentRows?.length || 0);
 
-    if (orderSummary && orderDetails) {
-        const items = orderDetails.querySelectorAll('.order-item');
-        let summaryHTML = '';
+    const paymentDetails = document.getElementById('step3-payment-methods');
 
-        items.forEach(item => {
-            const name = item.querySelector('.order-item-name')?.textContent || '';
-            const quantity = item.querySelector('.order-item-quantity')?.textContent || '1';
-            const price = item.querySelector('.order-item-price')?.textContent || '$0.00';
+    if (!paymentDetails) {
+        console.error('❌ No se encontró el elemento step3-payment-methods');
+        return;
+    }
 
-            summaryHTML += `
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
-                    <span>${quantity} × ${name}</span>
-                    <span style="font-weight: 600;">${price}</span>
+    console.log('✅ Elemento step3-payment-methods encontrado');
+
+    // ============================================
+    // PASO 2: GENERAR HTML
+    // ============================================
+    let paymentHTML = '';
+
+    if (!window.paymentRows || window.paymentRows.length === 0) {
+        console.error('❌ window.paymentRows está vacío o no existe');
+
+        paymentHTML = `
+            <div style="text-align: center; padding: 20px; color: #ef4444; background: #fee2e2; border-radius: 8px; border: 1px solid #fecaca;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                <p style="margin: 0; font-weight: 600;">No hay métodos de pago registrados</p>
+                <small style="display: block; margin-top: 8px;">window.paymentRows está vacío</small>
+            </div>
+        `;
+    } else {
+        console.log(`✅ Generando HTML para ${window.paymentRows.length} métodos`);
+
+        window.paymentRows.forEach((row, index) => {
+            const method = row.method || 'Sin método';
+            const reference = row.reference || '';
+            const amount = parseFloat(row.amount) || 0;
+
+            console.log(`   💳 Método ${index + 1}:`, { method, reference, amount });
+
+            paymentHTML += `
+                <div class="payment-method-item" style="margin-bottom: 12px;">
+                    <div class="payment-method-name">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-${getPaymentMethodIcon(method)}"></i>
+                        </div>
+                        <div>
+                            <strong>${method}</strong>
+                            ${reference ? `<br><small style="color: var(--text-secondary);">Ref: ${reference}</small>` : ''}
+                        </div>
+                    </div>
+                    <div class="payment-method-amount">$${amount.toFixed(2)}</div>
                 </div>
             `;
         });
 
-        orderSummary.innerHTML = summaryHTML;
+        console.log('✅ HTML generado, longitud:', paymentHTML.length);
     }
 
-    // Actualizar detalles de pago - ✅ USAR window.paymentRows
-    const paymentDetails = document.getElementById('step3-payment-methods');
-    if (paymentDetails) {
-        let paymentHTML = '';
+    // ============================================
+    // PASO 3: INSERTAR HTML
+    // ============================================
+    console.log('📤 Insertando HTML en el DOM...');
+    paymentDetails.innerHTML = paymentHTML;
+    console.log('✅ HTML insertado');
+    console.log('🔍 Verificación final - Contenido del div:', paymentDetails.innerHTML.substring(0, 200));
 
-        if (window.paymentRows.length === 0) {
-            paymentHTML = '<p style="color: #666; text-align: center; padding: 20px;">No hay métodos de pago registrados</p>';
-        } else {
-            window.paymentRows.forEach((row, index) => {
-                paymentHTML += `
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
-                        <div>
-                            <strong>${row.method || 'Sin método'}</strong>
-                            ${row.reference ? `<br><small style="color: var(--text-secondary);">Ref: ${row.reference}</small>` : ''}
-                        </div>
-                        <span style="font-weight: 600; color: var(--success-color);">$${parseFloat(row.amount || 0).toFixed(2)}</span>
-                    </div>
-                `;
-            });
-        }
-
-        paymentDetails.innerHTML = paymentHTML;
-    }
-
-
-    // Actualizar total
-    updateOrderTotal();
+    console.log('✅ === updateStep3Summary COMPLETADO ===\n');
 }
-
-
+function getPaymentMethodIcon(method) {
+    const icons = {
+        'Efectivo': 'money-bill-wave',
+        'QR': 'qrcode',
+        'Tarjeta': 'credit-card',
+        'Transferencia': 'exchange-alt'
+    };
+    return icons[method] || 'dollar-sign';
+}
 function validateCurrentStep() {
     if (currentStep === 1) {
         return validateStep1();
@@ -1055,9 +1087,6 @@ function loadStep3Summary() {
     // Cargar resumen del pedido
     loadStep3OrderSummary();
 
-    // Cargar detalles de pago
-    loadStep3PaymentDetails();
-
     // Cargar datos del cliente si existen
     loadStep3CustomerData();
 }
@@ -1156,32 +1185,7 @@ function generateDailyOrderNumber() {
     return counter;
 }
 
-function loadStep3PaymentDetails() {
-    const paymentContainer = document.getElementById('step3-payment-methods');
 
-    if (!paymentContainer) return;
-
-    const paymentMethods = JSON.parse(localStorage.getItem('paymentMethods')) || [];
-
-    if (paymentMethods.length === 0) {
-        paymentContainer.innerHTML = '<p class="text-gray-500 text-center">No hay métodos de pago registrados</p>';
-        return;
-    }
-
-    paymentContainer.innerHTML = paymentMethods.map(method => {
-        const icon = getPaymentIcon(method.method);
-        return `
-            <div class="payment-method-item">
-                <div class="payment-method-type">
-                    ${icon}
-                    <span>${method.method}</span>
-                    ${method.transaction_number ? `<span class="text-xs text-gray-500">(Trans: ${method.transaction_number})</span>` : ''}
-                </div>
-                <div class="payment-method-amount">${method.amount.toFixed(2)}</div>
-            </div>
-        `;
-    }).join('');
-}
 
 function getPaymentIcon(method) {
     const icons = {
@@ -2561,40 +2565,95 @@ window.goToStep = function (step) {
         }
     }
 
-    // Ocultar todos los pasos
+    // ✅ SI VAMOS AL PASO 3, SINCRONIZAR ANTES DE CAMBIAR
+    if (step === 3) {
+        console.log('📋 Preparando paso 3...');
+        syncPaymentRowsFromDOM();
+        console.log('📦 window.paymentRows antes de mostrar:', window.paymentRows);
+    }
+
+    // Ocultar todos los contenidos de pasos
     document.querySelectorAll('#payment-modal .step-content').forEach(content => {
         content.classList.remove('active');
     });
 
-    // Mostrar paso actual
-    const currentStepElement = document.getElementById(`step-${step}`);
-    if (currentStepElement) {
-        currentStepElement.classList.add('active');
-    }
-
-    // Actualizar navegación
+    // Desactivar todos los items de navegación
     document.querySelectorAll('#payment-modal .step-item').forEach(item => {
-        const itemStep = parseInt(item.getAttribute('data-step'));
-        item.classList.remove('active', 'completed');
-
-        if (itemStep === step) {
-            item.classList.add('active');
-        } else if (itemStep < step) {
-            item.classList.add('completed');
-        }
+        item.classList.remove('active');
+        item.classList.remove('completed');
     });
 
-    // Actualizar estado
-    window.paymentModalState.currentStep = step;
+    // Marcar pasos completados
+    for (let i = 1; i < step; i++) {
+        const completedItem = document.querySelector(`#payment-modal .step-item[data-step="${i}"]`);
+        if (completedItem) {
+            completedItem.classList.add('completed');
+        }
+    }
 
-    // Acciones específicas por paso
-    if (step === 2) {
+    // Activar paso actual
+    const stepContent = document.getElementById(`step-${step}`);
+    const stepItem = document.querySelector(`#payment-modal .step-item[data-step="${step}"]`);
+
+    if (stepContent) stepContent.classList.add('active');
+    if (stepItem) stepItem.classList.add('active');
+
+    window.paymentModalState.currentStep = step;
+    updateStepNavigation();
+
+    // ✅ ACCIONES ESPECÍFICAS POR PASO
+    if (step === 1) {
+        console.log('📝 Paso 1: Tipo de pedido');
+        const orderType = window.paymentModalState?.selectedOrderType || 'comer-aqui';
+        const orderTypeBtn = document.querySelector(`#payment-modal .order-type-btn[data-type="${orderType}"]`);
+        if (orderTypeBtn) {
+            document.querySelectorAll('#payment-modal .order-type-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            orderTypeBtn.classList.add('selected');
+        }
+    } else if (step === 2) {
+        console.log('💳 Paso 2: Métodos de pago');
         updateOrderTotal();
-        showNoPaymentsMessage();
+        updateNoPaymentsMessage();
+
+        setTimeout(() => {
+            const container = document.getElementById('payment-rows-container');
+            if (container && container.children.length === 0) {
+                console.log('➕ Agregando primera fila automáticamente...');
+                addPaymentRow();
+            }
+        }, 100);
     } else if (step === 3) {
-        loadStep3Summary();
+        // ✅✅ CRÍTICO: Actualizar resumen DESPUÉS de mostrar el paso
+        console.log('📋 Paso 3: Actualizando resumen...');
+
+        setTimeout(() => {
+            console.log('🔄 Ejecutando updateStep3Summary...');
+            updateStep3Summary();
+            console.log('✅ Resumen actualizado');
+        }, 100);
     }
 };
+function showNoPaymentsMessage() {
+    const message = document.getElementById('no-payments-message');
+    const container = document.getElementById('payment-rows-container');
+
+    if (!message) {
+        console.warn('⚠️ Elemento no-payments-message no encontrado');
+        return;
+    }
+
+    const hasPaymentRows = container && container.children.length > 0;
+
+    if (!hasPaymentRows) {
+        message.style.display = 'block';
+        console.log('📭 Mostrando mensaje "no hay pagos"');
+    } else {
+        message.style.display = 'none';
+        console.log('✅ Ocultando mensaje "no hay pagos" (hay filas presentes)');
+    }
+}
 window.nextStep = function () {
     if (window.paymentModalState.currentStep < 3) {
         goToStep(window.paymentModalState.currentStep + 1);
@@ -2605,34 +2664,123 @@ window.prevStep = function () {
         goToStep(window.paymentModalState.currentStep - 1);
     }
 };
-window.addPaymentRow = function () {
-    paymentRowCounter++;
-    const rowId = Date.now() + paymentRowCounter;
+// ✅ FUNCIÓN DE DIAGNÓSTICO
+window.debugPaymentStep3 = function () {
+    console.log('\n🔍 === DIAGNÓSTICO PASO 3 ===');
+    console.log('1. window.paymentRows:', window.paymentRows);
+    console.log('2. Cantidad:', window.paymentRows?.length || 0);
 
-    const orderTotal = calculateOrderTotal();
-    const totalPaid = window.paymentRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
-    const remaining = Math.max(0, orderTotal - totalPaid);
+    const domRows = document.querySelectorAll('#payment-rows-container .payment-row');
+    console.log('3. Filas en DOM:', domRows.length);
 
-    const row = {
-        id: rowId,
-        method: 'Efectivo',
-        reference: '',
-        amount: 0
-    };
+    domRows.forEach((row, i) => {
+        const method = row.querySelector('select')?.value;
+        const amount = row.querySelector('input[type="number"]')?.value;
+        console.log(`   Fila ${i}: ${method} - $${amount}`);
+    });
 
-    window.paymentRows.push(row);
+    console.log('4. Contenido de step3-payment-methods:');
+    console.log(document.getElementById('step3-payment-methods')?.innerHTML.substring(0, 200));
+    console.log('=========================\n');
+};
+function addPaymentRow() {
+    console.log('➕ Agregando nueva fila de pago...');
 
-    const container = document.getElementById('payment-rows-container');
-    const rowHTML = createPaymentRowHTML(row, remaining);
-    container.insertAdjacentHTML('beforeend', rowHTML);
+    // ✅ ASEGURAR que window.paymentRows existe
+    if (!window.paymentRows) {
+        window.paymentRows = [];
+        console.log('📦 window.paymentRows inicializado');
+    }
 
+    const paymentRowsContainer = document.getElementById('payment-rows-container');
+    // ... resto del código existente ...
+
+    // Agregar la nueva fila al contenedor
+    paymentRowsContainer.appendChild(paymentRow);
+
+    // Actualizar clases de scroll según cantidad de filas
+    updateScrollContainer();
+
+    // Mostrar el ícono del tipo de pago inicial
+    updatePaymentIcon(paymentRow.querySelector('.payment-type'), paymentRow.id);
+
+    // Actualizar campos según el tipo de pago seleccionado
+    updatePaymentFields(paymentRow.querySelector('.payment-type'), paymentRow.id);
+
+    // ✅ OCULTAR MENSAJE "NO HAY PAGOS"
     hideNoPaymentsMessage();
+
+    console.log('✅ Fila agregada al DOM');
+    console.log('🎯 Verificación:');
+    console.log('   - Array:', window.paymentRows.length);
+    console.log('   - DOM:', document.querySelectorAll('.payment-row').length);
+}
+function hideNoPaymentsMessage() {
+    const message = document.getElementById('no-payments-message');
+
+    if (message) {
+        message.style.display = 'none';
+        console.log('✅ Mensaje "no hay pagos" ocultado');
+    }
+}
+// ============================================
+// FUNCIÓN DE DIAGNÓSTICO PASO 3
+// ============================================
+window.debugStep3 = function () {
+    console.log('\n🔍 === DIAGNÓSTICO COMPLETO PASO 3 ===\n');
+
+    console.log('1️⃣ ESTADO DE window.paymentRows:');
+    console.log('   Existe:', typeof window.paymentRows !== 'undefined');
+    console.log('   Es array:', Array.isArray(window.paymentRows));
+    console.log('   Cantidad:', window.paymentRows?.length || 0);
+    console.log('   Contenido:', window.paymentRows);
+
+    console.log('\n2️⃣ ESTADO DEL DOM (Paso 2):');
+    const domRows = document.querySelectorAll('#payment-rows-container .payment-row');
+    console.log('   Filas en DOM:', domRows.length);
+    domRows.forEach((row, i) => {
+        const method = row.querySelector('select')?.value;
+        const amount = row.querySelector('input[type="number"]')?.value;
+        const reference = row.querySelector('input[type="text"]')?.value;
+        console.log(`   Fila ${i}:`, { method, amount, reference });
+    });
+
+    console.log('\n3️⃣ ESTADO DEL PASO 3:');
+    const step3Element = document.getElementById('step-3');
+    const paymentMethodsDiv = document.getElementById('step3-payment-methods');
+    console.log('   Paso 3 visible:', step3Element?.classList.contains('active'));
+    console.log('   Div de métodos existe:', !!paymentMethodsDiv);
+    console.log('   Contenido actual:', paymentMethodsDiv?.innerHTML.substring(0, 200));
+
+    console.log('\n4️⃣ EJECUTAR SINCRONIZACIÓN MANUAL:');
+    if (typeof syncPaymentRowsFromDOM === 'function') {
+        syncPaymentRowsFromDOM();
+        console.log('   ✅ Sincronización ejecutada');
+        console.log('   Resultado:', window.paymentRows);
+    }
+
+    console.log('\n5️⃣ EJECUTAR ACTUALIZACIÓN DE RESUMEN:');
+    if (typeof updateStep3Summary === 'function') {
+        updateStep3Summary();
+        console.log('   ✅ Resumen actualizado');
+        console.log('   Nuevo contenido:', paymentMethodsDiv?.innerHTML.substring(0, 200));
+    }
+
+    console.log('\n=== FIN DIAGNÓSTICO ===\n');
 };
 
 window.updatePaymentRowFromSelect = updatePaymentRowFromSelect;
 window.updatePaymentRowFromInput = updatePaymentRowFromInput;
 
 console.log('✅ Payment Modal JS cargado correctamente');
+window.showNoPaymentsMessage = showNoPaymentsMessage;
+window.hideNoPaymentsMessage = hideNoPaymentsMessage;
+window.updateNoPaymentsMessage = updateNoPaymentsMessage;
+window.goToStep = goToStep;
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.addPaymentRow = addPaymentRow;
+window.removePaymentRow = removePaymentRow;
 window.openPaymentModal = openPaymentModal;
 window.closePaymentModal = closePaymentModal;
 window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
@@ -2663,7 +2811,6 @@ window.handleBulkStateChange = handleBulkStateChange;
 window.loadModalTables = loadModalTables;
 window.renderTables = renderTables;
 window.selectTable = selectTable;
-window.goToStep = goToStep;
 window.prevStep = prevStep;
 
 // Nuevas funciones del paso 3
@@ -2677,10 +2824,8 @@ window.processPayment = processPayment;
 window.submitOrder = submitOrder;
 window.clearOrderData = clearOrderData;
 
-window.nextStep = nextStep;
 window.confirmAndProcessOrder = confirmAndProcessOrder;
 window.renderPaymentRows = renderPaymentRows;
-window.removePaymentRow = removePaymentRow;
 window.syncPaymentRowsFromDOM = syncPaymentRowsFromDOM;
 window.updatePaymentRowField = updatePaymentRowField;
 window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;

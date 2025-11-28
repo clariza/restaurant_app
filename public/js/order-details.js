@@ -222,7 +222,7 @@ function removeItem(index) {
 
         if (index >= 0 && index < order.length) {
             const item = order[index];
-            
+
             // Si la cantidad es mayor a 1, solo disminuir
             if (item.quantity > 1) {
                 item.quantity -= 1;
@@ -1172,7 +1172,7 @@ function generateTicketContent(dailyOrderNumber) {
     const deliveryService = orderType === 'Para llevar' ?
         (localStorage.getItem('deliveryService') || '') : '';
 
-    // 🔥 NUEVO: Obtener notas de "Recoger" si el tipo es "Recoger"
+    // Obtener notas de "Recoger" si el tipo es "Recoger"
     const pickupNotes = orderType === 'Recoger' ?
         (localStorage.getItem('pickupNotes') || '') : '';
 
@@ -1180,7 +1180,22 @@ function generateTicketContent(dailyOrderNumber) {
     const orderNotes = localStorage.getItem('orderNotes') || '';
     const proformaNotes = localStorage.getItem('proformaNotes') || '';
 
-    const customerName = document.getElementById('customer-name')?.value || '';
+    // ✅ CRÍTICO: Obtener nombre del cliente desde múltiples fuentes
+    let customerName = '';
+
+    // Opción 1: Desde el modal (Paso 3)
+    customerName = document.getElementById('modal-customer-name')?.value?.trim();
+
+    // Opción 2: Desde la vista customer-details
+    if (!customerName) {
+        customerName = document.getElementById('customer-name')?.value?.trim();
+    }
+
+    // Opción 3: Desde localStorage
+    if (!customerName) {
+        customerName = localStorage.getItem('customerName') || '';
+    }
+
     const sellerName = window.authUserName || 'Usuario';
 
     // Calcular totales
@@ -1193,7 +1208,7 @@ function generateTicketContent(dailyOrderNumber) {
     const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
     const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    // 🔥 NUEVO: Combinar TODAS las notas según el tipo de pedido
+    // Combinar TODAS las notas según el tipo de pedido
     let allNotes = '';
     if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
     if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
@@ -1206,7 +1221,8 @@ function generateTicketContent(dailyOrderNumber) {
         tableId: localStorage.getItem('tableNumber'),
         tableDisplay: tableDisplayText,
         deliveryService,
-        pickupNotes: pickupNotes || 'Sin notas'
+        pickupNotes: pickupNotes || 'Sin notas',
+        customerName: customerName || 'Sin nombre' // ✅ LOG del cliente
     });
 
     return `
@@ -1233,7 +1249,12 @@ function generateTicketContent(dailyOrderNumber) {
             </div>
         ` : ''}
         
-        ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
+        ${customerName ? `
+            <div class="item-row">
+                <span>Cliente:</span>
+                <span>${customerName}</span>
+            </div>
+        ` : ''}
         
         <div class="divider"></div>
         
@@ -1283,27 +1304,35 @@ function showPrintPreview(content) {
         previewModal.id = 'print-preview-modal';
         previewModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden z-[1000] flex items-center justify-center';
         previewModal.innerHTML = `
-        <div class="modal-container bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center space-x-2">
-                    <h3 class="text-lg font-bold text-[#203363]">Vista previa de impresión</h3>
+            <div class="modal-container bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+                <!-- Header del Modal -->
+                <div class="bg-[#203363] text-white px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-receipt text-xl"></i>
+                        <h3 class="text-lg font-bold">Vista Previa del Ticket</h3>
+                    </div>
+                    <button onclick="closePrintPreview()" class="text-white hover:text-gray-300 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-            <div class="flex items-center space-x-2 bg-black">
-                <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-2 py-2 rounded-lg hover:bg-gray-500 text-sm">
-                    Cancelar
-                </button>
-                <button onclick="closePrintPreview()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
+
+                <!-- Contenido del Ticket -->
+                <div id="print-preview-content" class="bg-white p-6 border-y border-gray-200 max-h-[60vh] overflow-y-auto">
+                    <!-- El contenido del ticket se insertará aquí -->
+                </div>
+
+                <!-- Footer con Botones -->
+                <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                    <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-5 py-2.5 rounded-lg hover:bg-gray-500 transition-colors font-medium flex items-center space-x-2">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button onclick="confirmPrint()" class="bg-[#203363] text-white px-5 py-2.5 rounded-lg hover:bg-[#47517c] transition-colors font-medium flex items-center space-x-2 shadow-md">
+                        <i class="fas fa-print"></i>
+                        <span>Imprimir</span>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div id="print-preview-content" class="bg-white p-4 border border-gray-300 mb-4 max-h-[60vh] overflow-y-auto"></div>
-            <div class="flex justify-end">
-            <button onclick="confirmPrint()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c]">
-                 <i class="fas fa-print mr-2"></i> Imprimir
-                </button>
-            </div>
-        </div>
         `;
         document.body.appendChild(previewModal);
     }
@@ -1358,13 +1387,29 @@ async function generateTicketContentAsync(dailyOrderNumber) {
     const deliveryService = orderType === 'Para llevar' ?
         (localStorage.getItem('deliveryService') || '') : '';
 
-    // 🔥 NUEVO: Obtener notas de "Recoger"
+    // Obtener notas de "Recoger"
     const pickupNotes = orderType === 'Recoger' ?
         (localStorage.getItem('pickupNotes') || '') : '';
 
     const orderNotes = localStorage.getItem('orderNotes') || '';
     const proformaNotes = localStorage.getItem('proformaNotes') || '';
-    const customerName = document.getElementById('customer-name')?.value || '';
+
+    // ✅ CRÍTICO: Obtener nombre del cliente desde múltiples fuentes
+    let customerName = '';
+
+    // Opción 1: Desde el modal (Paso 3)
+    customerName = document.getElementById('modal-customer-name')?.value?.trim();
+
+    // Opción 2: Desde la vista customer-details
+    if (!customerName) {
+        customerName = document.getElementById('customer-name')?.value?.trim();
+    }
+
+    // Opción 3: Desde localStorage
+    if (!customerName) {
+        customerName = localStorage.getItem('customerName') || '';
+    }
+
     const sellerName = window.authUserName || 'Usuario';
 
     const subtotal = order.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -1375,7 +1420,7 @@ async function generateTicketContentAsync(dailyOrderNumber) {
     const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
     const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    // 🔥 NUEVO: Incluir notas de Recoger
+    // Incluir notas de Recoger
     let allNotes = '';
     if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
     if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
@@ -1407,7 +1452,12 @@ async function generateTicketContentAsync(dailyOrderNumber) {
             </div>
         ` : ''}
         
-        ${customerName ? `<div class="item-row"><span>Cliente:</span><span>${customerName}</span></div>` : ''}
+        ${customerName ? `
+            <div class="item-row">
+                <span>Cliente:</span>
+                <span>${customerName}</span>
+            </div>
+        ` : ''}
         
         <div class="divider"></div>
         
