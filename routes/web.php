@@ -36,6 +36,8 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // RUTAS CON AUTENTICACIÓN (Sin caja chica)
 // ============================================
 Route::middleware(['auth'])->group(function () {
+    Route::get('/api/delivery-services', [DeliveryServiceController::class, 'getActiveServices'])
+        ->name('deliveries.api.active');
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // Vista principal del inventario
         Route::get('/', [InventoryController::class, 'index'])->name('index');
@@ -49,6 +51,8 @@ Route::middleware(['auth'])->group(function () {
         // Reportes
         Route::get('/low-stock', [InventoryController::class, 'lowStock'])->name('lowStock');
         Route::get('/report', [InventoryController::class, 'report'])->name('report');
+        // API: Obtener servicios de delivery activos (JSON)
+
     });
 
     Route::get('/petty-cash/create', [PettyCashController::class, 'create'])

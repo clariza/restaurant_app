@@ -275,7 +275,8 @@ window.routes = {
     customerDetails: "<?php echo e(route('customer.details')); ?>",
     menuIndex: "<?php echo e(route('menu.index')); ?>",
     pettyCashIndex: "<?php echo e(route('petty-cash.index')); ?>",
-    pettyCashModalContent: "<?php echo e(route('petty-cash.modal-content')); ?>"
+    pettyCashModalContent: "<?php echo e(route('petty-cash.modal-content')); ?>",
+    deliveryServicesApi: "<?php echo e(route('deliveries.api.active')); ?>"
 };
 window.csrfToken = "<?php echo e(csrf_token()); ?>";
 window.authUserName = "<?php echo e(Auth::user()->name ?? ''); ?>";

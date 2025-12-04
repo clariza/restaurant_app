@@ -13,13 +13,13 @@ class DeliveryServiceController extends Controller
     {
         $services = DeliveryService::where('is_active', true)->get();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('deliveries.index', compact('services','hasOpenPettyCash'));
+        return view('deliveries.index', compact('services', 'hasOpenPettyCash'));
     }
 
     public function create()
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('deliveries.create',compact('hasOpenPettyCash'));
+        return view('deliveries.create', compact('hasOpenPettyCash'));
     }
 
     public function store(Request $request)
@@ -38,7 +38,7 @@ class DeliveryServiceController extends Controller
     public function edit(DeliveryService $delivery)
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('deliveries.edit', compact('delivery','hasOpenPettyCash'));
+        return view('deliveries.edit', compact('delivery', 'hasOpenPettyCash'));
     }
 
     public function update(Request $request, DeliveryService $deliveryService)
@@ -57,8 +57,26 @@ class DeliveryServiceController extends Controller
     public function destroy(DeliveryService $delivery)
     {
         $delivery->update(['is_active' => false]);
-        
+
         return redirect()->route('deliveries.index')
             ->with('success', 'Servicio desactivado exitosamente');
+    }
+    public function getActiveServices()
+    {
+        try {
+            $services = DeliveryService::where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'description']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $services
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar servicios de delivery: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

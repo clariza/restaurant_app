@@ -275,7 +275,8 @@ window.routes = {
     customerDetails: "{{ route('customer.details') }}",
     menuIndex: "{{ route('menu.index') }}",
     pettyCashIndex: "{{ route('petty-cash.index') }}",
-    pettyCashModalContent: "{{ route('petty-cash.modal-content') }}"
+    pettyCashModalContent: "{{ route('petty-cash.modal-content') }}",
+    deliveryServicesApi: "{{ route('deliveries.api.active') }}"
 };
 window.csrfToken = "{{ csrf_token() }}";
 window.authUserName = "{{ Auth::user()->name ?? '' }}";

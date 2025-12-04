@@ -2677,70 +2677,121 @@ function updateModalSectionsVisibility() {
             break;
     }
 }
-function loadDeliveryServices() {
+async function loadDeliveryServices() {
     const deliverySelect = document.getElementById('modal-delivery-service');
     if (!deliverySelect) {
         console.error('❌ No se encontró el select de delivery en el modal');
         return;
     }
 
-    console.log('🚚 Cargando servicios de delivery...');
+    console.log('🚚 Cargando servicios de delivery desde la base de datos...');
 
-    // Lista de servicios de delivery (en implementación real vendría del servidor)
-    const deliveryServices = [
-        { name: 'Delivery Express', id: 1 },
-        { name: 'Rápido Delivery', id: 2 },
-        { name: 'Food Delivery', id: 3 },
-        { name: 'Uber Eats', id: 4 },
-        { name: 'Rappi', id: 5 }
-    ];
+    // Mostrar loader mientras carga
+    deliverySelect.innerHTML = '<option value="">Cargando servicios...</option>';
+    deliverySelect.disabled = true;
 
-    // Limpiar opciones existentes
-    deliverySelect.innerHTML = '<option value="">Seleccione un servicio de delivery</option>';
+    try {
+        // Hacer petición a la API
+        const response = await fetch('/api/delivery-services', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.csrfToken
+            }
+        });
 
-    // Agregar opciones de servicios
-    deliveryServices.forEach(service => {
-        const option = document.createElement('option');
-        option.value = service.name;
-        option.textContent = service.name;
-        deliverySelect.appendChild(option);
-    });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-    // Seleccionar el servicio guardado previamente si existe
-    const savedService = localStorage.getItem('deliveryService');
-    if (savedService && deliverySelect.querySelector(`option[value="${savedService}"]`)) {
-        deliverySelect.value = savedService;
-        console.log('📋 Servicio de delivery restaurado:', savedService);
+        const data = await response.json();
+
+        if (!data.success || !data.data) {
+            throw new Error(data.message || 'No se pudieron obtener los servicios');
+        }
+
+        const deliveryServices = data.data;
+        console.log('✅ Servicios obtenidos:', deliveryServices);
+
+        // Limpiar y agregar opción por defecto
+        deliverySelect.innerHTML = '<option value="">Seleccione un servicio de delivery</option>';
+
+        // Verificar si hay servicios disponibles
+        if (deliveryServices.length === 0) {
+            deliverySelect.innerHTML = '<option value="">No hay servicios disponibles</option>';
+            console.warn('⚠️ No se encontraron servicios de delivery activos');
+            return;
+        }
+
+        // Agregar opciones de servicios
+        deliveryServices.forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.name;
+            option.textContent = service.name;
+
+            // Agregar descripción como tooltip si existe
+            if (service.description) {
+                option.title = service.description;
+            }
+
+            deliverySelect.appendChild(option);
+        });
+
+        // Habilitar el select
+        deliverySelect.disabled = false;
+
+        // Seleccionar el servicio guardado previamente si existe
+        const savedService = localStorage.getItem('deliveryService');
+        if (savedService) {
+            const optionExists = deliverySelect.querySelector(`option[value="${savedService}"]`);
+            if (optionExists) {
+                deliverySelect.value = savedService;
+                console.log('📋 Servicio de delivery restaurado:', savedService);
+            } else {
+                console.warn('⚠️ Servicio guardado no encontrado:', savedService);
+                localStorage.removeItem('deliveryService');
+            }
+        }
+
+        // Configurar evento change (reemplazar elemento para evitar múltiples listeners)
+        const newDeliverySelect = deliverySelect.cloneNode(true);
+        deliverySelect.parentNode.replaceChild(newDeliverySelect, deliverySelect);
+
+        newDeliverySelect.addEventListener('change', function () {
+            const selectedService = this.value;
+            console.log('🚚 Servicio de delivery seleccionado:', selectedService);
+
+            // Guardar en localStorage
+            if (selectedService) {
+                localStorage.setItem('deliveryService', selectedService);
+            } else {
+                localStorage.removeItem('deliveryService');
+            }
+
+            // Sincronizar con el sistema principal si existe
+            const mainDeliverySelect = document.getElementById('delivery-service');
+            if (mainDeliverySelect) {
+                mainDeliverySelect.value = selectedService;
+            }
+
+            // Actualizar detalles del pedido
+            if (typeof window.updateOrderDetails === 'function') {
+                window.updateOrderDetails();
+            }
+        });
+
+        console.log('✅ Servicios de delivery cargados correctamente');
+
+    } catch (error) {
+        console.error('❌ Error al cargar servicios de delivery:', error);
+
+        // Mostrar error en el select
+        deliverySelect.innerHTML = '<option value="">Error al cargar servicios</option>';
+        deliverySelect.disabled = true;
+
+        // Mostrar alerta al usuario
+        alert('Error al cargar los servicios de delivery. Por favor, recargue la página.');
     }
-
-    // Configurar evento change (reemplazar elemento para evitar múltiples listeners)
-    const newDeliverySelect = deliverySelect.cloneNode(true);
-    deliverySelect.parentNode.replaceChild(newDeliverySelect, deliverySelect);
-
-    newDeliverySelect.addEventListener('change', function () {
-        const selectedService = this.value;
-        console.log('🚚 Servicio de delivery seleccionado:', selectedService);
-
-        // Guardar en localStorage
-        if (selectedService) {
-            localStorage.setItem('deliveryService', selectedService);
-        } else {
-            localStorage.removeItem('deliveryService');
-        }
-
-        // Sincronizar con el sistema principal si existe
-        const mainDeliverySelect = document.getElementById('delivery-service');
-        if (mainDeliverySelect) {
-            mainDeliverySelect.value = selectedService;
-        }
-
-        // Actualizar detalles del pedido
-        if (typeof window.updateOrderDetails === 'function') {
-            window.updateOrderDetails();
-        }
-    });
-
-    console.log('✅ Servicios de delivery cargados correctamente');
 }
 function validateStep1() {
     const selectedBtn = document.querySelector('#payment-modal .order-type-btn.selected');
