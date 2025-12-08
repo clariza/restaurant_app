@@ -40,7 +40,7 @@
             onclick="showPaymentModal()">
             Realizar Pago
         </button>
-    
+{{--     
         <div class="flex space-x-2">
             <a onclick="event.preventDefault(); openExpensesModal();"class="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center"
                 title="Gastos">
@@ -55,7 +55,7 @@
                 title="Caja Chica">
                 <i class="fas fa-cash-register"></i>
             </button>
-        </div>
+        </div> --}}
     </div>
 
     <!-- Input oculto para el tipo de pedido -->
@@ -282,7 +282,7 @@ window.csrfToken = "{{ csrf_token() }}";
 window.authUserName = "{{ Auth::user()->name ?? '' }}";
 window.tablesEnabled = @json($settings->tables_enabled ?? false);
 
-console.log('✅ Rutas de petty-cash cargadas:', window.routes);
+
 </script>
 <script>
 // Variables globales para el modal de gastos

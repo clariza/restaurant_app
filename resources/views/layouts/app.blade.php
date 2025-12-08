@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Dashboard</title>
+    <title>Miquna</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos -->
@@ -32,55 +32,238 @@
     <link rel="stylesheet" href="/css/utilities/utilities.css">
     <link rel="stylesheet" href="/css/utilities/variables.css">
     <link rel="stylesheet" href="/css/app.css">
+    
+   <style>
+/* Animación minimalista para el input de búsqueda */
+#menu-search:focus {
+    animation: searchFocusMinimal 0.2s ease-out;
+    box-shadow: 0 0 0 3px rgba(32, 51, 99, 0.08);
+}
 
+@keyframes searchFocusMinimal {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.01); }
+    100% { transform: scale(1); }
+}
+
+/* Efecto de resaltado en los resultados de búsqueda */
+.search-highlight {
+    background-color: #FFD166;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+/* Responsive: En móviles, ajustar tamaños */
+@media (max-width: 640px) {
+    #menu-search {
+        font-size: 13px;
+        padding: 8px 30px 8px 32px;
+    }
+    
+    #menu-search::placeholder {
+        font-size: 12px;
+    }
+    
+    /* Iconos más pequeños en móvil */
+    #menu-search + div i,
+    #clear-search-btn i {
+        font-size: 12px;
+    }
+    
+    @media (max-width: 380px) {
+        #user-menu-button span {
+            display: none;
+        }
+    }
+}
+
+/* Estado cuando hay texto en el input */
+#menu-search:not(:placeholder-shown) {
+    border-color: #203363;
+    background-color: white;
+    font-weight: 500;
+}
+
+/* Efecto hover minimalista */
+#menu-search:hover:not(:focus) {
+    background-color: rgba(32, 51, 99, 0.02);
+}
+
+/* Efecto hover en el botón de limpiar */
+#clear-search-btn:hover {
+    transform: translateY(-50%) scale(1.2) rotate(90deg);
+}
+
+/* Transición suave para mostrar/ocultar el botón de limpiar */
+#clear-search-btn {
+    transition: all 0.25s ease;
+}
+
+#clear-search-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.8);
+}
+
+/* Placeholder minimalista */
+#menu-search::placeholder {
+    font-weight: 300;
+    letter-spacing: 0.3px;
+}
+
+/* Animación sutil al escribir */
+@keyframes subtlePulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+}
+
+#menu-search:focus + div i {
+    animation: subtlePulse 2s ease-in-out infinite;
+    color: #203363;
+}
+
+/* Sombra sutil al hacer hover */
+#menu-search {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+#menu-search:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Transición suave del fondo */
+#menu-search {
+    backdrop-filter: blur(8px);
+}
+/* Animación de entrada para el search bar */
+@keyframes slideInSearch {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.search-container-animated {
+    animation: slideInSearch 0.3s ease-out;
+}
+</style>
 </head>
 
 <body class="bg-[#fafafa]">
 
     <!-- En la sección del header dentro de app.blade.php -->
-     <header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
-        <!-- Logo y nombre de la aplicación -->
-        <div class="flex items-center justify-between w-64 bg-[#203363] h-16 relative">
-            <!-- Botón del menú móvil -->
-            <button id="menu-toggle" class="text-[#b6e0f6] focus:outline-none absolute left-4 sm:hidden">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
-
-            <!-- Logo centrado -->
-            <div class="flex items-center justify-center w-full">
-                <img alt="Logo" class="h-10 w-10" src="https://static.vecteezy.com/system/resources/previews/000/656/554/original/restaurant-badge-and-logo-good-for-print-vector.jpg" />
-                <span class="text-xl font-bold text-[#b6e0f6] hidden sm:block ml-2">Miquna</span>
-            </div>
-        </div>
-
-        <!-- Área de usuario -->
-        <div class="flex items-center space-x-4">
-    <button class="text-gray-600 hover:text-[#203363] relative">
-        <i class="fas fa-bell text-xl"></i>
-        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-    </button>
-
-    <!-- Menú de usuario -->
-    <div class="relative ml-4 px-4">
-        <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md hover:bg-gray-100 transition-colors">
-            <span class="hidden md:inline text-sm font-medium text-gray-700">Hola, {{ Auth::user()->name ?? 'Usuario' }}</span>
-            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
-                <img src="https://www.gravatar.com/avatar/default?s=200&d=mp" alt="User Avatar" class="h-full w-full object-cover">
-            </div>
+<header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
+    <!-- Logo y nombre de la aplicación -->
+    <div class="flex items-center justify-between w-64 bg-[#203363] h-16 relative flex-shrink-0">
+        <!-- Botón del menú móvil -->
+        <button id="menu-toggle" class="text-[#b6e0f6] focus:outline-none absolute left-4 sm:hidden">
+            <i class="fas fa-bars text-2xl"></i>
         </button>
 
-        <!-- Menú desplegable -->
-        <div id="user-menu" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden border border-gray-200" style="z-index: 1000;">
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="w-full">
-                @csrf
-                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                </button>
-            </form>
+        <!-- Logo centrado -->
+        <div class="flex items-center justify-center w-full">
+            <img alt="Logo" class="h-10 w-10" src="https://static.vecteezy.com/system/resources/previews/000/656/554/original/restaurant-badge-and-logo-good-for-print-vector.jpg" />
+            <span class="text-xl font-bold text-[#b6e0f6] hidden sm:block ml-2">Miquna</span>
         </div>
     </div>
-</div>
-    </header>
+
+    <!-- Barra de búsqueda minimalista alineada a la izquierda -->
+       <!-- ✅ BÚSQUEDA CONDICIONAL - Solo visible cuando hay panel de pedidos -->
+        @if(isset($showOrderDetails) && $showOrderDetails)
+        <div class="flex-1 flex items-center px-4 search-container-animated">
+            <div class="relative w-full max-w-xs">
+                <!-- Input de búsqueda minimalista con bordes redondeados -->
+                <div class="relative pl-5">
+                    <input 
+                        id="menu-search" 
+                        class="w-full border border-gray-200 rounded-full bg-gray-50/50 py-1.5 pl-8 pr-8 text-gray-700 
+                               text-sm placeholder-gray-400
+                               focus:outline-none focus:border-[#203363] focus:bg-white
+                               transition-all duration-200 hover:border-gray-300" 
+                        placeholder="Buscar productos..." 
+                        type="text"
+                        oninput="searchMenuItems(this.value)"
+                    />
+                    
+                    <!-- Ícono de búsqueda minimalista -->
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pl-4">
+                        <i class="fas fa-search"></i>
+                    </div>
+
+                    <!-- Botón para limpiar búsqueda -->
+                    <button 
+                        onclick="clearSearch()" 
+                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#203363] 
+                               transition-colors duration-200 hidden text-xs" 
+                        id="clear-search-btn"
+                        title="Limpiar"
+                    >
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @else
+        <!-- Espacio vacío cuando no hay búsqueda -->
+        <div class="flex-1"></div>
+        @endif
+
+    <!-- Área de usuario y notificaciones -->
+    <div class="flex items-center space-x-3 pr-4 flex-shrink-0">
+        <!-- Botón de notificaciones -->
+        <button class="text-gray-600 hover:text-[#203363] relative transition-colors duration-200 hidden sm:block">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+        </button>
+
+        <!-- Menú de usuario -->
+        <div class="relative">
+            <button 
+                id="user-menu-button" 
+                class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md 
+                       hover:bg-gray-100 transition-colors duration-200"
+            >
+                <span class="hidden md:inline text-sm font-medium text-gray-700">
+                    Hola, {{ Auth::user()->name ?? 'Usuario' }}
+                </span>
+                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center 
+                            overflow-hidden border border-gray-300">
+                    <img 
+                        src="https://www.gravatar.com/avatar/default?s=200&d=mp" 
+                        alt="User Avatar" 
+                        class="h-full w-full object-cover"
+                    >
+                </div>
+            </button>
+
+            <!-- Menú desplegable -->
+            <div 
+                id="user-menu" 
+                class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 hidden 
+                       border border-gray-200" 
+                style="z-index: 1000;"
+            >
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="w-full">
+                    @csrf
+                    <button 
+                        type="submit" 
+                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 
+                               hover:bg-gray-50 transition-colors flex items-center"
+                    >
+                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar (Visible en tablets y pantallas más grandes) -->
         <div class="bg-[#203363] w-64 min-h-screen hidden sm:block shadow-md sidebar">

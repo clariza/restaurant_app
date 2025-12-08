@@ -1,20 +1,10 @@
 <?php $__env->startSection('content'); ?>
 <?php
     $isAdmin = auth()->user()->type === 'Admin';
-    $showOrderDetails = true; // Asegurar que se muestre el panel
+    $showOrderDetails = true;
 ?>
 
-<!-- Barra de búsqueda -->
-<div class="flex justify-between items-center mb-6 mt-0">
-    <div class="flex items-center w-full">
-        <input id="menu-search" class="border rounded-lg bg-gray-200 py-2 pl-2 pr-4 w-full md:w-64 text-gray-700 focus:outline-none focus:bg-white focus:shadow-md" 
-               placeholder="Buscar menú ..." type="text"
-               oninput="searchMenuItems(this.value)"/>
-        <button onclick="clearSearch()" class="ml-2 text-[#6380a6] hover:text-[#203363] hidden" id="clear-search-btn">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-</div>
+
 
 <!-- Línea de Órdenes - Sección desplegable -->
 <!-- <div class="mb-4">
@@ -138,10 +128,42 @@
         </div>
     </div>
 </div> -->
-<div class="mb-8"></div> 
-<div class="categories-container mb-6">
-    <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Categorías</h2>
+<div class="mb-2"></div> 
 
+<!-- NUEVA SECCIÓN: Barra de acciones rápidas -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+    <!-- Título de Categorías -->
+    <div class="flex-1">
+        <h2 class="section-title text-xl font-bold text-[#203363]">Categorías</h2>
+    </div>
+    
+    <!-- Botones de Acciones Rápidas -->
+    <div class="flex gap-2 w-full md:w-auto">
+        <button onclick="openExpensesModal()" 
+                class="flex-1 md:flex-initial bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                title="Gestión de Gastos">
+            <i class="fas fa-receipt"></i>
+            <span class="hidden sm:inline">Gastos</span>
+        </button>
+        
+        <a href="<?php echo e(route('orders.index')); ?>" 
+           class="flex-1 md:flex-initial bg-[#6380a6] text-white py-2 px-4 rounded-lg hover:bg-[#4a5f85] transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+           title="Historial de Órdenes">
+            <i class="fas fa-history"></i>
+            <span class="hidden sm:inline">Historial</span>
+        </a>
+        
+        <button onclick="openPettyCashModal()" 
+                class="flex-1 md:flex-initial bg-[#EF476F] text-white py-2 px-4 rounded-lg hover:bg-[#d63a5d] transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                title="Gestión de Caja Chica">
+            <i class="fas fa-cash-register"></i>
+            <span class="hidden sm:inline">Caja Chica</span>
+        </button>
+    </div>
+</div>
+<div class="categories-container mb-2">
+    
+     <!-- Dropdown móvil -->
     <div class="block mobile-categories md:hidden">
         <select id="category-dropdown" onchange="filterItems(this.value)" class="w-full p-2 border rounded-lg bg-[#a4b6ce] text-[#203363] focus:outline-none">
             <option value="all">Todos</option>
@@ -168,7 +190,7 @@
     <h2 class="section-title text-xl font-bold mb-4 text-[#203363]">Menú especial para ti</h2>
     <div id="menu-items">
         <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <?php if($category->menuItems->count() > 0): ?>
+        <?php if($category->menuItems->count() > 0): ?>
         <div id="category-<?php echo e($category->id); ?>" class="mb-8" style="display: none;">
             <h3 class="text-lg font-bold text-[#203363] mb-4"><?php echo e($category->name); ?></h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -182,7 +204,7 @@
                          
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
-    <?php if($item->manage_inventory): ?>
+                            <?php if($item->manage_inventory): ?>
         <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
             <?php if($item->stock <= 0): ?> bg-gray-500 text-white
             <?php elseif($item->stock < $item->min_stock): ?> bg-yellow-500 text-white
@@ -194,13 +216,13 @@
 
             <?php endif; ?>
         </span>
-    <?php endif; ?>
-</div>
+                            <?php endif; ?>
+                        </div>
 
                         <!-- Imagen responsiva -->
                         <?php
-    $imageSrc = $item->image 
-        ? (filter_var($item->image, FILTER_VALIDATE_URL) 
+                        $imageSrc = $item->image 
+                    ? (filter_var($item->image, FILTER_VALIDATE_URL) 
             ? $item->image 
             : asset('storage/' . ltrim($item->image, '/'))) 
         : asset('images/placeholder.png');
@@ -265,6 +287,29 @@
     </div>
 </div>
     <style>
+        .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+/* Animación suave para hover */
+button, a {
+    transform: translateY(0);
+    transition: all 0.2s ease;
+}
+
+button:hover, a:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive ajustado */
+@media (max-width: 640px) {
+    .flex.gap-2 button,
+    .flex.gap-2 a {
+        min-width: 80px;
+    }
+}
 button[disabled] {
     opacity: 0.5;
     cursor: not-allowed;

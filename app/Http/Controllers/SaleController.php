@@ -92,7 +92,7 @@ class SaleController extends Controller
             ], 401);
         }
 
-        // Validación mejorada
+        // ✅ VALIDACIÓN CORREGIDA - Agregado 'Transferencia'
         $validator = Validator::make($request->all(), [
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
@@ -101,8 +101,13 @@ class SaleController extends Controller
             'order_type' => 'required|string',
             'table_number' => 'nullable|string',
             'transaction_number' => 'nullable|string',
-            'payment_method' => 'required|string|in:QR,Efectivo,Tarjeta',
+
+            // ✅ FIX: Agregar 'Transferencia' a los métodos válidos
+            'payment_method' => 'required|string|in:QR,Efectivo,Tarjeta,Transferencia',
+
             'order_notes' => 'nullable|string|max:500',
+            'delivery_service' => 'nullable|string|max:255',
+            'pickup_notes' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {

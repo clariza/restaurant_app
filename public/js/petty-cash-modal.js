@@ -53,7 +53,7 @@ window.openInternalModalClosure = async function (id) {
             const totalGastosInput = document.getElementById('total-gastos-closure');
             const ventasQRInput = document.getElementById('ventas-qr-closure');
             const ventasTarjetaInput = document.getElementById('ventas-tarjeta-closure');
-
+            const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
             // Cargar Total Gastos de BD
             if (totalGastosInput) {
                 const totalGastosBD = parseFloat(data.total_expenses || 0);
@@ -62,6 +62,9 @@ window.openInternalModalClosure = async function (id) {
                 console.log('✅ Total gastos de BD:', totalGastosBD.toFixed(2));
             }
 
+            if (ventasEfectivoInput) {
+                ventasEfectivoInput.value = '0.00';
+            }
             // Cargar Ventas QR
             if (ventasQRInput) {
                 ventasQRInput.value = parseFloat(data.total_sales_qr || 0).toFixed(2);
@@ -75,10 +78,10 @@ window.openInternalModalClosure = async function (id) {
             }
 
             // ✅ INICIALIZAR "Ventas en Efectivo" en 0.00
-            const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
+
             if (ventasEfectivoInput) {
                 ventasEfectivoInput.value = '0.00';
-                console.log('✅ Ventas en Efectivo inicializado en 0.00 (se calculará desde denominaciones)');
+
             }
 
             // ✅ LIMPIAR denominaciones para que el usuario las ingrese
@@ -120,6 +123,10 @@ window.openInternalModalClosure = async function (id) {
         const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
         if (ventasEfectivoInput) {
             ventasEfectivoInput.value = '0.00';
+        }
+        const ventasQRInput = document.getElementById('ventas-qr-closure');
+        if (ventasQRInput) {
+            ventasQRInput.value = '0.00';
         }
 
         resetClosureModal();
