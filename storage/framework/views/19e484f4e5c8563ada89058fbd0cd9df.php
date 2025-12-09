@@ -131,36 +131,7 @@
 <div class="mb-2"></div> 
 
 <!-- NUEVA SECCIÓN: Barra de acciones rápidas -->
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-    <!-- Título de Categorías -->
-    <div class="flex-1">
-        <h2 class="section-title text-xl font-bold text-[#203363]">Categorías</h2>
-    </div>
-    
-    <!-- Botones de Acciones Rápidas -->
-    <div class="flex gap-2 w-full md:w-auto">
-        <button onclick="openExpensesModal()" 
-                class="flex-1 md:flex-initial bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                title="Gestión de Gastos">
-            <i class="fas fa-receipt"></i>
-            <span class="hidden sm:inline">Gastos</span>
-        </button>
-        
-        <a href="<?php echo e(route('orders.index')); ?>" 
-           class="flex-1 md:flex-initial bg-[#6380a6] text-white py-2 px-4 rounded-lg hover:bg-[#4a5f85] transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-           title="Historial de Órdenes">
-            <i class="fas fa-history"></i>
-            <span class="hidden sm:inline">Historial</span>
-        </a>
-        
-        <button onclick="openPettyCashModal()" 
-                class="flex-1 md:flex-initial bg-[#EF476F] text-white py-2 px-4 rounded-lg hover:bg-[#d63a5d] transition-colors text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                title="Gestión de Caja Chica">
-            <i class="fas fa-cash-register"></i>
-            <span class="hidden sm:inline">Caja Chica</span>
-        </button>
-    </div>
-</div>
+
 <div class="categories-container mb-2">
     
      <!-- Dropdown móvil -->

@@ -34,6 +34,143 @@
     <link rel="stylesheet" href="/css/app.css">
     
    <style>
+    /* Estilos para botones de acción minimalistas */
+.action-btn-minimal {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+.action-btn-expenses {
+    background: linear-gradient(135deg, #FF9F1C 0%, #FFB84D 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 159, 28, 0.25);
+}
+.action-btn-expenses:hover {
+    background: linear-gradient(135deg, #FFB84D 0%, #FF9F1C 100%);
+    box-shadow: 0 4px 16px rgba(255, 159, 28, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Botón Historial - Azul */
+.action-btn-history {
+    background: linear-gradient(135deg, #118AB2 0%, #06D6A0 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(17, 138, 178, 0.25);
+}
+
+.action-btn-history:hover {
+    background: linear-gradient(135deg, #06D6A0 0%, #118AB2 100%);
+    box-shadow: 0 4px 16px rgba(17, 138, 178, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Botón Caja Chica - Rosa/Rojo */
+.action-btn-cash {
+    background: linear-gradient(135deg, #EF476F 0%, #FF6B9D 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 71, 111, 0.25);
+}
+
+.action-btn-cash:hover {
+    background: linear-gradient(135deg, #FF6B9D 0%, #EF476F 100%);
+    box-shadow: 0 4px 16px rgba(239, 71, 111, 0.4);
+    transform: translateY(-2px);
+}
+@keyframes subtlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.action-btn-minimal::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+.action-btn-minimal:hover::before {
+    width: 120%;
+    height: 120%;
+}
+.action-btn-minimal:active {
+    transform: scale(0.95) translateY(-2px);
+}
+
+/* Animación de entrada para los botones */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.action-btn-minimal {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+.action-btn-minimal:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.action-btn-minimal:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.action-btn-minimal:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.action-btn-minimal::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: rgba(32, 51, 99, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(8px);
+}
+.action-btn-expenses::after {
+    background: rgba(255, 159, 28, 0.95);
+}
+
+.action-btn-history::after {
+    background: rgba(17, 138, 178, 0.95);
+}
+
+.action-btn-cash::after {
+    background: rgba(239, 71, 111, 0.95);
+}
+.action-btn-minimal:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+    bottom: -38px;
+}
+
+/* Responsive: Menú móvil para botones */
+@media (max-width: 768px) {
+    .action-btn-minimal {
+        display: none;
+    }
+}
 /* Animación minimalista para el input de búsqueda */
 #menu-search:focus {
     animation: searchFocusMinimal 0.2s ease-out;
@@ -151,13 +288,44 @@
 .search-container-animated {
     animation: slideInSearch 0.3s ease-out;
 }
+/* Tooltip mejorado */
+.action-btn-minimal::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: #203363;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn-minimal:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Responsive: Menú móvil para botones */
+@media (max-width: 768px) {
+    .action-btn-minimal {
+        display: none;
+    }
+}
 </style>
 </head>
 
 <body class="bg-[#fafafa]">
 
     <!-- En la sección del header dentro de app.blade.php -->
-<header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
+    <header class="flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
     <!-- Logo y nombre de la aplicación -->
     <div class="flex items-center justify-between w-64 bg-[#203363] h-16 relative flex-shrink-0">
         <!-- Botón del menú móvil -->
@@ -173,45 +341,80 @@
     </div>
 
     <!-- Barra de búsqueda minimalista alineada a la izquierda -->
-       <!-- ✅ BÚSQUEDA CONDICIONAL - Solo visible cuando hay panel de pedidos -->
-        <?php if(isset($showOrderDetails) && $showOrderDetails): ?>
-        <div class="flex-1 flex items-center px-4 search-container-animated">
-            <div class="relative w-full max-w-xs">
-                <!-- Input de búsqueda minimalista con bordes redondeados -->
-                <div class="relative pl-5">
-                    <input 
-                        id="menu-search" 
-                        class="w-full border border-gray-200 rounded-full bg-gray-50/50 py-1.5 pl-8 pr-8 text-gray-700 
-                               text-sm placeholder-gray-400
-                               focus:outline-none focus:border-[#203363] focus:bg-white
-                               transition-all duration-200 hover:border-gray-300" 
-                        placeholder="Buscar productos..." 
-                        type="text"
-                        oninput="searchMenuItems(this.value)"
-                    />
-                    
-                    <!-- Ícono de búsqueda minimalista -->
-                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pl-4">
-                        <i class="fas fa-search"></i>
-                    </div>
-
-                    <!-- Botón para limpiar búsqueda -->
-                    <button 
-                        onclick="clearSearch()" 
-                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#203363] 
-                               transition-colors duration-200 hidden text-xs" 
-                        id="clear-search-btn"
-                        title="Limpiar"
-                    >
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+    <?php if(isset($showOrderDetails) && $showOrderDetails): ?>
+    <div class="flex-1 flex items-center justify-between px-4 search-container-animated">
+        <!-- Contenedor de búsqueda -->
+        <div class="relative w-full max-w-xs">
+            <div class="relative pl-5">
+                <input 
+                    id="menu-search" 
+                    class="w-full border border-gray-200 rounded-full bg-gray-50/50 py-1.5 pl-8 pr-8 text-gray-700 
+                           text-sm placeholder-gray-400
+                           focus:outline-none focus:border-[#203363] focus:bg-white
+                           transition-all duration-200 hover:border-gray-300" 
+                    placeholder="Buscar productos..." 
+                    type="text"
+                    oninput="searchMenuItems(this.value)"
+                />
+                
+                <!-- Ícono de búsqueda minimalista -->
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pl-4">
+                    <i class="fas fa-search"></i>
                 </div>
+
+                <!-- Botón para limpiar búsqueda -->
+                <button 
+                    onclick="clearSearch()" 
+                    class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#203363] 
+                           transition-colors duration-200 hidden text-xs" 
+                    id="clear-search-btn"
+                    title="Limpiar"
+                >
+                    <i class="fas fa-times-circle"></i>
+                </button>
             </div>
         </div>
-        <?php else: ?>
-        <!-- Espacio vacío cuando no hay búsqueda -->
-        <div class="flex-1"></div>
-        <?php endif; ?>
+
+        <!-- Botones de Acciones Rápidas - Minimalistas con Color -->
+        <div class="hidden md:flex items-center gap-2 ml-4 mr-20 pr-5">
+            <!-- Botón Gastos - Naranja -->
+            <button 
+                onclick="openExpensesModal()" 
+                class="action-btn-minimal action-btn-expenses
+                       w-10 h-10 rounded-full flex items-center justify-center 
+                       transition-all duration-200 hover:shadow-lg group"
+                title="Gestión de Gastos"
+            >
+                <i class="fas fa-receipt text-base transition-transform duration-200 group-hover:scale-110"></i>
+            </button>
+            
+            <!-- Botón Historial - Azul -->
+            <a 
+                href="<?php echo e(route('orders.index')); ?>" 
+                class="action-btn-minimal action-btn-history
+                       w-10 h-10 rounded-full flex items-center justify-center 
+                       transition-all duration-200 hover:shadow-lg group"
+                title="Historial de Órdenes"
+            >
+                <i class="fas fa-history text-base transition-transform duration-200 group-hover:scale-110"></i>
+            </a>
+            
+            <!-- Botón Caja Chica - Rosa/Rojo -->
+            <button 
+                onclick="openPettyCashModal()" 
+                class="action-btn-minimal action-btn-cash
+                       w-10 h-10 rounded-full flex items-center justify-center 
+                       transition-all duration-200 hover:shadow-lg group"
+                title="Gestión de Caja Chica"
+            >
+                <i class="fas fa-cash-register text-base transition-transform duration-200 group-hover:scale-110"></i>
+            </button>
+        </div>
+    </div>
+    <?php else: ?>
+    <!-- Espacio vacío cuando no hay búsqueda -->
+    <div class="flex-1"></div>
+    <?php endif; ?>
 
     <!-- Área de usuario y notificaciones -->
     <div class="flex items-center space-x-3 pr-4 flex-shrink-0">
@@ -263,6 +466,7 @@
         </div>
     </div>
 </header>
+
 
 
     <div class="flex flex-col md:flex-row">
