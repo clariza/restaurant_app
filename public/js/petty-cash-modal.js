@@ -5,10 +5,20 @@ console.log('📦 petty-cash-modal.js cargado');
 // =============================================
 
 /**
- * Abrir el modal interno de cierre
+ * Abrir el modal interno de cierre - VERSIÓN CORREGIDA
+ */
+/**
+ * Abrir el modal interno de cierre - VERSIÓN CORREGIDA
  */
 window.openInternalModalClosure = async function (id) {
     console.log('🔓 Abriendo modal de cierre interno para caja:', id);
+
+    // ✅ VALIDAR QUE EL ID SEA VÁLIDO ANTES DE CONTINUAR
+    if (!id) {
+        console.error('❌ ID de caja chica no proporcionado');
+        alert('Error: No se pudo identificar la caja chica');
+        return;
+    }
 
     const modal = document.getElementById('modal-closure-internal');
     const overlay = document.getElementById('closure-internal-overlay');
@@ -18,10 +28,34 @@ window.openInternalModalClosure = async function (id) {
         return;
     }
 
-    // Mostrar el modal inmediatamente
+    // ✅ BUSCAR EL INPUT O CREARLO SI NO EXISTE
+    let pettyCashIdInput = document.getElementById('petty_cash_id_closure');
+    if (!pettyCashIdInput) {
+        console.warn('⚠️ Input petty_cash_id_closure no encontrado, creándolo...');
+        pettyCashIdInput = document.createElement('input');
+        pettyCashIdInput.type = 'hidden';
+        pettyCashIdInput.id = 'petty_cash_id_closure';
+        pettyCashIdInput.name = 'petty_cash_id_closure';
+        // Agregar al inicio del modal
+        const contentDiv = modal.querySelector('.closure-internal-content') || modal;
+        contentDiv.insertBefore(pettyCashIdInput, contentDiv.firstChild);
+        console.log('✅ Input petty_cash_id_closure creado dinámicamente');
+    }
+
+    // Asegurar que el valor sea un número válido
+    pettyCashIdInput.value = String(id).trim();
+
+    // Verificación adicional
+    console.log('✅ ID de caja chica establecido:', {
+        id: pettyCashIdInput.id,
+        valor: pettyCashIdInput.value,
+        tipo: typeof pettyCashIdInput.value,
+        existe: !!pettyCashIdInput.value
+    });
+
+    // Mostrar el modal
     overlay.classList.add('active');
     modal.classList.add('active');
-    document.getElementById('petty_cash_id_closure').value = id;
 
     console.log('✅ Modal de cierre activado, cargando datos...');
 
@@ -46,64 +80,14 @@ window.openInternalModalClosure = async function (id) {
         if (data.success) {
             console.log('📊 Datos recibidos del servidor:', data);
 
-            // Establecer el ID de la caja chica
-            document.getElementById('petty_cash_id_closure').value = data.petty_cash_id;
-
-            // ✅ CARGAR TOTALES (excepto ventas en efectivo)
-            const totalGastosInput = document.getElementById('total-gastos-closure');
-            const ventasQRInput = document.getElementById('ventas-qr-closure');
-            const ventasTarjetaInput = document.getElementById('ventas-tarjeta-closure');
-            const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
-            // Cargar Total Gastos de BD
-            if (totalGastosInput) {
-                const totalGastosBD = parseFloat(data.total_expenses || 0);
-                totalGastosInput.value = totalGastosBD.toFixed(2);
-                totalGastosInput.setAttribute('data-gastos-bd', totalGastosBD.toFixed(2));
-                console.log('✅ Total gastos de BD:', totalGastosBD.toFixed(2));
+            // ✅ VERIFICAR Y ESTABLECER EL ID NUEVAMENTE
+            if (data.petty_cash_id) {
+                pettyCashIdInput.value = data.petty_cash_id;
+                console.log('✅ ID confirmado desde servidor:', data.petty_cash_id);
             }
 
-            if (ventasEfectivoInput) {
-                ventasEfectivoInput.value = '0.00';
-            }
-            // Cargar Ventas QR
-            if (ventasQRInput) {
-                ventasQRInput.value = parseFloat(data.total_sales_qr || 0).toFixed(2);
-                console.log('✅ Ventas QR cargadas:', ventasQRInput.value);
-            }
-
-            // Cargar Ventas Tarjeta
-            if (ventasTarjetaInput) {
-                ventasTarjetaInput.value = parseFloat(data.total_sales_card || 0).toFixed(2);
-                console.log('✅ Ventas tarjeta cargadas:', ventasTarjetaInput.value);
-            }
-
-            // ✅ INICIALIZAR "Ventas en Efectivo" en 0.00
-
-            if (ventasEfectivoInput) {
-                ventasEfectivoInput.value = '0.00';
-
-            }
-
-            // ✅ LIMPIAR denominaciones para que el usuario las ingrese
-            document.querySelectorAll('.contar-input-closure').forEach(input => {
-                input.value = '';
-            });
-            document.querySelectorAll('.subtotal-closure').forEach(span => {
-                span.textContent = '$0.00';
-            });
-            const totalElement = document.getElementById('total-closure');
-            if (totalElement) {
-                totalElement.textContent = '$0.00';
-            }
-            console.log('✅ Tabla de denominaciones limpia para ingreso manual');
-
-            // ✅ LIMPIAR el contenedor de gastos y agregar UNA fila vacía
-            const container = document.getElementById('expensesContainerClosure');
-            if (container) {
-                container.innerHTML = '';
-                addExpenseRowClosure(null); // Una fila vacía inicial
-                console.log('✅ Contenedor de nuevos gastos inicializado');
-            }
+            // Cargar datos en los campos
+            loadClosureData(data);
 
             console.log('✅ Datos del modal de cierre cargados exitosamente');
         } else {
@@ -113,26 +97,95 @@ window.openInternalModalClosure = async function (id) {
         console.error('❌ Error al cargar datos del modal:', error);
         alert('Error al cargar los datos del cierre. Por favor, intenta nuevamente.');
 
-        // En caso de error, inicializar con valores por defecto
-        const totalGastosInput = document.getElementById('total-gastos-closure');
-        if (totalGastosInput) {
-            totalGastosInput.value = '0.00';
-            totalGastosInput.setAttribute('data-gastos-bd', '0.00');
-        }
-
-        const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
-        if (ventasEfectivoInput) {
-            ventasEfectivoInput.value = '0.00';
-        }
-        const ventasQRInput = document.getElementById('ventas-qr-closure');
-        if (ventasQRInput) {
-            ventasQRInput.value = '0.00';
-        }
-
-        resetClosureModal();
+        // Inicializar con valores por defecto pero mantener el ID
+        initializeDefaultValues();
     }
 };
+/**
+ * Inicializar valores por defecto
+ */
+function initializeDefaultValues() {
+    const totalGastosInput = document.getElementById('total-gastos-closure');
+    if (totalGastosInput) {
+        totalGastosInput.value = '0.00';
+        totalGastosInput.setAttribute('data-gastos-bd', '0.00');
+    }
 
+    const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
+    if (ventasEfectivoInput) {
+        ventasEfectivoInput.value = '0.00';
+    }
+
+    const ventasQRInput = document.getElementById('ventas-qr-closure');
+    if (ventasQRInput) {
+        ventasQRInput.value = '0.00';
+    }
+
+    const ventasTarjetaInput = document.getElementById('ventas-tarjeta-closure');
+    if (ventasTarjetaInput) {
+        ventasTarjetaInput.value = '0.00';
+    }
+
+    resetClosureModal();
+}
+
+
+/**
+ * Función auxiliar para cargar datos en el modal
+ */
+function loadClosureData(data) {
+    // Total Gastos de BD
+    const totalGastosInput = document.getElementById('total-gastos-closure');
+    if (totalGastosInput) {
+        const totalGastosBD = parseFloat(data.total_expenses || 0);
+        totalGastosInput.value = totalGastosBD.toFixed(2);
+        totalGastosInput.setAttribute('data-gastos-bd', totalGastosBD.toFixed(2));
+        console.log('✅ Total gastos de BD:', totalGastosBD.toFixed(2));
+    }
+
+    // Ventas en Efectivo
+    const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
+    if (ventasEfectivoInput) {
+        ventasEfectivoInput.value = '0.00';
+    }
+
+    // Ventas QR
+    const ventasQRInput = document.getElementById('ventas-qr-closure');
+    if (ventasQRInput) {
+        ventasQRInput.value = parseFloat(data.total_sales_qr || 0).toFixed(2);
+        console.log('✅ Ventas QR cargadas:', ventasQRInput.value);
+    }
+
+    // Ventas Tarjeta
+    const ventasTarjetaInput = document.getElementById('ventas-tarjeta-closure');
+    if (ventasTarjetaInput) {
+        ventasTarjetaInput.value = parseFloat(data.total_sales_card || 0).toFixed(2);
+        console.log('✅ Ventas tarjeta cargadas:', ventasTarjetaInput.value);
+    }
+
+    // Limpiar denominaciones
+    document.querySelectorAll('.contar-input-closure').forEach(input => {
+        input.value = '';
+    });
+    document.querySelectorAll('.subtotal-closure').forEach(span => {
+        span.textContent = '$0.00';
+    });
+    const totalElement = document.getElementById('total-closure');
+    if (totalElement) {
+        totalElement.textContent = '$0.00';
+    }
+
+    // Limpiar gastos
+    const container = document.getElementById('expensesContainerClosure');
+    if (container) {
+        container.innerHTML = '';
+        addExpenseRowClosure(null);
+        console.log('✅ Contenedor de nuevos gastos inicializado');
+    }
+}
+/**
+ * Agregar una fila de gasto (SOLO para nuevos gastos)
+ */
 /**
  * Agregar una fila de gasto (SOLO para nuevos gastos)
  */
@@ -175,15 +228,14 @@ function addExpenseRowClosure(expense = null) {
     // ✅ AGREGAR EVENT LISTENERS al input de monto recién creado
     const amountInput = row.querySelector('input[name="expense_amount[]"]');
     if (amountInput) {
-        // Usar múltiples eventos para asegurar que funcione en todos los casos
         amountInput.addEventListener('input', handleExpenseInputChange);
         amountInput.addEventListener('change', handleExpenseInputChange);
         amountInput.addEventListener('keyup', handleExpenseInputChange);
-        amountInput.addEventListener('blur', handleExpenseInputChange); // Cuando pierde el foco
-
+        amountInput.addEventListener('blur', handleExpenseInputChange);
         console.log('✅ Event listeners agregados al input de gasto');
     }
 }
+
 
 /**
  * Manejador unificado para cambios en inputs de gastos
@@ -232,7 +284,6 @@ window.resetClosureModal = function () {
 
     if (totalElement) totalElement.textContent = '$0.00';
 
-    // ✅ LIMPIAR "Ventas en Efectivo"
     if (ventasEfectivo) {
         ventasEfectivo.value = '0.00';
         console.log('✅ Ventas en Efectivo reseteado a 0.00');
@@ -255,7 +306,6 @@ window.resetClosureModal = function () {
 
     console.log('✅ Modal reseteado completamente');
 };
-
 /**
  * Agregar gasto en el modal de cierre interno
  */
@@ -263,7 +313,6 @@ window.addExpenseModalClosure = function () {
     console.log('➕ Agregando nuevo gasto...');
     addExpenseRowClosure(null);
 };
-
 /**
  * Eliminar gasto del modal de cierre interno
  */
@@ -276,7 +325,6 @@ window.removeExpenseClosure = function (button) {
         return;
     }
 
-    // Verificar que al menos quede una fila
     if (container.children.length > 1) {
         console.log('🗑️ Eliminando gasto...');
         expenseRow.remove();
@@ -286,7 +334,6 @@ window.removeExpenseClosure = function (button) {
         inputs.forEach(input => input.value = '');
     }
 
-    // Recalcular después de eliminar o limpiar
     calculateTotalExpensesClosure();
 };
 
@@ -298,13 +345,11 @@ window.calcularTotalClosure = function () {
 
     let total = 0;
 
-    // Recorrer cada input de denominación
     document.querySelectorAll('.contar-input-closure').forEach(input => {
         const denominacion = parseFloat(input.getAttribute('data-denominacion'));
         const cantidad = parseFloat(input.value) || 0;
         const subtotal = denominacion * cantidad;
 
-        // Actualizar subtotal en la tabla
         const subtotalElement = input.closest('tr').querySelector('.subtotal-closure');
         if (subtotalElement) {
             subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
@@ -315,13 +360,11 @@ window.calcularTotalClosure = function () {
         console.log(`  Denominación ${denominacion}: ${cantidad} x ${denominacion} = ${subtotal.toFixed(2)}`);
     });
 
-    // Actualizar el total en la tabla
     const totalElement = document.getElementById('total-closure');
     if (totalElement) {
         totalElement.textContent = `$${total.toFixed(2)}`;
     }
 
-    // ✅ ACTUALIZAR AUTOMÁTICAMENTE "Ventas en Efectivo"
     const ventasEfectivoInput = document.getElementById('ventas-efectivo-closure');
     if (ventasEfectivoInput) {
         ventasEfectivoInput.value = total.toFixed(2);
@@ -388,81 +431,140 @@ window.calculateTotalExpensesClosure = function () {
 };
 
 /**
- * Guardar cierre desde el modal interno
+ * Guardar cierre desde el modal interno - VERSIÓN CORREGIDA
  */
-window.saveClosureClosure = async function () {
-    const pettyCashId = document.getElementById('petty_cash_id_closure').value;
-    const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo-closure').value) || 0;
-    const totalSalesQR = parseFloat(document.getElementById('ventas-qr-closure').value) || 0;
-    const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta-closure').value) || 0;
-    const totalExpenses = calculateTotalExpensesClosure();
+window.saveClosureClosure = async function (petty_cash_id = null) {
+    console.log('💾 Iniciando guardado de cierre...');
 
-    if (!pettyCashId) {
-        alert('Error: No se ha seleccionado una caja chica');
+    // ✅ OBTENER Y VALIDAR EL ID - CON CREACIÓN AUTOMÁTICA SI NO EXISTE
+    let pettyCashIdInput = document.getElementById('petty_cash_id_closure');
+
+    if (!pettyCashIdInput) {
+        console.error('❌ Input petty_cash_id_closure no encontrado en el DOM');
+        alert('Error: Por favor, cierra y vuelve a abrir el modal de cierre.');
         return;
     }
 
-    // Validar que al menos haya un valor ingresado
+    const pettyCashId = petty_cash_id;
+
+    console.log('🔍 Valor del input:', {
+        existe: !!pettyCashIdInput,
+        valor: pettyCashId,
+        tipo: typeof pettyCashId,
+        longitud: pettyCashId ? pettyCashId.length : 0
+    });
+
+    if (!pettyCashId || pettyCashId === '' || pettyCashId === '0' || pettyCashId === 'null' || pettyCashId === 'undefined') {
+        console.error('❌ ID de caja chica inválido:', pettyCashId);
+        alert('Error: No se ha seleccionado una caja chica válida. Por favor, cierra y vuelve a abrir el modal.');
+        return;
+    }
+
+    console.log('✅ ID de caja chica validado:', pettyCashId);
+
+    // Obtener valores
+    const totalSalesCash = parseFloat(document.getElementById('ventas-efectivo-closure')?.value) || 0;
+    const totalSalesQR = parseFloat(document.getElementById('ventas-qr-closure')?.value) || 0;
+    const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta-closure')?.value) || 0;
+    const totalExpenses = calculateTotalExpensesClosure();
+
+    console.log('📊 Valores a enviar:', {
+        pettyCashId,
+        totalSalesCash,
+        totalSalesQR,
+        totalSalesCard,
+        totalExpenses
+    });
+
+    // Validar que haya al menos un valor
     if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && totalExpenses === 0) {
         if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
             return;
         }
     }
 
-    // Recopilar SOLO los nuevos gastos (no vacíos)
+    // Recopilar gastos
     const expenses = [];
     document.querySelectorAll('#expensesContainerClosure .expense-row').forEach((row) => {
-        const name = row.querySelector('input[name="expense_name[]"]').value.trim();
-        const description = row.querySelector('input[name="expense_description[]"]').value.trim();
-        const amount = row.querySelector('input[name="expense_amount[]"]').value;
+        const name = row.querySelector('input[name="expense_name[]"]')?.value.trim();
+        const description = row.querySelector('input[name="expense_description[]"]')?.value.trim();
+        const amount = row.querySelector('input[name="expense_amount[]"]')?.value;
 
-        // Solo agregar si tiene nombre Y monto
         if (name && amount && parseFloat(amount) > 0) {
             expenses.push({
                 name: name,
-                description: description,
+                description: description || '',
                 amount: parseFloat(amount)
             });
         }
     });
 
-    console.log('💾 Guardando cierre con nuevos gastos:', expenses);
+    console.log('📝 Gastos a enviar:', expenses);
+
+    // Preparar datos
+    const dataToSend = {
+        petty_cash_id: parseInt(pettyCashId), // ✅ Asegurar que sea número
+        total_sales_cash: totalSalesCash,
+        total_sales_qr: totalSalesQR,
+        total_sales_card: totalSalesCard,
+        total_expenses: totalExpenses,
+        expenses: expenses
+    };
+
+    console.log('📤 Datos completos a enviar:', dataToSend);
 
     try {
+        // Deshabilitar botón de guardar
+        const saveBtn = document.querySelector('.btn-primary');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        }
+
         const response = await fetch('/petty-cash/save-closure', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': window.csrfToken,
+                'X-CSRF-TOKEN': window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                petty_cash_id: pettyCashId,
-                total_sales_cash: totalSalesCash,
-                total_sales_qr: totalSalesQR,
-                total_sales_card: totalSalesCard,
-                total_expenses: totalExpenses,
-                expenses: expenses
-            })
+            body: JSON.stringify(dataToSend)
         });
 
+        console.log('📡 Respuesta del servidor:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error del servidor:', errorText);
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+
         const data = await response.json();
+        console.log('✅ Respuesta procesada:', data);
 
         if (data.success) {
             alert('Cierre guardado correctamente');
             closeInternalModalClosure();
-            // Recargar el contenido del modal principal
+
+            // Recargar contenido
             if (typeof openPettyCashModal === 'function') {
-                openPettyCashModal();
+                await openPettyCashModal();
             } else {
                 window.location.reload();
             }
         } else {
-            alert('Error: ' + (data.message || 'No se pudo guardar el cierre'));
+            throw new Error(data.message || 'No se pudo guardar el cierre');
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al enviar el formulario');
+        console.error('❌ Error al guardar cierre:', error);
+        alert('Error al guardar el cierre: ' + error.message);
+
+        // Rehabilitar botón
+        const saveBtn = document.querySelector('.btn-primary');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Cierre';
+        }
     }
 };
 
@@ -471,6 +573,7 @@ window.saveClosureClosure = async function () {
 // =============================================
 
 async function openPettyCashModal() {
+
     console.log('🔓 Abriendo modal de caja chica...');
 
     const modal = document.getElementById('petty-cash-modal');
@@ -823,74 +926,23 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('🚀 Inicializando event listeners del modal de cierre...');
 
-    const overlay = document.getElementById('closure-internal-overlay');
-    if (overlay) {
-        overlay.addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeInternalModalClosure();
-            }
-        });
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('🔍 Verificando elementos del modal de cierre...');
+
+    const pettyCashIdInput = document.getElementById('petty_cash_id_closure');
+    if (pettyCashIdInput) {
+        console.log('✅ Input petty_cash_id_closure encontrado');
+    } else {
+        console.warn('⚠️ Input petty_cash_id_closure NO encontrado al cargar');
     }
 
-    // Event listeners para denominaciones
-    document.querySelectorAll('.contar-input-closure').forEach(input => {
-        input.addEventListener('input', calcularTotalClosure);
-    });
-
-    // ✅ EVENT DELEGATION GLOBAL: Escuchar cambios en TODO el documento
-    // Esto captura eventos de inputs dinámicos que se agregan después
-    document.addEventListener('input', function (e) {
-        // Detectar inputs de denominaciones
-        if (e.target && e.target.matches('.contar-input-closure')) {
-            console.log('💵 Denominación modificada');
-            calcularTotalClosure(); // ✅ Esto actualizará automáticamente "Ventas en Efectivo"
-        }
-
-        // Detectar inputs de montos de gastos
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
-            console.log('📝 Monto de gasto modificado');
-            calculateTotalExpensesClosure();
-        }
-
-        // Detectar inputs de nombres de gastos
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
-            console.log('📝 Nombre de gasto modificado');
-            calculateTotalExpensesClosure();
-        }
-    });
-
-    // Escuchar el evento 'change' como respaldo
-    document.addEventListener('change', function (e) {
-        if (e.target && e.target.matches('.contar-input-closure')) {
-            calcularTotalClosure();
-        }
-
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
-            calculateTotalExpensesClosure();
-        }
-
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
-            calculateTotalExpensesClosure();
-        }
-    });
-
-    // Escuchar el evento 'blur' (cuando el input pierde el foco)
-    document.addEventListener('blur', function (e) {
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_amount[]"]')) {
-            console.log('📝 [Delegation - Blur] Monto finalizado:', e.target.value);
-            calculateTotalExpensesClosure();
-        }
-
-        if (e.target && e.target.matches('#expensesContainerClosure input[name="expense_name[]"]')) {
-            console.log('📝 [Delegation - Blur] Nombre finalizado:', e.target.value);
-            calculateTotalExpensesClosure();
-        }
-    }, true); // true = captura en fase de captura
-
-    console.log('✅ Event listeners inicializados (incluyendo event delegation triple)');
+    const modal = document.getElementById('modal-closure-internal');
+    if (modal) {
+        console.log('✅ Modal de cierre encontrado');
+    } else {
+        console.warn('⚠️ Modal de cierre NO encontrado al cargar');
+    }
 });
 
 // =============================================

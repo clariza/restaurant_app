@@ -6,7 +6,7 @@ use App\Models\Table;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Category;
-use App\Models\Proforma; 
+use App\Models\Proforma;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
 use App\Models\Delivery;
@@ -32,8 +32,8 @@ class MenuController extends Controller
 
         // Combinar ambas colecciones y ordenar por fecha más reciente
         $allOrders = $orders->merge($proformas)
-                          ->sortByDesc('created_at')
-                          ->take(4);
+            ->sortByDesc('created_at')
+            ->take(4);
 
         // Contar órdenes por tipo
         $counts = [
@@ -47,10 +47,14 @@ class MenuController extends Controller
         // Obtener todas las categorías con sus elementos del menú
         $categories = Category::with('menuItems')->get();
         $tables = Table::all();
-        
+
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         $deliveryServices = DeliveryService::where('is_active', true)->get();
         $settings = Setting::firstOrCreate([]);
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->first();
         //$setting->tables_enabled = $validated['tables_enabled'];
         return view('menu.index', [
             'orders' => $allOrders,
@@ -60,10 +64,11 @@ class MenuController extends Controller
             'hasOpenPettyCash' => $hasOpenPettyCash,
             'showOrderDetails' => true,
             'deliveryServices' => $deliveryServices,
-            'settings' => $settings
+            'settings' => $settings,
+            'openPettyCash' => $openPettyCash
         ]);
     }
-     public function available()
+    public function available()
     {
         try {
             $tables = Table::all();
@@ -78,5 +83,4 @@ class MenuController extends Controller
             ], 500);
         }
     }
-
 }

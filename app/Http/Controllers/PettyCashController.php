@@ -16,18 +16,35 @@ use Illuminate\Support\Facades\Validator;
 class PettyCashController extends Controller
 {
     // ✅ NUEVO: Método para cargar el contenido del modal
+    // ✅ MODIFICADO: Método para cargar el contenido del modal con ID específico
     public function modalContent(Request $request)
     {
-        // Obtener la última caja chica abierta
-        $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
+        // 🔥 Recibir el ID de la caja abierta desde el query parameter
+        $openPettyCashId = $request->query('open_petty_cash_id');
+
+
+
+        // 🔥 Obtener la caja chica específica si se proporciona un ID
+        if ($openPettyCashId && $openPettyCashId !== 'null') {
+            $openPettyCash = PettyCash::where('id', $openPettyCashId)
+                ->where('status', 'open')
+                ->first();
+        } else {
+            // Si no se proporciona ID, obtener la última caja chica abierta
+            $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
+        }
 
         // Calcular el total de gastos asociados a la caja chica abierta
         $totalExpenses = $openPettyCash ? $openPettyCash->expenses()->sum('amount') : 0;
 
+        // Obtener los gastos detallados de la caja abierta
+        $existingExpenses = $openPettyCash ? $openPettyCash->expenses()->get() : collect();
+
         // Obtener el total de ventas por tipo de pago asociados a la caja chica abierta
         $totalSalesQR = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'QR')->sum('total') : 0;
         $totalSalesCard = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Tarjeta')->sum('total') : 0;
-        $totalSalesCash = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Efectivo')->sum('total') : 0;
+        // $totalSalesCash = $openPettyCash ? $openPettyCash->sales()->where('payment_method', 'Efectivo')->sum('total') : 0;
+        $totalSalesCash = 0;
 
         // Obtener el valor de total_sales_cash de la última caja abierta
         $totalSalesCashFromDB = $openPettyCash ? $openPettyCash->total_sales_cash : 0;
@@ -74,9 +91,12 @@ class PettyCashController extends Controller
 
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
 
+
+
         // Retornar solo la vista parcial para el modal
         return view('petty_cash.modal-content', compact(
             'pettyCashes',
+            'openPettyCash',
             'totalExpenses',
             'totalSalesQR',
             'totalSalesCard',
@@ -84,7 +104,8 @@ class PettyCashController extends Controller
             'totalSalesCashFromDB',
             'totalSales',
             'hasOpenPettyCash',
-            'users'
+            'users',
+            'existingExpenses'
         ));
     }
     public function getClosureData()
