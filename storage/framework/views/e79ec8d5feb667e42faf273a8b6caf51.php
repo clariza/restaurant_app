@@ -384,6 +384,19 @@
         gap: 0.75rem;
     }
 
+    /* Alerta de advertencia */
+    .alert-warning {
+        background-color: #fef3c7;
+        border: 1px solid #fbbf24;
+        color: #92400e;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
     /* Media queries para responsive */
     @media (max-width: 768px) {
         #modal-closure-internal {
@@ -463,125 +476,126 @@
     }
 </style>
 
-<!-- ✅ INPUT OCULTO AL INICIO DEL CONTENIDO -->
-<input type="hidden" id="petty_cash_id_closure" name="petty_cash_id_closure">
 
-<!-- SOLO el contenido interno, sin wrappers adicionales -->
-<div class="closure-internal-content">
-    <!-- Contenido desplazable -->
-    <div class="closure-scroll-content">
-        <div class="modal-content">
-            <!-- Sección de Gastos -->
-            <div class="expenses-section">
-                <div class="expenses-header">
-                    <h4 class="font-medium" style="margin: 0; font-size: 1.125rem; color: #374151;">Registro de Gastos</h4>
-                    <button type="button" class="add-expense-btn" onclick="addExpenseModalClosure()">
-                        <i class="fas fa-plus"></i> Agregar Gasto
-                    </button>
-                </div>
+<?php if($openPettyCash): ?>
+    <!-- ✅ INPUT OCULTO AL INICIO DEL CONTENIDO -->
+    <input type="hidden" id="petty_cash_id_closure" name="petty_cash_id_closure" value="<?php echo e($openPettyCash->id); ?>">
 
-                <div class="expenses-container" id="expensesContainerClosure">
-                    <!-- Fila de gasto inicial -->
-                    <div class="expense-row">
-                        <div class="expense-field">
-                            <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]">
-                        </div>
-                        <div class="expense-actions">
-                            <button type="button" class="btn btn-danger" onclick="removeExpenseClosure(this)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+    <!-- SOLO el contenido interno, sin wrappers adicionales -->
+    <div class="closure-internal-content">
+        <!-- Contenido desplazable -->
+        <div class="closure-scroll-content">
+            <div class="modal-content">
+                <!-- Sección de Gastos -->
+                <div class="expenses-section">
+                    <div class="expenses-header">
+                        <h4 class="font-medium" style="margin: 0; font-size: 1.125rem; color: #374151;">Registro de Gastos</h4>
+                        <button type="button" class="add-expense-btn" onclick="addExpenseModalClosure()">
+                            <i class="fas fa-plus"></i> Agregar Gasto
+                        </button>
                     </div>
-                </div>
-            </div>
 
-            <!-- Sección de Cierre en grid -->
-            <div class="closure-grid">
-                <!-- Tabla de denominaciones -->
-                <div class="denominations-section">
-                    <div class="section-container">
-                        <h4 class="section-title">Conteo de Efectivo</h4>
-                        <div class="table-container">
-                            <table class="denominations-table">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left">Denominación</th>
-                                        <th>Cantidad</th>
-                                        <th class="text-right">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php $__currentLoopData = [0.5, 1, 2, 5, 10, 20, 50, 100, 200]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $denominacion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr>
-                                        <td class="text-left">$<?php echo e(number_format($denominacion, 2)); ?></td>
-                                        <td>
-                                            <input type="number" min="0" class="denomination-input contar-input-closure"
-                                                data-denominacion="<?php echo e($denominacion); ?>" placeholder="0">
-                                        </td>
-                                        <td class="text-right">
-                                            <span class="subtotal-closure">$0.00</span>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    <tr class="total-row">
-                                        <td colspan="2" class="text-right"><strong>Total Efectivo:</strong></td>
-                                        <td class="text-right">
-                                            <strong><span id="total-closure">$0.00</span></strong>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="expenses-container" id="expensesContainerClosure">
+                        <!-- Fila de gasto inicial -->
+                        <div class="expense-row">
+                            <div class="expense-field">
+                                <input type="text" class="expense-input" placeholder="Nombre del gasto" name="expense_name[]">
+                            </div>
+                            <div class="expense-field">
+                                <input type="text" class="expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
+                            </div>
+                            <div class="expense-field">
+                                <input type="number" class="expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]">
+                            </div>
+                            <div class="expense-actions">
+                                <button type="button" class="btn btn-danger" onclick="removeExpenseClosure(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Formulario de cierre -->
-                <div class="closure-form-section">
-                    <div class="section-container">
-                        <h4 class="section-title">Resumen de Cierre</h4>
-                        <div class="form-grid">
-                            <!-- ❌ ELIMINAR ESTE INPUT DE AQUÍ -->
-                            <!-- <input type="hidden" id="petty_cash_id_closure"> -->
-                            
-                            <div class="input-group">
-                                <label for="total-gastos-closure">Total Gastos</label>
-                                <input type="number" id="total-gastos-closure" class="form-control"
-                                    value="<?php echo e($totalExpenses ?? 0); ?>" 
-                                    data-gastos-bd="<?php echo e($totalExpenses ?? 0); ?>"
-                                    step="0.01" readonly>
+                <!-- Sección de Cierre en grid -->
+                <div class="closure-grid">
+                    <!-- Tabla de denominaciones -->
+                    <div class="denominations-section">
+                        <div class="section-container">
+                            <h4 class="section-title">Conteo de Efectivo</h4>
+                            <div class="table-container">
+                                <table class="denominations-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">Denominación</th>
+                                            <th>Cantidad</th>
+                                            <th class="text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $__currentLoopData = [0.5, 1, 2, 5, 10, 20, 50, 100, 200]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $denominacion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <tr>
+                                            <td class="text-left">$<?php echo e(number_format($denominacion, 2)); ?></td>
+                                            <td>
+                                                <input type="number" min="0" class="denomination-input contar-input-closure"
+                                                    data-denominacion="<?php echo e($denominacion); ?>" placeholder="0">
+                                            </td>
+                                            <td class="text-right">
+                                                <span class="subtotal-closure">$0.00</span>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        <tr class="total-row">
+                                            <td colspan="2" class="text-right"><strong>Total Efectivo:</strong></td>
+                                            <td class="text-right">
+                                                <strong><span id="total-closure">$0.00</span></strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="input-group">
-                                <label for="ventas-efectivo-closure">Ventas en Efectivo</label>
-                                <input type="number" id="ventas-efectivo-closure" class="form-control"
-                                    value="<?php echo e($totalSalesCash ?? 0); ?>" step="0.01" readonly>
-                            </div>
+                    <!-- Formulario de cierre -->
+                    <div class="closure-form-section">
+                        <div class="section-container">
+                            <h4 class="section-title">Resumen de Cierre</h4>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="total-gastos-closure">Total Gastos</label>
+                                    <input type="number" id="total-gastos-closure" class="form-control"
+                                        value="<?php echo e($totalExpenses ?? 0); ?>" 
+                                        data-gastos-bd="<?php echo e($totalExpenses ?? 0); ?>"
+                                        step="0.01" readonly>
+                                </div>
 
-                            <div class="input-group">
-                                <label for="ventas-qr-closure">Ventas QR</label>
-                                <input type="number" id="ventas-qr-closure" class="form-control"
-                                    value="<?php echo e($totalSalesQR ?? 0); ?>" step="0.01">
-                            </div>
+                                <div class="input-group">
+                                    <label for="ventas-efectivo-closure">Ventas en Efectivo</label>
+                                    <input type="number" id="ventas-efectivo-closure" class="form-control"
+                                        value="<?php echo e($totalSalesCash ?? 0); ?>" step="0.01" readonly>
+                                </div>
 
-                            <div class="input-group">
-                                <label for="ventas-tarjeta-closure">Ventas Tarjeta</label>
-                                <input type="number" id="ventas-tarjeta-closure" class="form-control"
-                                    value="<?php echo e($totalSalesCard ?? 0); ?>" step="0.01">
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="button" class="btn btn-secondary" onclick="closeInternalModalClosure()">
-                                    <i class="fas fa-times"></i> Cancelar
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="saveClosureClosure(<?php echo e($openPettyCash->id); ?>)">
-                                    <i class="fas fa-save"></i> Guardar Cierre
-                                </button>
+                                <div class="input-group">
+                                    <label for="ventas-qr-closure">Ventas QR</label>
+                                    <input type="number" id="ventas-qr-closure" class="form-control"
+                                        value="<?php echo e($totalSalesQR ?? 0); ?>" step="0.01">
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="ventas-tarjeta-closure">Ventas Tarjeta</label>
+                                    <input type="number" id="ventas-tarjeta-closure" class="form-control"
+                                        value="<?php echo e($totalSalesCard ?? 0); ?>" step="0.01">
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="closeInternalModalClosure()">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-primary" onclick="saveClosureClosure(<?php echo e($openPettyCash->id); ?>)">
+                                        <i class="fas fa-save"></i> Guardar Cierre
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -589,4 +603,22 @@
             </div>
         </div>
     </div>
-</div><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/modal-content.blade.php ENDPATH**/ ?>
+<?php else: ?>
+    
+    <div class="closure-internal-content">
+        <div class="closure-scroll-content">
+            <div class="alert-warning">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>No hay caja chica abierta</strong>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">Debe abrir una caja chica antes de poder registrar un cierre.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button onclick="window.location.href='<?php echo e(route('petty-cash.create')); ?>'" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Abrir Nueva Caja Chica
+                </button>
+            </div>
+        </div>
+    </div>
+<?php endif; ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/modal-content.blade.php ENDPATH**/ ?>

@@ -12,6 +12,7 @@ class Expense extends Model
         'amount',
         'date',
         'petty_cash_id',
+        'user_id',
     ];
     protected $casts = [
         'amount' => 'decimal:2',
@@ -22,6 +23,6 @@ class Expense extends Model
     // Relación con la caja chica
     public function pettyCash()
     {
-        return $this->belongsTo(PettyCash::class);
+        return $this->belongsTo(PettyCash::class, 'petty_cash_id');
     }
 }
