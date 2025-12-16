@@ -1244,13 +1244,13 @@
                                     value="<?php echo e($totalExpenses); ?>" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
-                                <label for="total-efectivo" class="small">Total Efectivo</label>
+                                <label for="total-" class="small">Total Efectivo</label>
                                 <input type="number" id="total-efectivo" class="form-control form-control-sm"
                                     value="0" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-qr" class="small">Ventas QR</label>
-                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                                <input typeefectivo="number" id="ventas-qr" class="form-control form-control-sm"
                                     value="<?php echo e($totalSalesQR); ?>" step="0.01"
                                     oninput="document.getElementById('total_sales_qr').value = this.value">
                             </div>
@@ -1262,8 +1262,8 @@
                             </div>
                             <div class="form-actions">
                                 <button type="button" class="btn btn-primary btn-sm save-btn" >
-    <i class="fas fa-save mr-1"></i> Guardar Cierre
-</button>
+        <i class="fas fa-save mr-1"></i> Guardar Cierre
+        </button>
                             </div>
                         </div>
                     </div>
@@ -1406,7 +1406,7 @@
         const cantidad = parseFloat(input.value) || 0;
         const subtotal = denominacion * cantidad;
         const subtotalElement = input.closest('tr').querySelector('.subtotal');
-        subtotalElement.textContent = `$${subtotal.toFixed(2)}`; // ← CORREGIDO: Agregado símbolo $
+        subtotalElement.textContent = `$${subtotal.toFixed(2)}`; 
         total += subtotal;
     });
 

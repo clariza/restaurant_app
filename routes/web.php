@@ -36,6 +36,9 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // RUTAS CON AUTENTICACIÓN (Sin caja chica)
 // ============================================
 Route::middleware(['auth'])->group(function () {
+
+    Route::get('/petty-cash/closure-modal-content', [PettyCashController::class, 'closureModalContent'])
+        ->name('petty-cash.closure-modal-content');
     Route::get('/api/delivery-services', [DeliveryServiceController::class, 'getActiveServices'])
         ->name('deliveries.api.active');
     Route::prefix('inventory')->name('inventory.')->group(function () {
@@ -139,6 +142,12 @@ Route::middleware(['auth'])->group(function () {
     // --- SUPPLIERS ---
     Route::resource('suppliers', SupplierController::class);
 });
+// Rutas para el modal de caja chica desde el header
+Route::get('/petty-cash/get-open', [PettyCashController::class, 'getOpenPettyCash'])
+    ->name('petty-cash.get-open');
+
+Route::get('/petty-cash/modal-closure/{id}', [PettyCashController::class, 'getModalClosure'])
+    ->name('petty-cash.modal-closure');
 
 // ============================================
 // RUTAS QUE REQUIEREN CAJA CHICA ABIERTA

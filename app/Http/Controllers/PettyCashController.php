@@ -529,6 +529,48 @@ class PettyCashController extends Controller
 
         return $pdf->download('reporte_caja_chica_' . date('Y-m-d_H-i-s') . '.pdf');
     }
+    /**
+     * Método para cargar el contenido del modal de cierre interno
+     * Este método retorna SOLO la vista del modal de cierre (modal-content.blade.php)
+     */
+    public function closureModalContent(Request $request)
+    {
+        try {
+            $openPettyCash = PettyCash::where('status', 'open')
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->first();
+
+            $totalExpenses = 0;
+            $totalSalesQR = 0;
+            $totalSalesCard = 0;
+
+            if ($openPettyCash) {
+                $totalExpenses = Expense::where('petty_cash_id', $openPettyCash->id)
+                    ->sum('amount') ?? 0;
+
+                $totalSalesQR = Sale::where('petty_cash_id', $openPettyCash->id)
+                    ->where('payment_method', 'QR')
+                    ->sum('total') ?? 0;
+
+                $totalSalesCard = Sale::where('petty_cash_id', $openPettyCash->id)
+                    ->whereIn('payment_method', ['Tarjeta', 'Card'])
+                    ->sum('total') ?? 0;
+            }
+
+            return view('petty_cash.modal-content', compact(
+                'openPettyCash',
+                'totalExpenses',
+                'totalSalesQR',
+                'totalSalesCard'
+            ));
+        } catch (\Exception $e) {
+
+            return response()->view('errors.modal-error', [
+                'error' => 'Error al cargar el modal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     private function getFilters(Request $request)
     {
@@ -573,5 +615,66 @@ class PettyCashController extends Controller
             'open' => $openPettyCash ? true : false,
             'petty_cash' => $openPettyCash
         ]);
+    }
+    /**
+     * Obtener la caja chica abierta del usuario actual
+     */
+    public function getOpenPettyCash()
+    {
+        $openPettyCash = PettyCash::where('user_id', auth()->id())
+            ->where('status', 'open')
+            ->latest()
+            ->first();
+
+        if ($openPettyCash) {
+            return response()->json([
+                'success' => true,
+                'petty_cash_id' => $openPettyCash->id,
+                'date' => $openPettyCash->date,
+                'initial_amount' => $openPettyCash->initial_amount
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No hay caja chica abierta'
+        ]);
+    }
+
+    /**
+     * Obtener el HTML del modal de cierre para una caja específica
+     */
+    public function getModalClosure($id)
+    {
+        $pettyCash = PettyCash::findOrFail($id);
+
+        // Verificar que la caja pertenezca al usuario actual
+        if ($pettyCash->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+
+        // Verificar que la caja esté abierta
+        if ($pettyCash->status !== 'open') {
+            abort(400, 'Esta caja ya está cerrada');
+        }
+
+        // Calcular totales
+        $totalSalesQR = Sale::where('petty_cash_id', $id)
+            ->where('payment_method', 'qr')
+            ->sum('total');
+
+        $totalSalesCard = Sale::where('petty_cash_id', $id)
+            ->where('payment_method', 'tarjeta')
+            ->sum('total');
+
+        $totalExpenses = Expense::where('petty_cash_id', $id)->sum('amount');
+
+        // Retornar la vista parcial del modal de cierre
+        return view('petty-cash.partials.closure-modal', compact(
+            'pettyCash',
+            'totalSalesQR',
+            'totalSalesCard',
+            'totalExpenses'
+        ));
     }
 }
