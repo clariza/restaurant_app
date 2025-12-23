@@ -1,5 +1,13 @@
 <?php $__env->startSection('content'); ?>
 <style>
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
     /* Estilos mejorados para botones */
     .btn-action {
         padding: 5px 10px;
@@ -230,16 +238,23 @@
     .input-group {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
+        gap: 0.375rem;
     }
 
     .input-group label {
         font-size: 0.875rem;
-        color: #64748b;
-        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
     }
-
+    .label-hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 400;
+}
     .input-group input {
         padding: 0.75rem;
         border: 1px solid #cbd5e1;
@@ -322,28 +337,18 @@
         gap: 2rem;
     }
 
-    .closure-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
 
     .section-container {
-        padding: 1.5rem;
-        background-color: #f8fafc;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
+    padding: 1.25rem;
+    background: linear-gradient(to bottom, #f8fafc, #ffffff);
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
 
-    .section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
 
     .denominations-section {
         display: flex;
@@ -365,13 +370,14 @@
 
     .table-container {
         overflow-x: auto;
+        flex: 1;
     }
 
     .denominations-table {
         width: 100%;
         border-collapse: collapse;
+        font-size: 0.875rem;
     }
-
     .denominations-table th {
         background-color: #f1f5f9;
         padding: 0.75rem;
@@ -589,7 +595,135 @@
         margin-bottom: 0.25rem;
         display: block;
     }
-
+    .form-control {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    background: white;
+}
+    .form-control:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .form-control[readonly] {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+.closure-internal-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: white;
+    z-index: 10002;
+    display: none;
+    flex-direction: column;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 95%;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.closure-internal-modal.active {
+    display: flex;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+.closure-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10001;
+    backdrop-filter: blur(2px);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.closure-overlay.active {
+    display: block !important;
+    opacity: 1;
+}
+.closure-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(to bottom, #f8fafc, #ffffff);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+.closure-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.closure-title::before {
+    content: '💰';
+    font-size: 1.75rem;
+}
+.closure-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+.closure-close-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    transform: rotate(90deg);
+}
+.closure-scroll-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+.closure-scroll-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.closure-scroll-content::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+.closure-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+.closure-scroll-content {
+    padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(85vh - 90px);
+}
+.closure-scroll-content::-webkit-scrollbar {
+    width: 8px;
+}
     .closure-form-section .form-control {
         font-size: 0.875rem;
         padding: 0.25rem 0.5rem;
@@ -642,9 +776,6 @@
             justify-content: center;
         }
 
-        .closure-grid {
-            grid-template-columns: 1fr;
-        }
 
         .reports-buttons {
             display: flex;
@@ -772,19 +903,6 @@
         opacity: 0.5;
         cursor: not-allowed;
         transform: none;
-    }
-
-    .section-container {
-        padding: 1rem;
-    }
-
-    .section-title {
-        font-size: 0.9375rem;
-        font-weight: 500;
-        margin-bottom: 0.75rem;
-        color: #495057;
-        border-bottom: 1px solid #e9ecef;
-        padding-bottom: 0.25rem;
     }
 
     .filters-grid {
@@ -984,7 +1102,6 @@
     <div class="filters-panel">
         <form method="GET" action="<?php echo e(route('petty-cash.index')); ?>" id="filtersForm">
             <div class="filters-grid">
-                <!-- Filtro por Usuario/Cajero -->
                 <div class="filter-group">
                     <label for="user_id">Cajero</label>
                     <select id="user_id" name="user_id">
@@ -999,7 +1116,6 @@
                     </select>
                 </div>
 
-                <!-- Filtro por Estado -->
                 <div class="filter-group">
                     <label for="status">Estado</label>
                     <select id="status" name="status">
@@ -1013,7 +1129,6 @@
                     </select>
                 </div>
 
-                <!-- Fecha desde -->
                 <div class="filter-group">
                     <label for="date_from">Fecha desde</label>
                     <input type="date"
@@ -1023,7 +1138,6 @@
                         max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
 
-                <!-- Fecha hasta -->
                 <div class="filter-group">
                     <label for="date_to">Fecha hasta</label>
                     <input type="date"
@@ -1033,7 +1147,6 @@
                         max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
 
-                <!-- Botones de acción -->
                 <div class="filters-actions">
                     <button type="submit" class="btn-filter" id="btnFilter">
                         <i class="fas fa-filter"></i>
@@ -1154,7 +1267,6 @@
 <!-- Modal de cierre -->
 <div id="modal" class="modal-overlay">
     <div class="modal-container">
-        <!-- Cabecera del modal -->
         <div class="modal-header">
             <h3 class="modal-title">Cierre de Caja Chica</h3>
             <button onclick="closeModal()" class="modal-close">
@@ -1162,7 +1274,6 @@
             </button>
         </div>
 
-        <!-- Contenido del modal -->
         <div class="modal-content">
             <!-- Sección de Gastos -->
             <div class="expenses-section">
@@ -1173,27 +1284,11 @@
                     </button>
                 </div>
                 <div class="expenses-container" id="expensesContainer">
-                    <!-- Fila de gasto inicial -->
-                    <div class="expense-row">
-                        <div class="expense-field">
-                            <input type="text" class="form-control form-control-sm expense-input" placeholder="Nombre del gasto" name="expense_name[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="text" class="form-control form-control-sm expense-input" placeholder="Descripción/Categoría" name="expense_description[]">
-                        </div>
-                        <div class="expense-field">
-                            <input type="number" class="form-control form-control-sm expense-input" placeholder="Monto" step="0.01" min="0" name="expense_amount[]" oninput="calculateTotalExpenses()">
-                        </div>
-                        <div class="expense-actions">
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" onclick="removeExpense(this)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Las filas de gastos se agregarán dinámicamente -->
                 </div>
             </div>
 
-            <!-- Sección de Cierre en disposición horizontal -->
+            <!-- Sección de Cierre -->
             <div class="closure-grid">
                 <!-- Tabla de denominaciones -->
                 <div class="denominations-section">
@@ -1213,8 +1308,8 @@
                                     <tr>
                                         <td class="text-left">$<?php echo e(number_format($denominacion, 2)); ?></td>
                                         <td>
-                                            <input type="number" min="0" class="form-control form-control-sm denomination-input contar-input"
-                                                data-denominacion="<?php echo e($denominacion); ?>" placeholder="0" oninput="calcularTotalDenominaciones()">
+                                            <input type="number" min="0" class="form-control form-control-sm denomination-input"
+                                                data-denominacion="<?php echo e($denominacion); ?>" placeholder="0">
                                         </td>
                                         <td class="text-right">
                                             <span class="subtotal">$0.00</span>
@@ -1241,29 +1336,31 @@
                             <div class="input-group mb-2">
                                 <label for="total-gastos" class="small">Total Gastos</label>
                                 <input type="number" id="total-gastos" class="form-control form-control-sm"
-                                    value="<?php echo e($totalExpenses); ?>" step="0.01" readonly>
+                                    value="<?php echo e($totalExpenses); ?>" step="0.01" readonly 
+                                    data-gastos-bd="<?php echo e($totalExpenses); ?>">
                             </div>
                             <div class="input-group mb-2">
-                                <label for="total-" class="small">Total Efectivo</label>
+                                <label for="total-efectivo" class="small">Total Efectivo</label>
                                 <input type="number" id="total-efectivo" class="form-control form-control-sm"
                                     value="0" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-qr" class="small">Ventas QR</label>
-                                <input typeefectivo="number" id="ventas-qr" class="form-control form-control-sm"
-                                    value="<?php echo e($totalSalesQR); ?>" step="0.01"
-                                    oninput="document.getElementById('total_sales_qr').value = this.value">
+                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                                    value="<?php echo e($totalSalesQR); ?>" step="0.01">
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
                                 <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
-                                    value="<?php echo e($totalSalesCard); ?>" step="0.01"
-                                    oninput="document.getElementById('total_sales_card').value = this.value">
+                                    value="<?php echo e($totalSalesCard); ?>" step="0.01">
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn btn-primary btn-sm save-btn" >
-        <i class="fas fa-save mr-1"></i> Guardar Cierre
-        </button>
+                               <button type="button" 
+                                    class="btn btn-primary btn-sm save-btn" 
+                                    onclick="saveClosure()"
+                                    id="btn-save-closure">
+                                <i class="fas fa-save mr-1"></i> Guardar Cierre
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1283,358 +1380,23 @@
     <input type="hidden" name="total_expenses" id="total_expenses" value="<?php echo e($totalExpenses); ?>">
 </form>
 
+<!-- ========================================
+     SCRIPTS - IMPORTANTE: Solo configuración
+     ======================================== -->
 <script>
-    // Función para abrir el modal con el ID correcto
-    function openModal(id) {
-        const modal = document.getElementById('modal');
-        modal.classList.add('active');
-        document.getElementById('petty_cash_id').value = id;
+    // Pasar datos PHP a JavaScript
+    window.pettyCashData = {
+        totalExpenses: <?php echo e($totalExpenses ?? 0); ?>,
+        totalSalesQR: <?php echo e($totalSalesQR ?? 0); ?>,
+        totalSalesCard: <?php echo e($totalSalesCard ?? 0); ?>,
+        saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
+        csrfToken: "<?php echo e(csrf_token()); ?>"
+    };
 
-        // Resetear los inputs de denominaciones
-        document.querySelectorAll('.contar-input').forEach(input => {
-            input.value = '';
-        });
-        document.querySelectorAll('.subtotal').forEach(span => {
-            span.textContent = '$0.00';
-        });
-        document.getElementById('total').textContent = '$0.00';
-
-        // Limpiar campo de Total Efectivo
-        document.getElementById('total-efectivo').value = '0';
-        document.getElementById('total_sales_cash').value = '0';
-
-        // Limpiar completamente el contenedor de gastos y agregar solo UNA fila vacía
-        resetExpensesContainer();
-
-        // Cargar ventas y gastos existentes (solo mostrar el total de gastos)
-        loadExistingSales(id);
-    }
-
-    // Función para resetear completamente el contenedor de gastos
-    function resetExpensesContainer() {
-        const expensesContainer = document.getElementById('expensesContainer');
-        // Limpiar todo el contenedor
-        expensesContainer.innerHTML = '';
-        // Agregar solo UNA fila vacía
-        addExpenseRow('', '', '');
-    }
-
-    function addExpenseRow(name = '', description = '', amount = '') {
-        const expensesContainer = document.getElementById('expensesContainer');
-        const newExpenseRow = document.createElement('div');
-        newExpenseRow.className = 'expense-row';
-        newExpenseRow.innerHTML = `
-        <div class="expense-field">
-            <input type="text" class="form-control form-control-sm expense-input" 
-                   placeholder="Nombre del gasto" name="expense_name[]" 
-                   value="${name}" oninput="validateExpenseRow(this); calculateTotalExpenses()">
-        </div>
-        <div class="expense-field">
-            <input type="text" class="form-control form-control-sm expense-input" 
-                   placeholder="Descripción/Categoría" name="expense_description[]" 
-                   value="${description}">
-        </div>
-        <div class="expense-field">
-            <input type="number" class="form-control form-control-sm expense-input" 
-                   placeholder="Monto" step="0.01" min="0" name="expense_amount[]" 
-                   value="${amount}" oninput="calculateTotalExpenses(); validateExpenseRow(this)">
-        </div>
-        <div class="expense-actions">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" 
-                    onclick="removeExpense(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-        expensesContainer.appendChild(newExpenseRow);
-    }
-
-
-    function addExpense() {
-        addExpenseRow('', '', '');
-    }
-
-    // Función para cargar ventas y total de gastos existentes desde la base de datos
-    function loadExistingSales(pettyCashId) {
-        // Cargar las ventas existentes
-        document.getElementById('ventas-qr').value = '<?php echo e($totalSalesQR); ?>';
-        document.getElementById('ventas-tarjeta').value = '<?php echo e($totalSalesCard); ?>';
-
-        // Cargar el total de gastos desde la base de datos
-        const existingExpenses = parseFloat('<?php echo e($totalExpenses); ?>') || 0;
-        document.getElementById('total-gastos').value = existingExpenses.toFixed(2);
-        document.getElementById('total_expenses').value = existingExpenses.toFixed(2);
-    }
-
-    function validateExpenseRow(input) {
-        const row = input.closest('.expense-row');
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        // Marcar como requerido si tiene algún valor
-        if (amountInput.value && !nameInput.value) {
-            nameInput.style.borderColor = '#f87171';
-        } else {
-            nameInput.style.borderColor = '';
-        }
-    }
-
-    // Función para eliminar fila de gasto
-    function removeExpense(button) {
-        const expenseRow = button.closest('.expense-row');
-        if (document.getElementById('expensesContainer').children.length > 1) {
-            expenseRow.remove();
-            calculateTotalExpenses();
-        } else {
-            // Si es el último, solo limpiar los campos
-            const inputs = expenseRow.querySelectorAll('input');
-            inputs.forEach(input => input.value = '');
-            calculateTotalExpenses();
-        }
-    }
-
-
-    // Función para cerrar el modal
-    function closeModal() {
-        document.getElementById('modal').classList.remove('active');
-    }
-
-    function calcularTotalDenominaciones() {
-    let total = 0;
-    document.querySelectorAll('.denomination-input').forEach(input => {
-        const denominacion = parseFloat(input.getAttribute('data-denominacion'));
-        const cantidad = parseFloat(input.value) || 0;
-        const subtotal = denominacion * cantidad;
-        const subtotalElement = input.closest('tr').querySelector('.subtotal');
-        subtotalElement.textContent = `$${subtotal.toFixed(2)}`; 
-        total += subtotal;
-    });
-
-    // Actualizar el total visual en la tabla de denominaciones
-    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
-    
-    // ACTUALIZAR AUTOMÁTICAMENTE el campo "Total Efectivo" en el formulario
-    document.getElementById('total-efectivo').value = total.toFixed(2);
-    document.getElementById('total_sales_cash').value = total.toFixed(2);
-}
-
-
-    function calculateTotalExpenses() {
-        let totalNewExpenses = 0;
-        let hasValidExpenses = false;
-
-        // Calcular solo los gastos nuevos agregados en el modal
-        document.querySelectorAll('input[name="expense_amount[]"]').forEach(input => {
-            const value = parseFloat(input.value);
-            const nameInput = input.closest('.expense-row').querySelector('input[name="expense_name[]"]');
-            const name = nameInput ? nameInput.value.trim() : '';
-
-            // Solo contar gastos que tengan nombre y monto válido
-            if (name && !isNaN(value) && value > 0) {
-                totalNewExpenses += value;
-                hasValidExpenses = true;
-            }
-        });
-
-        // Obtener el total de gastos existentes desde la base de datos
-        const existingExpenses = parseFloat('<?php echo e($totalExpenses); ?>') || 0;
-
-        // El total final es la suma de gastos existentes + gastos nuevos
-        const totalExpenses = existingExpenses + totalNewExpenses;
-
-        // Actualizar el campo VISIBLE de total-gastos
-        const totalGastosElement = document.getElementById('total-gastos');
-        if (totalGastosElement) {
-            totalGastosElement.value = totalExpenses.toFixed(2);
-        }
-
-        // Actualizar el campo oculto que se enviará al servidor
-        const totalExpensesElement = document.getElementById('total_expenses');
-        if (totalExpensesElement) {
-            totalExpensesElement.value = totalExpenses.toFixed(2);
-        }
-
-        console.log('Gastos existentes (BD):', existingExpenses.toFixed(2));
-        console.log('Gastos nuevos (Modal):', totalNewExpenses.toFixed(2));
-        console.log('Total gastos final:', totalExpenses.toFixed(2));
-
-        return totalExpenses;
-    }
-
-
-    // Guardar el cierre
-    function saveClosure() {
-         console.log('🔍 saveClosure llamado', new Date().toISOString());
-        if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    
-        const pettyCashId = document.getElementById('petty_cash_id').value;
-        const totalSalesCash = parseFloat(document.getElementById('total-efectivo').value) || 0;
-        const totalSalesQR = parseFloat(document.getElementById('ventas-qr').value) || 0;
-        const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta').value) || 0;
-        const totalExpenses = calculateTotalExpenses();
-
-        if (!pettyCashId) {
-            alert('Error: No se ha seleccionado una caja chica');
-            return;
-        }
-
-        // Validar que al menos haya un valor ingresado
-        const existingExpenses = parseFloat('<?php echo e($totalExpenses); ?>') || 0;
-        if (totalSalesCash === 0 && totalSalesQR === 0 && totalSalesCard === 0 && existingExpenses === 0) {
-            if (!confirm('¿Estás seguro de cerrar la caja sin registrar movimientos?')) {
-                return;
-            }
-        }
-
-        // Recopilar datos de gastos NUEVOS solamente
-        const expenses = [];
-        let validExpenses = 0;
-
-        document.querySelectorAll('.expense-row').forEach((row, index) => {
-            const nameInput = row.querySelector('input[name="expense_name[]"]');
-            const descriptionInput = row.querySelector('input[name="expense_description[]"]');
-            const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-            const name = nameInput ? nameInput.value.trim() : '';
-            const description = descriptionInput ? descriptionInput.value.trim() : '';
-            const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
-            // Solo incluir gastos que tengan nombre y monto válido
-            if (name && amount > 0) {
-                expenses.push({
-                    name: name,
-                    description: description,
-                    amount: amount
-                });
-                validExpenses++;
-            }
-        });
-
-        console.log('Datos a enviar:', {
-            petty_cash_id: pettyCashId,
-            total_sales_cash: totalSalesCash,
-            total_sales_qr: totalSalesQR,
-            total_sales_card: totalSalesCard,
-            total_expenses: totalExpenses,
-            expenses: expenses
-        });
-
-        // Mostrar loading
-        const saveBtn = document.querySelector('.save-btn');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...';
-        saveBtn.disabled = true;
-
-        // Enviar el formulario
-        fetch("<?php echo e(route('petty-cash.save-closure')); ?>", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    petty_cash_id: pettyCashId,
-                    total_sales_cash: totalSalesCash,
-                    total_sales_qr: totalSalesQR,
-                    total_sales_card: totalSalesCard,
-                    total_expenses: totalExpenses,
-                    expenses: expenses
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Cierre guardado correctamente. Gastos registrados: ' + (data.data.expenses_count || 0));
-                    window.location.reload();
-                } else {
-                    throw new Error(data.message || 'No se pudo guardar el cierre');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al guardar el cierre: ' + error.message);
-            })
-            .finally(() => {
-                // Restaurar botón
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
-            });
-    }
-
-    // Cerrar todas las cajas abiertas
-    function closeOpenPettyCash() {
-        if (confirm('¿Estás seguro de cerrar todas las cajas chicas abiertas?')) {
-            fetch("<?php echo e(route('petty-cash.close-all-open')); ?>", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + (data.message || 'No se pudieron cerrar las cajas'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al cerrar las cajas');
-                });
-        }
-    }
-
-    // Event listeners para cálculos automáticos
-    document.addEventListener('DOMContentLoaded', function() {
-        // Los inputs de denominaciones actualizan automáticamente el Total Efectivo
-        document.querySelectorAll('.contar-input').forEach(input => {
-            input.addEventListener('input', calcularTotalDenominaciones);
-        });
-
-        // Escuchar cambios en los inputs de gastos (nombre y monto)
-        document.addEventListener('input', function(e) {
-            if (e.target && (
-                    e.target.matches('input[name="expense_amount[]"]') ||
-                    e.target.matches('input[name="expense_name[]"]')
-                )) {
-                calculateTotalExpenses();
-            }
-        });
-
-        // Calcular total inicial
-        calculateTotalExpenses();
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-    // Los inputs de denominaciones actualizan automáticamente el Total Efectivo
-    document.querySelectorAll('.denomination-input').forEach(input => {
-        input.addEventListener('input', calcularTotalDenominaciones);
-    });
-
-    // Escuchar cambios en los inputs de gastos (nombre y monto)
-    document.addEventListener('input', function(e) {
-        if (e.target && (
-                e.target.matches('input[name="expense_amount[]"]') ||
-                e.target.matches('input[name="expense_name[]"]')
-            )) {
-            calculateTotalExpenses();
-        }
-    });
-
-    // Calcular total inicial
-    calculateTotalExpenses();
-});
+    console.log('✅ Configuración de caja chica cargada:', window.pettyCashData);
 </script>
+
+<!-- Cargar archivo JavaScript externo -->
+<script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/index.blade.php ENDPATH**/ ?>

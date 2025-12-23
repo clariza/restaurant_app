@@ -12,9 +12,6 @@
         <!-- Header del modal -->
         <div class="closure-header">
             <h3 class="closure-title">Cierre de Caja Chica</h3>
-            <button type="button" onclick="closeInternalModalClosure()" class="closure-close-btn" aria-label="Cerrar modal">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
 
         <!-- Contenido desplazable -->
@@ -144,7 +141,7 @@
                                     </label>
                                     <input type="number" 
                                            id="ventas-efectivo-closure" 
-                                           class="form-control form-control-highlight"
+                                           class="form-control"
                                            value="0" 
                                            step="0.01"
                                            readonly
@@ -183,10 +180,10 @@
                                         <i class="fas fa-times"></i> Cancelar
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-primary btn-save-closure" 
-                                            onclick="saveClosureClosure({{ $openPettyCash->id }})">
-                                        <i class="fas fa-save"></i> Guardar Cierre
-                                    </button>
+        class="btn btn-primary btn-sm save-btn" 
+        onclick="guardarCierreUnificado()">
+    <i class="fas fa-save mr-1"></i> Guardar Cierre
+    </button>
                                 </div>
                             </div>
                         </div>
@@ -253,21 +250,26 @@
 
     /* Overlay del modal */
     .closure-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 10001;
-        display: none;
-        backdrop-filter: blur(2px);
-        animation: fadeIn 0.3s ease;
-    }
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10001;
+    backdrop-filter: blur(2px);
+    
+    /* ✅ CRÍTICO: Oculto por defecto */
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
     
     .closure-overlay.active {
-        display: block;
-    }
+    display: block !important;
+    opacity: 1;
+}
+/* Modal - OCULTO POR DEFECTO */
 
     @keyframes fadeIn {
         from { opacity: 0; }
@@ -572,7 +574,6 @@
         flex-direction: column;
         gap: 0.375rem;
     }
-    
     .input-group label {
         font-size: 0.875rem;
         font-weight: 500;
@@ -598,6 +599,7 @@
         transition: all 0.2s;
         background: white;
     }
+
     
     .form-control:focus {
         outline: none;
@@ -612,13 +614,7 @@
         border-style: dashed;
     }
 
-    .form-control-highlight {
-        background: linear-gradient(to right, #dbeafe, #bfdbfe) !important;
-        color: #1e40af !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        border: 2px solid #3b82f6 !important;
-    }
+   
 
     /* ========================================== */
     /* BOTONES */

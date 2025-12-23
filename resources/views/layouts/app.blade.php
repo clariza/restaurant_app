@@ -653,7 +653,7 @@
             </a>
         </nav>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- ✅ Variables globales PRIMERO -->
 <script>
@@ -930,6 +930,10 @@
 <script src="{{ asset('js/app.js') }}" defer></script>
 <script src="{{ asset('js/init.js') }}" defer></script>
 <script src="{{ asset('js/petty-cash-modal.js') }}" defer></script>
+ @if(Request::is('petty-cash*'))
+        <script src="{{ asset('js/petty-cash-index.js') }}" defer></script>
+    @endif
+    
 <script>
 (function() {
     console.log('🚀 Inicializando sistema de logout...');

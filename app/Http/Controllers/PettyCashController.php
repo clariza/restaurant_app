@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Validator;
 
 class PettyCashController extends Controller
 {
-    // ✅ NUEVO: Método para cargar el contenido del modal
     // ✅ MODIFICADO: Método para cargar el contenido del modal con ID específico
     public function modalContent(Request $request)
     {
