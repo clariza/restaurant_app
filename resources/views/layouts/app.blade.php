@@ -34,6 +34,219 @@
     <link rel="stylesheet" href="/css/app.css">
     
    <style>
+    const proformaConversionStyles = `
+/* ===================================
+   ESTILOS PARA CONVERSIÓN DE PROFORMAS
+   =================================== */
+
+/* Badge de conversión en el panel de pedidos */
+.proforma-conversion-badge {
+    background: linear-gradient(135deg, #EF476F 0%, #d63a5e 100%);
+    color: white;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
+    animation: slideInDown 0.4s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.proforma-conversion-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent
+    );
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.proforma-badge-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.proforma-badge-content i {
+    font-size: 1.3rem;
+}
+
+.proforma-badge-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.proforma-badge-text strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.proforma-badge-text span {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.proforma-badge-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.proforma-badge-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Botón de conversión rápida en tarjetas */
+.convert-proforma-btn {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.convert-proforma-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.convert-proforma-btn:active {
+    transform: translateY(0);
+}
+
+.convert-proforma-btn i {
+    font-size: 0.95rem;
+}
+
+/* Badge de proforma ya convertida */
+.proforma-converted-badge {
+    background: #F3F4F6;
+    color: #6B7280;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #E5E7EB;
+}
+
+.proforma-converted-badge i {
+    color: #10B981;
+    font-size: 0.85rem;
+}
+
+/* Mensaje de conversión exitosa en modal */
+.proforma-converted-message {
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    color: #047857;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.proforma-converted-message i {
+    font-size: 1.2rem;
+}
+
+/* Animaciones */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .proforma-conversion-badge {
+        padding: 12px 14px;
+    }
+    
+    .proforma-badge-text strong {
+        font-size: 0.85rem;
+    }
+    
+    .proforma-badge-text span {
+        font-size: 0.75rem;
+    }
+    
+    .convert-proforma-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Estado de carga */
+.proforma-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.proforma-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+`;
     /* Estilos para botones de acción minimalistas */
 .action-btn-minimal {
     position: relative;
@@ -661,13 +874,14 @@
         tablesAvailable: "{{ route('tables.available') }}",
         salesStore: "{{ route('sales.store') }}",
         customerDetails: "{{ route('customer.details') }}",
-        menuIndex: "{{ route('menu.index') }}"
+        menuIndex: "{{ route('menu.index') }}",
+        pettyCashCreate: "{{ route('petty-cash.create') }}"
     };
     window.csrfToken = "{{ csrf_token() }}";
     window.authUserName = "{{ Auth::user()->name ?? '' }}";
     window.tablesEnabled = @json($settings->tables_enabled ?? false);
-    
     console.log('🌍 Variables globales configuradas');
+    console.log('📦 Estado caja chica:', window.pettyCashData);
 </script>
 
 <script>
@@ -924,6 +1138,47 @@
 
     console.log('✅ Sistema de modal de caja chica configurado desde app.blade.php');
 </script>
+<script>
+    // ========================================
+    // CONFIGURACIÓN GLOBAL UNIFICADA
+    // ========================================
+    window.pettyCashData = {
+        // 🔐 Datos de control de acceso (para app.js)
+        hasOpenPettyCash: @json($hasOpenPettyCash ?? false),
+        currentRoute: "{{ Route::currentRouteName() }}",
+        
+        // 💰 Datos de cierre (para petty-cash-index.js)
+        totalExpenses: @json($totalExpenses ?? 0),
+        totalSalesQR: @json($totalSalesQR ?? 0),
+        totalSalesCard: @json($totalSalesCard ?? 0),
+        
+        // 🌐 URLs y tokens
+        saveClosureUrl: "{{ route('petty-cash.save-closure') }}",
+        csrfToken: "{{ csrf_token() }}",
+        
+        // 🛠️ Metadatos
+        initialized: true,
+        version: '1.0.0'
+    };
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🌍 pettyCashData UNIFICADO configurado');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔐 Control de Acceso:');
+    console.log('   - hasOpenPettyCash:', window.pettyCashData.hasOpenPettyCash);
+    console.log('   - currentRoute:', window.pettyCashData.currentRoute);
+    console.log('💰 Datos de Cierre:');
+    console.log('   - totalExpenses:', window.pettyCashData.totalExpenses);
+    console.log('   - totalSalesQR:', window.pettyCashData.totalSalesQR);
+    console.log('   - totalSalesCard:', window.pettyCashData.totalSalesCard);
+    console.log('🌐 Configuración:');
+    console.log('   - saveClosureUrl:', window.pettyCashData.saveClosureUrl);
+    console.log('   - csrfToken:', window.pettyCashData.csrfToken ? '✓ Presente' : '✗ Faltante');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // Disparar evento para notificar que los datos están listos
+    window.dispatchEvent(new Event('pettyCashDataReady'));
+</script>
 <!-- ✅ Cargar scripts en orden correcto -->
 <script src="{{ asset('js/order-details.js') }}" defer></script>
 <script src="{{ asset('js/payment-modal.js') }}" defer></script>
@@ -933,7 +1188,7 @@
  @if(Request::is('petty-cash*'))
         <script src="{{ asset('js/petty-cash-index.js') }}" defer></script>
     @endif
-    
+
 <script>
 (function() {
     console.log('🚀 Inicializando sistema de logout...');

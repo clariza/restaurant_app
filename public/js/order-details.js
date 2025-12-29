@@ -82,7 +82,7 @@ function updateOrderDetails() {
 
         const order = JSON.parse(localStorage.getItem('order')) || [];
         const orderDetails = document.getElementById('order-details');
-
+        const convertingProformaInfo = getConvertingProformaInfo();
         console.log('📦 Order items:', order.length);
         console.log('🎯 Order details element:', orderDetails);
 
@@ -143,6 +143,18 @@ function updateOrderDetails() {
     } catch (error) {
         console.error('❌ Error en updateOrderDetails:', error);
     }
+}
+function getConvertingProformaInfo() {
+    const isConverting = localStorage.getItem('convertingProforma') === 'true';
+
+    if (!isConverting) {
+        return null;
+    }
+
+    return {
+        proformaId: localStorage.getItem('proformaId'),
+        notes: localStorage.getItem('proformaNotes')
+    };
 }
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
@@ -1738,6 +1750,7 @@ function calcularTotal() {
     return total.toFixed(2); // Retorna el total con 2 decimales
 }
 // Función para procesar el pedido
+// Función para procesar el pedido
 async function processOrder() {
     if (typeof syncPaymentRowsFromDOM === 'function') {
         syncPaymentRowsFromDOM();
@@ -1860,7 +1873,19 @@ async function processOrder() {
         console.log('📝 Tipo de pedido:', orderType);
 
         // ============================================
-        // 5. OBTENER MESA (SI APLICA)
+        // 5. 🔥 OBTENER ID DE PROFORMA SI ESTÁ CONVIRTIENDO
+        // ============================================
+
+        const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
+        const proformaId = localStorage.getItem('proformaId');
+
+        console.log('🔍 Datos de conversión de proforma:', {
+            isConverting: convertingFromProforma,
+            proformaId: proformaId
+        });
+
+        // ============================================
+        // 6. OBTENER MESA (SI APLICA)
         // ============================================
 
         let tableNumber = null;
@@ -1906,7 +1931,7 @@ async function processOrder() {
         }
 
         // ============================================
-        // 6. OBTENER SERVICIO DE DELIVERY (SI APLICA)
+        // 7. OBTENER SERVICIO DE DELIVERY (SI APLICA)
         // ============================================
 
         let deliveryService = null;
@@ -1917,7 +1942,7 @@ async function processOrder() {
         }
 
         // ============================================
-        // 7. OBTENER NOTAS DE RECOGER (SI APLICA)
+        // 8. OBTENER NOTAS DE RECOGER (SI APLICA)
         // ============================================
 
         let pickupNotes = '';
@@ -1928,7 +1953,7 @@ async function processOrder() {
         }
 
         // ============================================
-        // 8. PREPARAR DATOS PARA EL BACKEND
+        // 9. 🔥 PREPARAR DATOS PARA EL BACKEND (INCLUIR PROFORMA ID)
         // ============================================
 
         const requestData = {
@@ -1955,13 +1980,16 @@ async function processOrder() {
             transaction_number: paymentMethods[0]?.transaction_number || null,
 
             // Todos los métodos de pago (para registro completo)
-            payment_methods: paymentMethods
+            payment_methods: paymentMethods,
+
+            // 🔥 CRÍTICO: Agregar ID de proforma si está convirtiendo
+            converting_from_proforma: (convertingFromProforma && proformaId) ? parseInt(proformaId) : null
         };
 
-        console.log('📤 Datos a enviar al servidor:', requestData);
+        console.log('📤 Datos a enviar al servidor (incluyendo proforma):', requestData);
 
         // ============================================
-        // 9. ENVIAR AL SERVIDOR
+        // 10. ENVIAR AL SERVIDOR
         // ============================================
 
         const response = await fetch(window.routes.salesStore, {
@@ -1984,11 +2012,12 @@ async function processOrder() {
         console.log('✅ Respuesta del servidor:', data);
 
         // ============================================
-        // 10. MANEJAR RESPUESTA EXITOSA
+        // 11. MANEJAR RESPUESTA EXITOSA
         // ============================================
 
         if (data.success) {
             const dailyOrderNumber = data.daily_order_number;
+            const orderId = data.order_id;
 
             // Mostrar vista previa de impresión
             const printConfirmed = await showPrintConfirmation(dailyOrderNumber);
@@ -2013,6 +2042,14 @@ async function processOrder() {
             localStorage.removeItem('paymentDetails');
             localStorage.removeItem('deliveryService');
             localStorage.removeItem('pickupNotes');
+
+            // 🔥 IMPORTANTE: Limpiar datos de conversión de proforma
+            if (convertingFromProforma) {
+                localStorage.removeItem('convertingProforma');
+                localStorage.removeItem('proformaId');
+                localStorage.removeItem('proformaNotes');
+                console.log('🧹 Datos de conversión de proforma limpiados');
+            }
 
             // Limpiar variables globales
             if (window.paymentRows) {
@@ -2416,7 +2453,7 @@ async function changeAllTablesAvailability() {
         const button = document.getElementById('change-all-tables-availability');
 
         if (!newState) {
-            alert('Por favor, seleccione un estado');
+            // alert('Por favor, seleccione un estado');
             return;
         }
 
@@ -3023,6 +3060,86 @@ function initializeOrderSystem() {
         return false;
     }
 }
+function checkProformaConversion() {
+    console.log('🔍 Verificando conversión de proforma...');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const openPayment = urlParams.get('open_payment');
+
+    if (openPayment === 'true') {
+        console.log('✅ Parámetro open_payment detectado');
+
+        const order = JSON.parse(localStorage.getItem('order')) || [];
+        const isConverting = localStorage.getItem('convertingProforma') === 'true';
+
+        if (order.length > 0 && isConverting) {
+            console.log('✅ Abriendo modal automáticamente...');
+
+            setTimeout(() => {
+                if (typeof updateOrderDetails === 'function') {
+                    updateOrderDetails();
+                }
+
+                if (typeof window.openPaymentModal === 'function') {
+                    window.openPaymentModal();
+                } else if (typeof showPaymentModal === 'function') {
+                    showPaymentModal();
+                }
+
+                setTimeout(() => {
+                    const proformaId = localStorage.getItem('proformaId');
+                    if (proformaId && typeof showProformaConversionBanner === 'function') {
+                        showProformaConversionBanner(proformaId);
+                    }
+                }, 500);
+
+            }, 1000);
+        }
+
+        setTimeout(() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 2000);
+    }
+}
+function showProformaConversionBanner(proformaId) {
+    const modalContent = document.querySelector('#payment-modal .payment-modal-content');
+    if (!modalContent || document.querySelector('.proforma-conversion-banner')) {
+        return;
+    }
+
+    const infoBanner = document.createElement('div');
+    infoBanner.className = 'proforma-conversion-banner';
+    infoBanner.style.cssText = `
+        background: linear-gradient(135deg, #EF476F, #ff6b8a);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
+        animation: slideInDown 0.5s ease-out;
+    `;
+
+    const convertingNotes = localStorage.getItem('proformaNotes') || '';
+
+    infoBanner.innerHTML = `
+        <i class="fas fa-file-invoice" style="font-size: 1.8rem;"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">
+                🔄 Convirtiendo Proforma a Orden
+            </div>
+            <div style="font-size: 0.9rem; opacity: 0.95;">
+                Proforma ID: PROF-${proformaId}
+                ${convertingNotes ? ` • ${convertingNotes}` : ''}
+            </div>
+        </div>
+        <i class="fas fa-arrow-right" style="font-size: 1.3rem;"></i>
+    `;
+
+    modalContent.insertBefore(infoBanner, modalContent.firstChild);
+}
 
 
 // Cargar el estado al cambiar de mesa
@@ -3112,7 +3229,14 @@ document.addEventListener('DOMContentLoaded', function () {
         originalSetItem.apply(this, arguments);
     };
 });
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+        checkProformaConversion();
+    }, 500);
+});
 
+window.checkProformaConversion = checkProformaConversion;
+window.showProformaConversionBanner = showProformaConversionBanner;
 // ========== ESTILOS PARA LA ANIMACIÓN ==========
 const style = document.createElement('style');
 style.textContent = `

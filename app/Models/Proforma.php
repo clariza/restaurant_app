@@ -22,7 +22,14 @@ class Proforma extends Model
         'converted_to_order',
         'converted_order_id'
     ];
-
+    protected $casts = [
+        'converted_to_order' => 'boolean',
+        'subtotal' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'total' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
     public function items()
     {
         return $this->hasMany(ProformaItem::class);
@@ -38,8 +45,73 @@ class Proforma extends Model
     }
 
     // Método para verificar si puede ser convertida
+    // En App\Models\Proforma.php
+
     public function canBeConverted()
     {
-        return !$this->converted_to_order && $this->status !== 'cancelled';
+        // ✅ AGREGAR esta validación primero
+        if ($this->converted_to_order) {
+            return false;
+        }
+
+        // Validación de status cancelado
+        if ($this->status === 'cancelled') {
+            return false;
+        }
+
+        // Validar stock disponible
+        foreach ($this->items as $item) {
+            $menuItem = $item->menuItem;
+
+            if ($menuItem && $menuItem->manage_inventory) {
+                if ($menuItem->stock < $item->quantity) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    // En App\Models\Proforma.php
+
+    public function isConverted()
+    {
+        return $this->converted_to_order == true;
+    }
+    public function getConversionStatusAttribute(): string
+    {
+        if ($this->isConverted()) {
+            return 'Convertida';
+        }
+
+        if ($this->status === 'cancelled') {
+            return 'Cancelada';
+        }
+
+        if ($this->canBeConverted()) {
+            return 'Pendiente';
+        }
+
+        return 'No disponible';
+    }
+    public function scopeNotConverted($query)
+    {
+        return $query->where('converted_to_order', false)
+            ->orWhereNull('converted_to_order');
+    }
+
+    public function scopeConverted($query)
+    {
+        return $query->where('converted_to_order', true);
+    }
+
+    public function scopeToday($query)
+    {
+        return $query->whereDate('created_at', today());
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'cancelled');
     }
 }

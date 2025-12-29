@@ -373,6 +373,24 @@ window.saveClosure = async function () {
     console.log('💾 Iniciando proceso de guardado de cierre...');
 
     try {
+        if (typeof window.pettyCashData === 'undefined') {
+            console.error('❌ window.pettyCashData es undefined');
+            alert('Error: La configuración de la aplicación no se cargó correctamente. Por favor, recarga la página.');
+            return;
+        }
+
+        if (!window.pettyCashData.saveClosureUrl) {
+            console.error('❌ saveClosureUrl no está definido en window.pettyCashData');
+            console.log('Datos disponibles:', window.pettyCashData);
+            alert('Error: URL de guardado no disponible. Por favor, contacta al administrador.');
+            return;
+        }
+
+        if (!window.pettyCashData.csrfToken) {
+            console.error('❌ csrfToken no está definido en window.pettyCashData');
+            alert('Error: Token de seguridad no disponible. Por favor, recarga la página.');
+            return;
+        }
         if (!window.pettyCashData || !window.pettyCashData.saveClosureUrl) {
             throw new Error('Configuración de caja chica no disponible');
         }
@@ -613,5 +631,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log('✅ petty-cash-index.js inicializado correctamente');
 });
+function initializePettyCash() {
+    console.log('🚀 Inicializando petty-cash-index.js...');
 
+    // Verificar que estamos en la página correcta
+    const modalElement = document.getElementById('modal');
+    if (!modalElement) {
+        console.log('ℹ️ No estamos en la página de index de caja chica');
+        return;
+    }
+
+    // Verificar configuración global
+    if (!window.pettyCashData) {
+        console.error('❌ window.pettyCashData no está disponible');
+        return;
+    }
+
+    console.log('✅ Configuración cargada:', window.pettyCashData);
+
+    // Listeners para denominaciones
+    const denominationInputs = document.querySelectorAll('.denomination-input');
+    console.log(`📊 Configurando ${denominationInputs.length} inputs de denominación`);
+
+    denominationInputs.forEach(input => {
+        input.addEventListener('input', calcularTotalDenominaciones);
+    });
+
+    // Listener global para gastos (event delegation)
+    document.addEventListener('input', function (e) {
+        if (e.target.matches('input[name="expense_amount[]"]') ||
+            e.target.matches('input[name="expense_name[]"]')) {
+            calculateTotalExpenses();
+            validateExpenseRow(e.target);
+        }
+    });
+
+    // Calcular totales iniciales
+    calculateTotalExpenses();
+
+    console.log('✅ petty-cash-index.js inicializado correctamente');
+}
+
+// Esperar a que el DOM y los datos estén listos
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+        // Esperar a que window.pettyCashData esté disponible
+        if (window.pettyCashData) {
+            initializePettyCash();
+        } else {
+            window.addEventListener('pettyCashDataReady', initializePettyCash);
+        }
+    });
+} else {
+    // DOM ya está cargado
+    if (window.pettyCashData) {
+        initializePettyCash();
+    } else {
+        window.addEventListener('pettyCashDataReady', initializePettyCash);
+    }
+}
 console.log('✅ petty-cash-index.js cargado');

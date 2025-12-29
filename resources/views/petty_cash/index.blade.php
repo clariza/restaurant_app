@@ -1381,8 +1381,9 @@
 <!-- ========================================
      SCRIPTS - IMPORTANTE: Solo configuración
      ======================================== -->
-<script>
-    // Pasar datos PHP a JavaScript
+<script src="{{ asset('js/petty-cash-index.js') }}"></script>
+{{-- <script>
+    // Inicializar datos de PHP a JavaScript
     window.pettyCashData = {
         totalExpenses: {{ $totalExpenses ?? 0 }},
         totalSalesQR: {{ $totalSalesQR ?? 0 }},
@@ -1392,8 +1393,9 @@
     };
 
     console.log('✅ Configuración de caja chica cargada:', window.pettyCashData);
-</script>
+    
+    // Disparar evento personalizado para notificar que los datos están listos
+    window.dispatchEvent(new Event('pettyCashDataReady'));
+</script> --}}
 
-<!-- Cargar archivo JavaScript externo -->
-<script src="{{ asset('js/petty-cash-index.js') }}" defer></script>
 @endsection

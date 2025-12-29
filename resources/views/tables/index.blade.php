@@ -346,6 +346,22 @@
             submitBtn.innerHTML = originalText;
         }
     }
+    // Sincronizar estado de mesas con el modal de pago
+function syncTablesStateWithModal() {
+    const checkbox = document.querySelector('input[name="tables_enabled"]');
+    if (checkbox && typeof window.tablesManagementEnabled !== 'undefined') {
+        window.tablesManagementEnabled = checkbox.checked;
+        console.log('🔄 Estado de mesas sincronizado:', window.tablesManagementEnabled);
+    }
+}
+
+// Escuchar cambios en el checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.querySelector('input[name="tables_enabled"]');
+    if (checkbox) {
+        checkbox.addEventListener('change', syncTablesStateWithModal);
+    }
+});
 
     // Configuración del formulario de settings
     document.getElementById('settings-form').addEventListener('submit', async function(e) {

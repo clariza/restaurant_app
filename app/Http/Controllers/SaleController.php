@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\MenuItem;
+use App\Models\Proforma;
 use App\Models\InventoryMovement;
 use App\Models\Table;
 use App\Models\DeliveryService;
@@ -82,8 +83,15 @@ class SaleController extends Controller
         // Pasar las ventas a la vista
         return view('sales.index', compact('sales', 'hasOpenPettyCash'));
     }
+
     public function store(Request $request)
     {
+        // 🔥 CRÍTICO: Log de entrada para debugging
+        Log::info('📥 REQUEST RECIBIDO EN STORE:', [
+            'converting_from_proforma' => $request->input('converting_from_proforma'),
+            'all_data' => $request->all()
+        ]);
+
         // Validar autenticación
         if (!Auth::check()) {
             return response()->json([
@@ -92,25 +100,24 @@ class SaleController extends Controller
             ], 401);
         }
 
-        // ✅ VALIDACIÓN CORREGIDA - Agregado 'Transferencia'
+        // Validación
         $validator = Validator::make($request->all(), [
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'customer_phone' => 'nullable|string|max:20',
-            'order' => 'required|json',
+            'order' => 'required|string', // ✅ Cambiar a string, no json
             'order_type' => 'required|string',
             'table_number' => 'nullable|string',
             'transaction_number' => 'nullable|string',
-
-            // ✅ FIX: Agregar 'Transferencia' a los métodos válidos
             'payment_method' => 'required|string|in:QR,Efectivo,Tarjeta,Transferencia',
-
             'order_notes' => 'nullable|string|max:500',
             'delivery_service' => 'nullable|string|max:255',
             'pickup_notes' => 'nullable|string|max:500',
+            'converting_from_proforma' => 'nullable|integer|exists:proformas,id', // ✅ Validación
         ]);
 
         if ($validator->fails()) {
+            Log::error('❌ Validación fallida:', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
@@ -119,6 +126,18 @@ class SaleController extends Controller
         }
 
         try {
+            DB::beginTransaction();
+
+            // ✅ OBTENER ID DE PROFORMA AL INICIO
+            $convertingFromProforma = $request->input('converting_from_proforma');
+
+            Log::info('🔍 DEBUGGING PROFORMA:', [
+                'converting_from_proforma_raw' => $request->input('converting_from_proforma'),
+                'converting_from_proforma_parsed' => $convertingFromProforma,
+                'is_null' => is_null($convertingFromProforma),
+                'type' => gettype($convertingFromProforma)
+            ]);
+
             // Verificar caja chica abierta
             $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
             if (!$openPettyCash) {
@@ -133,13 +152,12 @@ class SaleController extends Controller
 
             // Calcular totales
             $subtotal = array_reduce($order, fn($sum, $item) => $sum + ($item['price'] * $item['quantity']), 0);
-            $taxRate = 0;
-            $tax = $subtotal * 0; // 0% de impuesto
+            $tax = $subtotal * 0;
             $total = $subtotal + $tax;
 
             // Generar número de pedido
             $orderNumber = Sale::generateOrderNumber();
-            $today = now()->toDateString();
+
             // Crear la venta
             $sale = Sale::create([
                 'user_id' => Auth::id(),
@@ -161,24 +179,27 @@ class SaleController extends Controller
                 'order_date' => now()->toDateString(),
             ]);
 
+            Log::info('✅ Sale creada:', [
+                'sale_id' => $sale->id,
+                'transaction_number' => $sale->transaction_number
+            ]);
+
+            // ✅ Procesar items y stock
             foreach ($order as $item) {
-                // Buscar el MenuItem por nombre (asegúrate de que el nombre coincida exactamente)
                 $menuItem = MenuItem::where('name', $item['name'])->first();
 
                 if (!$menuItem) {
                     throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
                 }
 
-                // Crear el SaleItem CON menu_item_id
-                $saleItem = $sale->items()->create([
-                    'menu_item_id' => $menuItem->id, // Campo crítico
+                $sale->items()->create([
+                    'menu_item_id' => $menuItem->id,
                     'name' => $item['name'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'total' => $item['price'] * $item['quantity'],
                 ]);
 
-                // Resto de la lógica (movimiento de inventario, etc.)
                 InventoryMovement::create([
                     'menu_item_id' => $menuItem->id,
                     'user_id' => Auth::id(),
@@ -193,16 +214,98 @@ class SaleController extends Controller
                 $menuItem->save();
             }
 
-            // DB::commit();
+            // ✅ MARCAR PROFORMA COMO CONVERTIDA
+            $proformaConverted = false;
+
+            if ($convertingFromProforma) {
+                Log::info('🔄 INTENTANDO CONVERTIR PROFORMA', [
+                    'proforma_id' => $convertingFromProforma,
+                    'sale_id' => $sale->id
+                ]);
+
+                $proforma = Proforma::find($convertingFromProforma);
+
+                if (!$proforma) {
+                    Log::error('❌ PROFORMA NO ENCONTRADA', [
+                        'proforma_id' => $convertingFromProforma
+                    ]);
+                } else {
+                    Log::info('📋 Proforma encontrada:', [
+                        'id' => $proforma->id,
+                        'converted_to_order' => $proforma->converted_to_order,
+                        'status' => $proforma->status
+                    ]);
+
+                    // Verificar que no esté ya convertida
+                    if ($proforma->converted_to_order) {
+                        Log::warning('⚠️ Proforma ya convertida anteriormente', [
+                            'proforma_id' => $convertingFromProforma,
+                            'converted_order_id' => $proforma->converted_order_id
+                        ]);
+                    } else {
+                        // ✅ ACTUALIZAR LA PROFORMA
+                        $updateResult = $proforma->update([
+                            'converted_to_order' => true,
+                            'converted_order_id' => $sale->id,
+                            'status' => 'completed'
+                        ]);
+
+                        // Verificar que se actualizó
+                        $proforma->refresh();
+
+                        Log::info('🔍 DESPUÉS DEL UPDATE:', [
+                            'update_result' => $updateResult,
+                            'proforma_id' => $proforma->id,
+                            'converted_to_order' => $proforma->converted_to_order,
+                            'converted_order_id' => $proforma->converted_order_id,
+                            'status' => $proforma->status
+                        ]);
+
+                        if ($updateResult && $proforma->converted_to_order == true) {
+                            $proformaConverted = true;
+                            Log::info('✅ PROFORMA CONVERTIDA EXITOSAMENTE', [
+                                'proforma_id' => $convertingFromProforma,
+                                'sale_id' => $sale->id
+                            ]);
+                        } else {
+                            Log::error('❌ FALLO AL ACTUALIZAR PROFORMA', [
+                                'proforma_id' => $convertingFromProforma,
+                                'update_result' => $updateResult
+                            ]);
+                            throw new \Exception('No se pudo actualizar la proforma');
+                        }
+                    }
+                }
+            } else {
+                Log::info('ℹ️ No se está convirtiendo desde proforma');
+            }
+
+            // ✅ COMMIT FINAL
+            DB::commit();
+
+            Log::info('✅ TRANSACCIÓN COMPLETADA', [
+                'sale_id' => $sale->id,
+                'proforma_converted' => $proformaConverted
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pedido procesado correctamente.',
-                'sale_id' => $sale->id,
+                'order_id' => $sale->id,
+                'order_number' => $sale->transaction_number,
                 'daily_order_number' => $sale->daily_order_number,
+                'message' => 'Pedido procesado correctamente.',
+                'converted_from_proforma' => $proformaConverted // ✅ Agregar este campo
             ]);
         } catch (\Exception $e) {
-            // DB::rollBack();
+            DB::rollBack();
+
+            Log::error('❌ ERROR EN STORE:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Hubo un error al procesar el pedido.',
@@ -210,7 +313,6 @@ class SaleController extends Controller
             ], 500);
         }
     }
-
     public function show($id)
     {
         // Obtener la venta actual con sus relaciones

@@ -189,12 +189,12 @@
                         <i class="fas fa-print"></i>
                     </button>
                     
-                    <?php if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
-                        <button class="text-green-600 hover:text-green-800 p-1"
-                                onclick="convertToOrder('<?php echo e($record->id); ?>')"
-                                title="Convertir a orden">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
+                    <?php if($isProforma && !$record->isConverted() && $record->canBeConverted()): ?>
+                    <button class="text-green-600 hover:text-green-800 p-1"
+                        onclick="convertToOrder('<?php echo e($record->id); ?>')"
+                        title="Convertir a orden">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
                     <?php endif; ?>
                     
                     <?php if(!$isProforma && $hasOpenPettyCash): ?>
@@ -365,59 +365,266 @@
     }
     
     // Función para convertir proforma a orden
-    function convertToOrder(proformaId) {
+async function convertToOrder(proformaId) {
+    try {
+        // Mostrar loader inicial
         Swal.fire({
+            title: 'Cargando proforma...',
+            html: 'Por favor espera',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // 1. Obtener los datos de la proforma
+        const response = await fetch(`/proformas/${proformaId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener la proforma');
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'Error al cargar la proforma');
+        }
+
+        const proforma = data.proforma;
+
+        // 2. Validar que puede ser convertida
+        if (!data.can_convert) {
+            Swal.close();
+            let errorMsg = 'Esta proforma no puede ser convertida';
+            let errorDetail = '';
+            
+            if (data.is_converted) {
+                errorMsg = 'Proforma ya convertida';
+                errorDetail = 'Esta proforma ya fue convertida anteriormente a una orden de venta.';
+            } else if (data.reason === 'insufficient_stock') {
+                errorMsg = 'Stock insuficiente';
+                errorDetail = 'Algunos productos no tienen stock disponible:<br><br>';
+                data.stock_issues.forEach(issue => {
+                    errorDetail += `• <strong>${issue.item_name}</strong>: Requiere ${issue.required}, disponible ${issue.available}<br>`;
+                });
+            } else if (data.reason === 'no_open_petty_cash') {
+                errorMsg = 'Sin caja chica abierta';
+                errorDetail = 'No hay una caja chica abierta para registrar la venta.';
+            }
+            
+            Swal.fire({
+                title: errorMsg,
+                html: errorDetail,
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#203363'
+            });
+            return;
+        }
+
+        // 3. Confirmar conversión
+        const confirmResult = await Swal.fire({
             title: '¿Convertir proforma a orden?',
-            text: "Esta acción registrará la venta en la caja chica actual",
+            html: `
+                <div class="text-left">
+                    <p class="mb-3">Se cargará la siguiente proforma al sistema de pedidos:</p>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-3">
+                        <p class="text-sm"><strong>ID:</strong> PROF-${proforma.id}</p>
+                        <p class="text-sm"><strong>Cliente:</strong> ${proforma.customer_name}</p>
+                        <p class="text-sm"><strong>Items:</strong> ${proforma.items.length}</p>
+                        <p class="text-sm"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                    </div>
+                    <p class="text-sm text-gray-600">Podrás revisar el pedido y proceder con el pago.</p>
+                </div>
+            `,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#203363',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, convertir',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cargar al sistema',
             cancelButtonText: 'Cancelar',
-            showLoaderOnConfirm: true,
-            preConfirm: () => {
-                return fetch(`/proformas/${proformaId}/convert`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => { throw err; });
-                    }
-                    return response.json();
-                })
-                .catch(error => {
-                    Swal.showValidationMessage(
-                        `Error: ${error.message || 'Error en la solicitud'}`
-                    );
-                });
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (result.value.success) {
-                    Swal.fire({
-                        title: '¡Conversión exitosa!',
-                        html: `Orden creada: <strong>${result.value.order_number}</strong>`,
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar'
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    Swal.fire('Error', result.value.message, 'error');
-                }
+            customClass: {
+                popup: 'swal-wide'
             }
         });
+
+        if (!confirmResult.isConfirmed) {
+            return;
+        }
+
+        // 4. Cargar items al sistema de pedidos
+        const orderItems = proforma.items.map(item => ({
+            id: item.menu_item_id,
+            name: item.name,
+            price: parseFloat(item.price),
+            quantity: item.quantity,
+            menu_item_id: item.menu_item_id
+        }));
+
+        // Guardar en localStorage
+        localStorage.setItem('order', JSON.stringify(orderItems));
+        localStorage.setItem('orderType', proforma.order_type || 'Comer aquí');
+        localStorage.setItem('orderNotes', proforma.notes || '');
+        localStorage.setItem('customerName', proforma.customer_name || '');
+        localStorage.setItem('customerPhone', proforma.customer_phone || '');
+        
+        // Marcar que estamos convirtiendo una proforma
+        localStorage.setItem('convertingProforma', 'true');
+        localStorage.setItem('proformaId', proformaId);
+        localStorage.setItem('proformaNotes', proforma.notes || '');
+
+        // 5. Mostrar notificación de éxito y redirigir
+        Swal.fire({
+            title: '¡Proforma Cargada!',
+            html: `
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-green-500 text-5xl"></i>
+                    </div>
+                    <p class="mb-3">La proforma se ha cargado exitosamente al sistema de pedidos.</p>
+                    <div class="bg-blue-50 p-4 rounded-lg mb-3">
+                        <p class="text-sm text-blue-800"><strong>Cliente:</strong> ${proforma.customer_name}</p>
+                        <p class="text-sm text-blue-800"><strong>Items cargados:</strong> ${orderItems.length}</p>
+                        <p class="text-sm text-blue-800"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                    </div>
+                    <p class="text-sm text-gray-600">Serás redirigido al menú para procesar el pago.</p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Ir al Menú',
+            confirmButtonColor: '#203363',
+            allowOutsideClick: false,
+            timer: 3000,
+            timerProgressBar: true
+        }).then(() => {
+            // Redirigir al menú con parámetro para abrir modal automáticamente
+            window.location.href = '<?php echo e(route("menu.index")); ?>?open_payment=true';
+        });
+
+    } catch (error) {
+        console.error('Error al convertir proforma:', error);
+        Swal.fire({
+            title: 'Error',
+            html: `
+                <p class="mb-2">No se pudo cargar la proforma:</p>
+                <p class="text-sm text-red-600">${error.message}</p>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#dc2626'
+        });
     }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const openPayment = urlParams.get('open_payment');
+    
+    if (openPayment === 'true') {
+        // Verificar que hay items en el pedido
+        const order = JSON.parse(localStorage.getItem('order')) || [];
+        const isConverting = localStorage.getItem('convertingProforma') === 'true';
+        
+        if (order.length > 0 && isConverting) {
+            // Esperar a que todo esté cargado
+            setTimeout(() => {
+                // Actualizar la vista del pedido
+                if (typeof updateOrderDetails === 'function') {
+                    updateOrderDetails();
+                }
+                
+                // Abrir el modal de pago
+                if (typeof showPaymentModal === 'function') {
+                    showPaymentModal();
+                    
+                    // Mostrar notificación en el modal
+                    setTimeout(() => {
+                        const proformaId = localStorage.getItem('proformaId');
+                        if (proformaId) {
+                            showProformaConversionBanner(proformaId);
+                        }
+                    }, 500);
+                }
+            }, 1000);
+        }
+        
+        // Limpiar el parámetro de la URL sin recargar
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+function showProformaConversionBanner(proformaId) {
+    const modalContent = document.querySelector('#payment-modal .payment-modal-content');
+    if (!modalContent) return;
+    
+    // Verificar si ya existe el banner
+    if (document.querySelector('.proforma-conversion-banner')) return;
+    
+    const infoBanner = document.createElement('div');
+    infoBanner.className = 'proforma-conversion-banner';
+    infoBanner.style.cssText = `
+        background: linear-gradient(135deg, #EF476F, #ff6b8a);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
+        animation: slideInDown 0.5s ease-out;
+    `;
+    
+    const convertingNotes = localStorage.getItem('proformaNotes') || '';
+    
+    infoBanner.innerHTML = `
+        <i class="fas fa-file-invoice" style="font-size: 1.8rem;"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">
+                🔄 Convirtiendo Proforma a Orden
+            </div>
+            <div style="font-size: 0.9rem; opacity: 0.95;">
+                Proforma ID: PROF-${proformaId}
+                ${convertingNotes ? ` • ${convertingNotes}` : ''}
+            </div>
+        </div>
+        <i class="fas fa-arrow-right" style="font-size: 1.3rem; animation: pulse 2s ease-in-out infinite;"></i>
+    `;
+    
+    modalContent.insertBefore(infoBanner, modalContent.firstChild);
+}
 </script>
 
 <style>
+    .swal-wide {
+    width: 600px !important;
+    max-width: 90% !important;
+}
+.swal2-html-container {
+    margin: 1em 0 !important;
+}
+/* Animación para el ícono de éxito */
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+    animation: checkmark 0.8s ease-in-out;
+}
     /* Estilos personalizados para la paginación */
     .pagination {
         display: flex;

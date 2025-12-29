@@ -998,32 +998,128 @@ function openOrderDetails(type, id) {
 }
 
 // Función para convertir proforma a orden
-function convertProformaToOrder(proformaId) {
-    if (confirm('¿Estás seguro de convertir esta proforma en una orden?')) {
-        fetch(`/proformas/${proformaId}/convert`, {
-            method: 'POST',
+// function convertProformaToOrder(proformaId) {
+//     if (confirm('¿Estás seguro de convertir esta proforma en una orden?')) {
+//         fetch(`/proformas/${proformaId}/convert`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+//             }
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 alert('Proforma convertida a orden exitosamente');
+//                 window.location.reload();
+//             } else {
+//                 alert('Error al convertir la proforma: ' + data.message);
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             alert('Ocurrió un error al procesar la solicitud');
+//         });
+//     }
+// }
+
+// Función para convertir proforma a orden con modal de pago
+async function convertProformaToOrder(proformaId) {
+    try {
+        // 1. Obtener los datos de la proforma
+        const response = await fetch(`/proformas/${proformaId}`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Proforma convertida a orden exitosamente');
-                window.location.reload();
-            } else {
-                alert('Error al convertir la proforma: ' + data.message);
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener la proforma');
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'Error al cargar la proforma');
+        }
+
+        const proforma = data.proforma;
+
+        // 2. Validar que puede ser convertida
+        if (!data.can_convert) {
+            let errorMsg = 'Esta proforma no puede ser convertida';
+            if (data.is_converted) {
+                errorMsg = 'Esta proforma ya fue convertida anteriormente';
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error al procesar la solicitud');
+            Swal.fire('No se puede convertir', errorMsg, 'warning');
+            return;
+        }
+
+        // 3. Cargar los items de la proforma en el pedido actual
+        const orderItems = proforma.items.map(item => ({
+            id: item.menu_item_id,
+            name: item.name,
+            price: parseFloat(item.price),
+            quantity: item.quantity,
+            menu_item_id: item.menu_item_id
+        }));
+
+        // Guardar en localStorage
+        localStorage.setItem('order', JSON.stringify(orderItems));
+        localStorage.setItem('orderType', proforma.order_type || 'Comer aquí');
+        localStorage.setItem('orderNotes', proforma.notes || '');
+        localStorage.setItem('customerName', proforma.customer_name || '');
+        localStorage.setItem('customerPhone', proforma.customer_phone || '');
+        
+        // Guardar información de conversión de proforma
+        localStorage.setItem('convertingProforma', 'true');
+        localStorage.setItem('proformaId', proformaId);
+        localStorage.setItem('proformaNotes', proforma.notes || '');
+
+        // 4. Actualizar la interfaz del pedido
+        if (typeof window.updateOrderDetails === 'function') {
+            window.updateOrderDetails();
+        }
+
+        // 5. Mostrar notificación
+        Swal.fire({
+            title: '¡Proforma Cargada!',
+            html: `
+                <p>La proforma ha sido cargada al sistema de pedidos.</p>
+                <p class="text-sm text-gray-600 mt-2">
+                    Cliente: <strong>${proforma.customer_name}</strong><br>
+                    Items: <strong>${orderItems.length}</strong><br>
+                    Total: <strong>$${parseFloat(proforma.total).toFixed(2)}</strong>
+                </p>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Proceder al Pago',
+            showCancelButton: true,
+            cancelButtonText: 'Ver Pedido',
+            confirmButtonColor: '#203363',
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Abrir el modal de pago
+                showPaymentModal();
+            } else {
+                // Redirigir al menú para ver el pedido
+                window.location.href = '<?php echo e(route("menu.index")); ?>';
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al convertir proforma:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'No se pudo cargar la proforma',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
         });
     }
 }
-
-
 
         // Mostrar todas las órdenes al cargar
 document.addEventListener('DOMContentLoaded', () => {

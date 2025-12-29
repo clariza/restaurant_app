@@ -1,5 +1,3 @@
-
-
 <!-- Overlay para el modal de cierre -->
 <div id="closure-internal-overlay" class="closure-overlay"></div>
 
@@ -67,7 +65,6 @@
                 <!-- Grid de Cierre (Denominaciones + Resumen) -->
                 <div class="closure-grid">
                     
-                    <!-- Columna 1: Tabla de denominaciones -->
                     <div class="denominations-section">
                         <div class="section-container">
                             <h4 class="section-title">Conteo de Efectivo en modal content</h4>
@@ -114,7 +111,6 @@
                         </div>
                     </div>
 
-                    <!-- Columna 2: Formulario de cierre -->
                     <div class="closure-form-section">
                         <div class="section-container">
                             <h4 class="section-title">Resumen de Cierre</h4>
@@ -269,7 +265,6 @@
     display: block !important;
     opacity: 1;
 }
-/* Modal - OCULTO POR DEFECTO */
 
     @keyframes fadeIn {
         from { opacity: 0; }

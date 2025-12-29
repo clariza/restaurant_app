@@ -2176,11 +2176,11 @@ async function saveTablesConfig() {
             }
 
             // Si las mesas fueron deshabilitadas, recargar la página
-            if (!toggleInput.checked) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
-            }
+            // if (!toggleInput.checked) {
+            //     setTimeout(() => {
+            //         window.location.reload();
+            //     }, 500);
+            // }
         }, 1500);
 
     } catch (error) {

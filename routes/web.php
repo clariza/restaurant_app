@@ -54,8 +54,21 @@ Route::middleware(['auth'])->group(function () {
         // Reportes
         Route::get('/low-stock', [InventoryController::class, 'lowStock'])->name('lowStock');
         Route::get('/report', [InventoryController::class, 'report'])->name('report');
-        // API: Obtener servicios de delivery activos (JSON)
+        // Listar proformas
+        Route::get('/proformas', [ProformaController::class, 'index'])
+            ->name('proformas.index');
 
+        // Ver proforma específica (para cargar en el sistema)
+        Route::get('/proformas/{id}', [ProformaController::class, 'show'])
+            ->name('proformas.show');
+
+        // Verificar si puede ser convertida
+        Route::get('/proformas/{id}/can-convert', [ProformaController::class, 'canBeConverted'])
+            ->name('proformas.can-convert');
+
+        // Marcar como convertida
+        Route::post('/proformas/{id}/mark-converted', [ProformaController::class, 'markAsConverted'])
+            ->name('proformas.mark-converted');
     });
 
     Route::get('/petty-cash/create', [PettyCashController::class, 'create'])
