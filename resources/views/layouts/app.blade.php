@@ -775,6 +775,16 @@
                             <i class="fas fa-chevron-down ml-auto transition-transform duration-300 arrow"></i>
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="configuracion-submenu">
+                             <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
+               href="{{ route('branches.index') }}">
+                <i class="fas fa-store mr-3"></i>
+                <span>Sucursales</span>
+            </a>
+                <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
+           href="{{ route('clients.index') }}">
+            <i class="fas fa-users mr-3"></i>
+            <span>Clientes</span>
+        </a>
                             <!-- Nuevo ítem para Inventario -->
                             <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('inventory.index') }}">
                                 <i class="fas fa-boxes mr-3"></i>

@@ -10,8 +10,9 @@ class Setting extends Model
     use HasFactory;
 
     protected $fillable = ['tables_enabled'];
-    
+
     protected $casts = [
         'tables_enabled' => 'boolean'
     ];
+    public $timestamps = true;
 }

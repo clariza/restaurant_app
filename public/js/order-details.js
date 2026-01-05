@@ -4,7 +4,17 @@ console.log('📦 order-details.js iniciando carga...');
 let paymentProcessed = false;
 let currentPrintContent = '';
 
+console.log('📋 order-details.js cargado');
 
+// Verificar estado inicial de mesas
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+        console.log('🔍 Estado inicial de mesas en order-details.js:', {
+            tablesManagementEnabled: window.tablesManagementEnabled,
+            tablesConfigState: window.tablesConfigState
+        });
+    }, 500);
+});
 
 console.log('📦 order-details.js: Funciones exportadas a window');
 if (typeof updateOrderDetails === 'undefined') {
@@ -356,32 +366,49 @@ function setOrderType(type) {
 
     console.log('✅ Tipo de pedido establecido:', type);
 }
-function showPaymentModal() {
+async function showPaymentModal() {
     const order = JSON.parse(localStorage.getItem('order')) || [];
     if (order.length === 0) {
         alert('No hay ítems en el pedido para realizar el pago');
         return;
     }
 
-    console.log('🔧 Intentando abrir modal de pago...');
+    console.log('🔧 Abriendo modal de pago...');
 
+    // 🔥 PRIMERO: Sincronizar estado de mesas ANTES de abrir el modal
+    await syncInitialTablesState();
+
+    // Abrir el modal
     if (typeof window.openPaymentModal === 'function') {
-        console.log('✅ Usando window.openPaymentModal');
         window.openPaymentModal();
     } else if (typeof openPaymentModal === 'function') {
-        console.log('✅ Usando openPaymentModal global');
         openPaymentModal();
     } else {
-        console.error('❌ Función openPaymentModal no encontrada');
         const modal = document.getElementById('payment-modal');
         if (modal) {
-            console.log('✅ Abriendo modal directamente');
             modal.classList.remove('hidden');
         } else {
             alert('Error: No se puede abrir el modal de pago.');
+            return;
         }
     }
+
+    // Esperar un momento para que el modal se renderice
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verificar y actualizar estado de mesas si "Comer aquí" está seleccionado
+    const selectedButton = document.querySelector('.order-type-btn.selected');
+    if (selectedButton && selectedButton.dataset.type === 'comer-aqui') {
+        console.log('🔄 Modal abierto con tipo "Comer aquí", verificando estado de mesas...');
+
+        // 🔥 Resetear locks antes de actualizar
+        _handlingTableVisibility = false;
+        _lastHandlingTime = 0;
+
+        await handleTableSelectionVisibility(true);
+    }
 }
+
 function syncOrderTypeWithModal(orderType) {
     console.log('🔄 Sincronizando tipo de pedido con modal:', orderType);
 
@@ -507,6 +534,13 @@ function closePaymentModal() {
     if (typeof window.paymentRows !== 'undefined') {
         window.paymentRows = [];
     }
+    // ✅ Limpiar flags
+    window._orderTypeButtonsConfigured = false;
+    window._tableVisibilityChecked = false;
+
+
+    // ✅ NUEVO: Limpiar bandera para permitir reconfiguración
+    window._orderTypeButtonsConfigured = false;
 
     console.log('✅ Modal de pago cerrado y limpiado');
 }
@@ -1891,7 +1925,15 @@ async function processOrder() {
         let tableNumber = null;
 
         if (orderType === 'Comer aquí') {
-            const tablesEnabled = window.tablesConfigState?.tablesEnabled || window.tablesEnabled || false;
+            // ✅ VERIFICAR SI LAS MESAS ESTÁN HABILITADAS
+            const tablesEnabled = window.tablesConfigState?.tablesEnabled ||
+                window.tablesManagementEnabled ||
+                false;
+
+            console.log('🪑 Estado de mesas:', {
+                tablesEnabled: tablesEnabled,
+                orderType: orderType
+            });
 
             if (tablesEnabled) {
                 // Intentar obtener desde diferentes fuentes
@@ -1911,7 +1953,7 @@ async function processOrder() {
 
                 console.log('🪑 Mesa seleccionada:', tableNumber);
 
-                // Validar que se haya seleccionado una mesa
+                // Validar que se haya seleccionado una mesa SOLO si están habilitadas
                 if (!tableNumber) {
                     throw new Error('Debe seleccionar una mesa para "Comer aquí"');
                 }
@@ -1927,6 +1969,10 @@ async function processOrder() {
                     console.error('Error al actualizar mesa:', error);
                     throw new Error(`No se pudo ocupar la mesa. ${error.message}`);
                 }
+            } else {
+                // ✅ Mesas deshabilitadas - permitir continuar sin mesa
+                console.log('⚠️ Mesas deshabilitadas - continuando sin asignación de mesa');
+                tableNumber = null;
             }
         }
 
@@ -2244,7 +2290,12 @@ async function updateTableState(tableId, newState) {
 
     if (!tablesEnabled) {
         console.log('ℹ️ Mesas deshabilitadas, saltando actualización de estado');
-        return { success: true };
+        return { success: true, message: 'Mesas deshabilitadas' };
+    }
+    // ✅ Si tableId es null o vacío, devolver éxito
+    if (!tableId) {
+        console.log('ℹ️ No hay tableId, saltando actualización');
+        return { success: true, message: 'Sin mesa asignada' };
     }
 
     try {
@@ -2692,20 +2743,24 @@ function updateModalSectionsVisibility() {
             if (tableSelection) {
                 console.log('✅ Mostrando selección de mesas en modal');
                 tableSelection.classList.remove('hidden');
-                loadModalTables();
+
+                _handlingTableVisibility = false;
+                _lastHandlingTime = 0;
+                handleTableSelectionVisibility(true);
             }
             break;
 
         case 'para-llevar':
             console.log('Para llevar');
+            if (tableSelection) tableSelection.classList.add('hidden');
             if (deliverySelection) {
-                console.log('✅ Mostrando selección de delivery en modal');
                 deliverySelection.classList.remove('hidden');
                 loadDeliveryServices();
             }
             break;
 
         case 'recoger':
+            if (tableSelection) tableSelection.classList.add('hidden');
             if (pickupNotes) {
                 console.log('✅ Mostrando notas para recoger en modal');
                 pickupNotes.classList.remove('hidden');
@@ -2842,11 +2897,26 @@ function validateStep1() {
     // Validaciones específicas según el tipo de pedido
     switch (orderType) {
         case 'comer-aqui':
-            // Validar que se haya seleccionado una mesa
-            const selectedTable = document.querySelector('#payment-modal .table-btn.selected');
-            if (!selectedTable) {
-                alert('Por favor, selecciona una mesa para "Comer aquí"');
-                return false;
+            // ✅ VERIFICAR SI LAS MESAS ESTÁN HABILITADAS ANTES DE VALIDAR
+            const tablesEnabled = window.tablesConfigState?.tablesEnabled ||
+                window.tablesManagementEnabled ||
+                false;
+
+            console.log('🔍 validateStep1 - Estado de mesas:', {
+                tablesEnabled: tablesEnabled,
+                orderType: 'comer-aqui'
+            });
+
+            // Solo validar mesa si las mesas están habilitadas
+            if (tablesEnabled) {
+                const selectedTable = document.querySelector('#payment-modal .table-btn.selected');
+                if (!selectedTable) {
+                    alert('Por favor, selecciona una mesa para "Comer aquí"');
+                    return false;
+                }
+                console.log('✅ Mesa seleccionada:', selectedTable.dataset.tableId);
+            } else {
+                console.log('⚠️ Mesas deshabilitadas - omitiendo validación de mesa en validateStep1');
             }
             break;
 
@@ -2861,6 +2931,7 @@ function validateStep1() {
 
         case 'recoger':
             // No hay validaciones adicionales para "Recoger"
+            console.log('✅ Tipo "Recoger" - sin validaciones adicionales');
             break;
 
         default:
@@ -2871,12 +2942,21 @@ function validateStep1() {
     return true;
 }
 
-async function loadModalTables() {
+async function loadModalTables(forceReload = false) {
     const tableGrid = document.getElementById('table-grid');
     const loadingElement = document.getElementById('table-loading');
     const errorElement = document.getElementById('table-error');
     const errorMessage = document.getElementById('table-error-message');
-
+    // ✅ Si ya se cargaron y no es forzado, saltar
+    if (window._modalTablesLoaded && !forceReload) {
+        console.log('ℹ️ Mesas ya cargadas, usando caché');
+        return;
+    }
+    // ✅ Si ya se está cargando, saltar
+    if (window._modalTablesLoading) {
+        console.log('⏸️ Ya se están cargando las mesas, saltando...');
+        return;
+    }
     if (!tableGrid) {
         console.error('❌ No se encontró table-grid');
         return;
@@ -2885,6 +2965,17 @@ async function loadModalTables() {
     // Mostrar loading
     if (loadingElement) loadingElement.classList.remove('hidden');
     if (errorElement) errorElement.classList.add('hidden');
+    window._modalTablesLoading = true;
+    if (!tableGrid) {
+        console.error('❌ No se encontró table-grid');
+        window._modalTablesLoading = false;
+        return;
+    }
+
+    // Mostrar loading
+    if (loadingElement) loadingElement.classList.remove('hidden');
+    if (errorElement) errorElement.classList.add('hidden');
+    tableGrid.innerHTML = '';
     tableGrid.innerHTML = '';
 
     try {
@@ -2911,6 +3002,7 @@ async function loadModalTables() {
 
         if (tables.length === 0) {
             tableGrid.innerHTML = '<div class="col-span-full text-center text-gray-500">No hay mesas configuradas</div>';
+            window._modalTablesLoaded = true;
             return;
         }
 
@@ -2962,9 +3054,11 @@ async function loadModalTables() {
         if (errorMessage) errorMessage.textContent = error.message;
         if (errorElement) errorElement.classList.remove('hidden');
         tableGrid.innerHTML = '<div class="col-span-full text-center text-red-500">Error al cargar las mesas</div>';
+        window._modalTablesLoaded = false;
     } finally {
         // Ocultar loading
         if (loadingElement) loadingElement.classList.add('hidden');
+        window._modalTablesLoading = false;
     }
 }
 function setupCustomerDetailsObserver() {
@@ -3162,6 +3256,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setupLogoutHandlers();
         setupTableSelectStyles();
         setupCustomerDetailsObserver();
+        setupOrderTypeButtons();
         // Solo establecer valores iniciales sin llamar funciones complejas
         const orderTypeInput = document.getElementById('order-type');
         if (orderTypeInput) {
@@ -3270,6 +3365,81 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+function debugTablesState() {
+    console.log('🔍 DEBUG - Estado actual de mesas:', {
+        tablesManagementEnabled: window.tablesManagementEnabled,
+        tablesConfigState: window.tablesConfigState,
+        modalTableSelection: {
+            hidden: document.getElementById('modal-table-selection')?.classList.contains('hidden'),
+            exists: !!document.getElementById('modal-table-selection')
+        },
+        tableGrid: {
+            hidden: document.getElementById('table-grid')?.classList.contains('hidden'),
+            exists: !!document.getElementById('table-grid')
+        },
+        tablesDisabledMessage: {
+            hidden: document.getElementById('tables-disabled-message')?.classList.contains('hidden'),
+            exists: !!document.getElementById('tables-disabled-message')
+        }
+    });
+}
+async function syncInitialTablesState() {
+    try {
+        console.log('🔄 Sincronizando estado inicial de mesas...');
+
+        // Obtener estado fresco del servidor
+        const tablesEnabled = await checkTablesEnabledStatus();
+
+        // Sincronizar TODAS las variables globales
+        window.tablesManagementEnabled = tablesEnabled;
+
+        if (!window.tablesConfigState) {
+            window.tablesConfigState = {};
+        }
+        window.tablesConfigState.tablesEnabled = tablesEnabled;
+
+        console.log('✅ Estado inicial sincronizado:', {
+            tablesManagementEnabled: window.tablesManagementEnabled,
+            tablesConfigState: window.tablesConfigState.tablesEnabled
+        });
+
+    } catch (error) {
+        console.error('❌ Error sincronizando estado inicial:', error);
+    }
+}
+document.addEventListener('DOMContentLoaded', async function () {
+    // Solo ejecutar si estamos en la página del menú
+    if (document.getElementById('order-panel')) {
+        // 🔥 PRIMERO: Sincronizar estado de mesas
+        await syncInitialTablesState();
+
+        // LUEGO: Inicializar todo lo demás
+        initializeOrderSystem();
+        setupEventListeners();
+        setupLogoutHandlers();
+        setupTableSelectStyles();
+        setupCustomerDetailsObserver();
+        setupOrderTypeButtons();
+
+        // Establecer valores iniciales
+        const orderTypeInput = document.getElementById('order-type');
+        if (orderTypeInput) {
+            orderTypeInput.value = 'Comer aquí';
+        }
+        localStorage.setItem('orderType', 'Comer aquí');
+
+        // Mostrar el pedido actual al cargar
+        updateOrderDetails();
+
+        // Verificar si ya se procesó un pago anteriormente
+        if (localStorage.getItem('paymentProcessed') === 'true') {
+            paymentProcessed = true;
+        }
+    }
+});
+
+// Exportar función de debug
+window.debugTablesState = debugTablesState;
 // ✅ Exportar funciones al scope global
 window.updateOrderDetails = updateOrderDetails;
 window.removeItem = removeItem;
@@ -3279,3 +3449,9 @@ window.initializeOrderSystem = initializeOrderSystem;
 window.processOrder = processOrder;
 window.checkStockAvailability = checkStockAvailability;
 window.updateTableState = updateTableState;
+window.handleTableSelectionVisibility = handleTableSelectionVisibility;
+window.showPaymentModal = showPaymentModal;
+window.saveTablesConfig = saveTablesConfig;
+window.checkTablesEnabledStatus = checkTablesEnabledStatus
+window.setupOrderTypeButtons = setupOrderTypeButtons;
+window.checkTablesEnabledStatus = checkTablesEnabledStatus;

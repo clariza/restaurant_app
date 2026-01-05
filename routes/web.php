@@ -17,6 +17,8 @@ use App\Http\Controllers\DeliveryServiceController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PettyCashController;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ClientController;
 
 // Redirección raíz
 Route::get('/', function () {
@@ -36,6 +38,25 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // RUTAS CON AUTENTICACIÓN (Sin caja chica)
 // ============================================
 Route::middleware(['auth'])->group(function () {
+
+    // Rutas de ADMIN (con middleware role:admin)
+    Route::middleware(['role:admin'])->prefix('branches')->name('branches.')->group(function () {
+        Route::get('create', [BranchController::class, 'create'])->name('create');
+        Route::post('/', [BranchController::class, 'store'])->name('store');
+        Route::get('{branch}/edit', [BranchController::class, 'edit'])->name('edit');
+        Route::put('{branch}', [BranchController::class, 'update'])->name('update');
+        Route::delete('{branch}', [BranchController::class, 'destroy'])->name('destroy');
+        Route::post('{branch}/toggle-status', [BranchController::class, 'toggleStatus'])->name('toggle-status');
+    });
+
+    // Rutas públicas de branches (solo lectura - para todos los autenticados)
+    Route::prefix('branches')->name('branches.')->group(function () {
+        Route::get('/', [BranchController::class, 'index'])->name('index');
+        Route::get('{branch}', [BranchController::class, 'show'])->name('show');
+    });
+    // Rutas protegidas (solo admin)
+
+    // ============================================
 
     Route::get('/petty-cash/closure-modal-content', [PettyCashController::class, 'closureModalContent'])
         ->name('petty-cash.closure-modal-content');
@@ -155,6 +176,7 @@ Route::middleware(['auth'])->group(function () {
     // --- SUPPLIERS ---
     Route::resource('suppliers', SupplierController::class);
 });
+
 // Rutas para el modal de caja chica desde el header
 Route::get('/petty-cash/get-open', [PettyCashController::class, 'getOpenPettyCash'])
     ->name('petty-cash.get-open');
@@ -216,6 +238,9 @@ Route::middleware(['auth', 'check.pettycash'])->group(function () {
     Route::post('/settings/update', [SettingController::class, 'update'])->name('settings.update');
 });
 
+Route::get('/settings/tables-status', [SettingController::class, 'getTablesStatus'])
+    ->name('settings.tables.status');
+
 // ============================================
 // RUTAS DE ADMINISTRADOR
 // ============================================
@@ -242,3 +267,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/purchases/product-details/{id}', [PurchaseController::class, 'getProductDetails'])
         ->name('purchases.productDetails');
 });
+// Rutas para Clientes
+Route::resource('clients', ClientController::class);
+Route::post('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus'])->name('clients.toggle-status');

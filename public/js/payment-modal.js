@@ -1,7 +1,60 @@
+(async function initializeTablesState() {
+    try {
+        console.log('🔄 Sincronizando estado inicial de mesas desde payment-modal.js...');
+
+        const response = await fetch('/settings/tables-status?t=' + Date.now(), {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener estado de mesas');
+        }
+
+        const data = await response.json();
+        const tablesEnabled = data.tables_enabled || false;
+
+        // Inicializar TODAS las variables globales con el mismo valor
+        window.tablesConfigState = {
+            tables: [],
+            isLoading: false,
+            tablesEnabled: tablesEnabled
+        };
+
+        window.tablesManagementEnabled = tablesEnabled;
+
+        console.log('✅ Estado inicial de mesas sincronizado desde JS:', {
+            tablesEnabled: tablesEnabled,
+            source: 'payment-modal.js'
+        });
+
+    } catch (error) {
+        console.error('❌ Error al sincronizar estado inicial:', error);
+
+        // Fallback: inicializar como deshabilitado
+        window.tablesConfigState = {
+            tables: [],
+            isLoading: false,
+            tablesEnabled: false
+        };
+
+        window.tablesManagementEnabled = false;
+
+        console.log('⚠️ Usando valor fallback: mesas deshabilitadas');
+    }
+})();
+
 // ============================================
 // VARIABLES GLOBALES
 // ============================================
 window.paymentRows = [];
+
 
 let paymentRowCounter = 0;
 let originalTablesEnabled = false;
@@ -2113,83 +2166,201 @@ async function handleBulkStateChange(event) {
 // ============================================
 
 async function saveTablesConfig() {
+    console.log('💾 Guardando configuración de mesas...');
+
     const toggleInput = document.getElementById('tables-enabled-input');
     const saveBtn = document.getElementById('save-tables-config');
+    const successMessage = document.getElementById('config-success-message');
+    const paymentModal = document.getElementById('payment-modal');
 
-    if (!toggleInput || !saveBtn) return;
+    if (!toggleInput || !saveBtn) {
+        console.error('❌ Elementos del formulario no encontrados');
+        return;
+    }
 
     const originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    saveBtn.classList.add('btn-loading');
 
-    try {
-        const formData = new FormData();
-        formData.append('tables_enabled', toggleInput.checked ? '1' : '0');
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+    const formData = new FormData();
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+    formData.append('tables_enabled', toggleInput.checked ? '1' : '0');
 
-        const response = await fetch('/settings/update', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        });
+    const tableRows = document.querySelectorAll('#tables-tbody tr');
+    const tablesData = [];
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Error al guardar la configuración');
+    tableRows.forEach(row => {
+        const tableId = row.dataset.tableId;
+        const stateSelect = row.querySelector('.table-state-select');
+        if (tableId && stateSelect) {
+            tablesData.push({
+                id: tableId,
+                state: stateSelect.value
+            });
         }
+    });
 
-        showSuccessMessage('✓ Configuración guardada correctamente');
+    formData.append('tables', JSON.stringify(tablesData));
 
-        // ✅ ACTUALIZAR ESTADO GLOBAL
-        window.tablesConfigState.tablesEnabled = toggleInput.checked;
+    fetch('/settings/update', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(async data => {
+            if (data.success) {
+                // ✅ CRÍTICO: Actualizar estado INMEDIATAMENTE
+                const newState = toggleInput.checked;
+                window.tablesManagementEnabled = newState;
 
-        setTimeout(() => {
-            closeTablesConfigModal();
-
-            // ✅ RECARGAR MESAS EN EL MODAL DE PAGO SI ESTÁ ABIERTO
-            const paymentModal = document.getElementById('payment-modal');
-            if (paymentModal && !paymentModal.classList.contains('hidden')) {
-                console.log('🔄 Modal de pago abierto, recargando mesas...');
-
-                // Si las mesas están habilitadas, recargar
-                if (toggleInput.checked) {
-                    loadModalTables();
-
-                    // Asegurarse de que la sección de mesas sea visible
-                    const tableSelection = document.getElementById('modal-table-selection');
-                    const orderType = window.paymentModalState?.selectedOrderType || 'comer-aqui';
-
-                    if (tableSelection && orderType === 'comer-aqui') {
-                        tableSelection.classList.remove('hidden');
-                    }
-                } else {
-                    // Si se deshabilitaron las mesas, ocultar la sección
-                    const tableSelection = document.getElementById('modal-table-selection');
-                    if (tableSelection) {
-                        tableSelection.classList.add('hidden');
-                    }
+                if (!window.tablesConfigState) {
+                    window.tablesConfigState = {};
                 }
+                window.tablesConfigState.tablesEnabled = newState;
+
+                // 🔥 Resetear TODAS las banderas
+                window._tableVisibilityChecked = false;
+                window._modalTablesLoaded = false;
+                window._orderTypeButtonsConfigured = false;
+                _handlingTableVisibility = false;
+                _lastHandlingTime = 0;
+
+                console.log('✅ Estado actualizado INMEDIATAMENTE:', {
+                    newState: newState,
+                    tablesManagementEnabled: window.tablesManagementEnabled,
+                    tablesConfigState: window.tablesConfigState.tablesEnabled
+                });
+
+                // Mostrar mensaje de éxito
+                if (successMessage) {
+                    const messageText = successMessage.querySelector('#success-message-text');
+                    if (messageText) {
+                        messageText.textContent = data.message || 'Configuración guardada exitosamente';
+                    }
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        successMessage.classList.remove('show');
+                    }, 3000);
+                }
+
+                // 🔥 SECCIÓN CORREGIDA: Actualizar modal de pago si está abierto
+                setTimeout(async () => {
+                    const selectedButton = document.querySelector('.order-type-btn.selected');
+
+                    // ✅ Solo actualizar si "Comer aquí" está seleccionado
+                    if (selectedButton && selectedButton.dataset.type === 'comer-aqui') {
+                        console.log('🔄 Actualizando visibilidad ANTES de cerrar modal...');
+                        await handleTableSelectionVisibility(true);
+                    }
+
+                    // Cerrar el modal de configuración
+                    closeTablesConfigModal();
+
+                    // Reconfigurar botones
+                    setupOrderTypeButtons();
+
+                    // ✅ CRÍTICO: Si modal de pago está abierto, actualizar contenido
+                    if (paymentModal && !paymentModal.classList.contains('hidden')) {
+                        console.log('🔄 Modal de pago abierto, actualizando contenido...');
+
+                        const tableSelection = document.getElementById('modal-table-selection');
+
+                        if (newState) {
+                            // ✅ Mesas HABILITADAS: Mostrar grid
+                            console.log('✅ Mesas habilitadas: mostrando grid');
+
+                            if (tableSelection) {
+                                tableSelection.classList.remove('hidden');
+                            }
+
+                            // Ocultar mensaje de deshabilitado
+                            const disabledMessage = document.getElementById('tables-disabled-message');
+                            if (disabledMessage) {
+                                disabledMessage.classList.add('hidden');
+                            }
+
+                            // Mostrar y cargar grid
+                            const tableGrid = document.getElementById('table-grid');
+                            if (tableGrid) {
+                                tableGrid.classList.remove('hidden');
+                                // Forzar recarga de mesas
+                                window._modalTablesLoaded = false;
+                                await loadModalTables(true);
+                            }
+
+                        } else {
+                            // ✅ Mesas DESHABILITADAS: Mostrar mensaje
+                            console.log('❌ Mesas deshabilitadas: mostrando mensaje');
+
+                            // ✅ MANTENER tableSelection VISIBLE (contiene el botón)
+                            if (tableSelection) {
+                                tableSelection.classList.remove('hidden');
+                            }
+
+                            // ✅ MOSTRAR mensaje de deshabilitado
+                            const disabledMessage = document.getElementById('tables-disabled-message');
+                            if (disabledMessage) {
+                                disabledMessage.classList.remove('hidden');
+                                console.log('✅ Mensaje de mesas deshabilitadas mostrado');
+                            }
+
+                            // ✅ OCULTAR grid de mesas
+                            const tableGrid = document.getElementById('table-grid');
+                            if (tableGrid) {
+                                tableGrid.classList.add('hidden');
+                                console.log('✅ Grid de mesas ocultado');
+                            }
+
+                            // ✅ Ocultar loading si existe
+                            const tableLoading = document.getElementById('table-loading');
+                            if (tableLoading) {
+                                tableLoading.classList.add('hidden');
+                            }
+                        }
+
+                        // ✅ Asegurar que el modal de pago permanezca visible
+                        paymentModal.classList.remove('hidden');
+                        paymentModal.style.display = 'flex';
+
+                        console.log('✅ Actualización completada, verificando estado final...');
+
+                        // Verificación final
+                        setTimeout(() => {
+                            const finalState = {
+                                tableSelection: !document.getElementById('modal-table-selection')?.classList.contains('hidden'),
+                                disabledMessage: !document.getElementById('tables-disabled-message')?.classList.contains('hidden'),
+                                tableGrid: !document.getElementById('table-grid')?.classList.contains('hidden'),
+                                configButton: !!document.querySelector('.tables-config-btn')
+                            };
+                            console.log('🔍 Estado final de elementos:', finalState);
+                        }, 100);
+                    }
+                }, 500);
+
+            } else {
+                throw new Error(data.message || 'Error al guardar la configuración');
             }
+        })
+        .catch(error => {
+            console.error('❌ Error:', error);
+            alert('Error al guardar la configuración: ' + error.message);
 
-            // Si las mesas fueron deshabilitadas, recargar la página
-            // if (!toggleInput.checked) {
-            //     setTimeout(() => {
-            //         window.location.reload();
-            //     }, 500);
-            // }
-        }, 1500);
-
-    } catch (error) {
-        console.error('❌ Error al guardar configuración:', error);
-        alert('Error: ' + error.message);
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = originalText;
-    }
+            if (paymentModal) {
+                paymentModal.classList.remove('hidden');
+                paymentModal.style.display = 'flex';
+            }
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+            saveBtn.classList.remove('btn-loading');
+        });
 }
 function showSuccessMessage(message) {
     const successEl = document.getElementById('config-success-message');
@@ -2768,6 +2939,391 @@ window.debugStep3 = function () {
 
     console.log('\n=== FIN DIAGNÓSTICO ===\n');
 };
+// ============================================
+// GESTIÓN DE CLIENTES EN MODAL DE PAGO
+// ============================================
+
+let clientsData = [];
+
+// Abrir modal de gestión de clientes
+function openClientsConfigModal() {
+    console.log('🔧 Abriendo modal de gestión de clientes...');
+
+    const modal = document.getElementById('clients-config-modal');
+    if (!modal) {
+        console.error('❌ Modal clients-config-modal no encontrado');
+        return;
+    }
+
+    modal.classList.add('show');
+    loadClientsFromDB();
+}
+
+// Cerrar modal de gestión de clientes
+function closeClientsConfigModal() {
+    const modal = document.getElementById('clients-config-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// Cargar clientes desde la base de datos
+async function loadClientsFromDB() {
+    const tbody = document.getElementById('clients-tbody');
+    const emptyState = document.getElementById('clients-empty-state');
+
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                <p class="text-gray-500">Cargando clientes...</p>
+            </td>
+        </tr>
+    `;
+
+    try {
+        const response = await fetch('/clients?json=1', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        clientsData = result.clients || result || [];
+
+        console.log('✅ Clientes cargados:', clientsData.length);
+
+        renderClientsTable(clientsData);
+
+    } catch (error) {
+        console.error('❌ Error al cargar clientes:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-2"></i>
+                    <p class="text-red-600">Error al cargar los clientes</p>
+                    <button onclick="loadClientsFromDB()" class="mt-2 text-sm text-blue-600 hover:underline">
+                        <i class="fas fa-redo mr-1"></i>Intentar de nuevo
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Renderizar tabla de clientes
+function renderClientsTable(clients) {
+    const tbody = document.getElementById('clients-tbody');
+    const emptyState = document.getElementById('clients-empty-state');
+
+    if (!tbody) return;
+
+    if (!clients || clients.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) {
+            emptyState.style.display = 'block';
+        }
+        return;
+    }
+
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+
+    tbody.innerHTML = clients.map(client => `
+        <tr data-client-id="${client.id}">
+            <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; background: #203363; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <strong>${client.full_name || client.name + ' ' + client.last_name}</strong>
+                        ${client.email ? `<br><small style="color: #6b7280;">${client.email}</small>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <strong>${client.document_type || 'N/A'}</strong>
+                ${client.document_number ? `<br><span style="font-family: monospace;">${client.document_number}</span>` : ''}
+            </td>
+            <td>
+                ${client.phone ? `<i class="fas fa-phone" style="color: #6b7280; margin-right: 6px;"></i>${client.phone}` : '<span style="color: #9ca3af;">Sin teléfono</span>'}
+            </td>
+            <td>
+                <span class="table-state-badge ${client.is_active ? 'disponible' : 'ocupada'}">
+                    ${client.is_active ? '✓ Activo' : '✗ Inactivo'}
+                </span>
+            </td>
+            <td>
+                <div class="table-actions">
+                    <button 
+                        class="table-action-btn edit" 
+                        onclick="selectClientForOrder(${client.id})"
+                        title="Seleccionar cliente"
+                    >
+                        <i class="fas fa-check"></i>
+                        Seleccionar
+                    </button>
+                    <button 
+                        class="table-action-btn edit" 
+                        onclick="openEditClientModal(${client.id})"
+                        title="Editar cliente"
+                    >
+                        <i class="fas fa-edit"></i>
+                        Editar
+                    </button>
+                    <button 
+                        class="table-action-btn delete" 
+                        onclick="confirmDeleteClient(${client.id}, '${client.name}')"
+                        title="Eliminar cliente"
+                    >
+                        <i class="fas fa-trash"></i>
+                        Eliminar
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Filtrar clientes
+function filterClients() {
+    const searchTerm = document.getElementById('clients-search').value.toLowerCase();
+
+    if (!searchTerm) {
+        renderClientsTable(clientsData);
+        return;
+    }
+
+    const filtered = clientsData.filter(client => {
+        const fullName = `${client.name} ${client.last_name}`.toLowerCase();
+        const docNumber = (client.document_number || '').toLowerCase();
+        const phone = (client.phone || '').toLowerCase();
+
+        return fullName.includes(searchTerm) ||
+            docNumber.includes(searchTerm) ||
+            phone.includes(searchTerm);
+    });
+
+    renderClientsTable(filtered);
+}
+
+// Seleccionar cliente para el pedido
+function selectClientForOrder(clientId) {
+    const client = clientsData.find(c => c.id === clientId);
+
+    if (!client) {
+        console.error('Cliente no encontrado');
+        return;
+    }
+
+    // Rellenar el formulario del paso 3
+    const nameInput = document.getElementById('modal-customer-name');
+    const emailInput = document.getElementById('modal-customer-email');
+    const phoneInput = document.getElementById('modal-customer-phone');
+
+    if (nameInput) nameInput.value = client.full_name || `${client.name} ${client.last_name}`;
+    if (emailInput) emailInput.value = client.email || '';
+    if (phoneInput) phoneInput.value = client.phone || '';
+
+    // Guardar en localStorage
+    localStorage.setItem('customerName', client.full_name || `${client.name} ${client.last_name}`);
+    localStorage.setItem('customerEmail', client.email || '');
+    localStorage.setItem('customerPhone', client.phone || '');
+    localStorage.setItem('selectedClientId', client.id);
+
+    // Cerrar modal
+    closeClientsConfigModal();
+
+    // Mostrar notificación
+    showSuccessMessage(`Cliente "${client.full_name || client.name}" seleccionado correctamente`);
+}
+
+// Abrir modal para crear cliente
+function openCreateClientModal() {
+    const modal = document.getElementById('create-client-modal');
+    const title = document.getElementById('create-client-title');
+    const form = document.getElementById('create-client-form');
+
+    if (!modal || !form) return;
+
+    form.reset();
+    document.getElementById('edit-client-id').value = '';
+
+    if (title) {
+        title.innerHTML = '<i class="fas fa-plus-circle"></i> Crear Nuevo Cliente';
+    }
+
+    modal.classList.add('show');
+}
+
+// Cerrar modal de crear/editar cliente
+function closeCreateClientModal() {
+    const modal = document.getElementById('create-client-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// Abrir modal para editar cliente
+function openEditClientModal(clientId) {
+    const client = clientsData.find(c => c.id === clientId);
+
+    if (!client) {
+        console.error('Cliente no encontrado');
+        return;
+    }
+
+    const modal = document.getElementById('create-client-modal');
+    const title = document.getElementById('create-client-title');
+
+    if (!modal) return;
+
+    // Rellenar formulario
+    document.getElementById('edit-client-id').value = client.id;
+    document.getElementById('client-name-input').value = client.name || '';
+    document.getElementById('client-lastname-input').value = client.last_name || '';
+    document.getElementById('client-doc-type-input').value = client.document_type || 'CI';
+    document.getElementById('client-doc-number-input').value = client.document_number || '';
+    document.getElementById('client-phone-input').value = client.phone || '';
+    document.getElementById('client-email-input').value = client.email || '';
+    document.getElementById('client-address-input').value = client.address || '';
+    document.getElementById('client-city-input').value = client.city || '';
+    document.getElementById('client-notes-input').value = client.notes || '';
+    document.getElementById('client-active-input').checked = client.is_active;
+
+    if (title) {
+        title.innerHTML = '<i class="fas fa-edit"></i> Editar Cliente';
+    }
+
+    modal.classList.add('show');
+}
+
+// Manejar creación/edición de cliente
+async function handleCreateClient(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const clientId = document.getElementById('edit-client-id').value;
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    const clientData = {
+        name: document.getElementById('client-name-input').value,
+        last_name: document.getElementById('client-lastname-input').value,
+        document_type: document.getElementById('client-doc-type-input').value,
+        document_number: document.getElementById('client-doc-number-input').value || null,
+        phone: document.getElementById('client-phone-input').value || null,
+        email: document.getElementById('client-email-input').value || null,
+        address: document.getElementById('client-address-input').value || null,
+        city: document.getElementById('client-city-input').value || null,
+        notes: document.getElementById('client-notes-input').value || null,
+        is_active: document.getElementById('client-active-input').checked,
+        _token: document.querySelector('meta[name="csrf-token"]')?.content || ''
+    };
+
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+    try {
+        const isEdit = clientId !== '';
+        const url = isEdit ? `/clients/${clientId}` : '/clients';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method === 'PUT' ? 'POST' : method, // Laravel necesita POST con _method
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': clientData._token,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(isEdit ? { ...clientData, _method: 'PUT' } : clientData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Error al guardar el cliente');
+        }
+
+        closeCreateClientModal();
+        showSuccessMessage(isEdit ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente');
+        await loadClientsFromDB();
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert('Error: ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Confirmar eliminación de cliente
+function confirmDeleteClient(clientId, clientName) {
+    if (confirm(`¿Estás seguro de eliminar al cliente "${clientName}"?\n\nEsta acción no se puede deshacer.`)) {
+        deleteClient(clientId);
+    }
+}
+
+// Eliminar cliente
+async function deleteClient(clientId) {
+    try {
+        const response = await fetch(`/clients/${clientId}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Error al eliminar el cliente');
+        }
+
+        showSuccessMessage('Cliente eliminado correctamente');
+        await loadClientsFromDB();
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert('Error: ' + error.message);
+    }
+}
+
+// Actualizar lista de clientes
+function refreshClientsList() {
+    loadClientsFromDB();
+}
+
+// Exponer funciones globalmente
+window.openClientsConfigModal = openClientsConfigModal;
+window.closeClientsConfigModal = closeClientsConfigModal;
+window.loadClientsFromDB = loadClientsFromDB;
+window.openCreateClientModal = openCreateClientModal;
+window.closeCreateClientModal = closeCreateClientModal;
+window.openEditClientModal = openEditClientModal;
+window.handleCreateClient = handleCreateClient;
+window.confirmDeleteClient = confirmDeleteClient;
+window.deleteClient = deleteClient;
+window.selectClientForOrder = selectClientForOrder;
+window.filterClients = filterClients;
+window.refreshClientsList = refreshClientsList;
+
+console.log('✅ Gestión de clientes cargada correctamente');
 
 window.updatePaymentRowFromSelect = updatePaymentRowFromSelect;
 window.updatePaymentRowFromInput = updatePaymentRowFromInput;

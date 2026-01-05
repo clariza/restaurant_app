@@ -6,15 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::table('proforma_items', function (Blueprint $table) {
-            $table->unsignedBigInteger('menu_item_id')->nullable()->after('proforma_id');
-            $table->foreign('menu_item_id')->references('id')->on('items')->onDelete('set null');
+            $table->foreignId('menu_item_id')
+                ->nullable()
+                ->constrained('menu_items') // Cambiar de 'items' a 'menu_items'
+                ->nullOnDelete();
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('proforma_items', function (Blueprint $table) {
             $table->dropForeign(['menu_item_id']);
