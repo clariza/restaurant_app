@@ -1784,8 +1784,9 @@ function calcularTotal() {
     return total.toFixed(2); // Retorna el total con 2 decimales
 }
 // Función para procesar el pedido
-// Función para procesar el pedido
 async function processOrder() {
+    const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
+    const proformaId = localStorage.getItem('proformaId');
     if (typeof syncPaymentRowsFromDOM === 'function') {
         syncPaymentRowsFromDOM();
     }
@@ -1910,8 +1911,7 @@ async function processOrder() {
         // 5. 🔥 OBTENER ID DE PROFORMA SI ESTÁ CONVIRTIENDO
         // ============================================
 
-        const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
-        const proformaId = localStorage.getItem('proformaId');
+
 
         console.log('🔍 Datos de conversión de proforma:', {
             isConverting: convertingFromProforma,

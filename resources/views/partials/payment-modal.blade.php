@@ -384,78 +384,172 @@
                     </div>
 
                     <!-- Formulario de Datos del Cliente -->
-                    <div class="customer-form-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <!-- Formulario de Datos del Cliente -->
+<div class="customer-form-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h4>
             <i class="fas fa-id-card"></i>
             Datos del Cliente
         </h4>
-        <button onclick="openClientsConfigModal()" 
-                class="clients-config-btn" 
-                type="button"
-                style="background: #203363; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-            <i class="fas fa-users"></i>
-            <span>Gestionar Clientes</span>
-        </button>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="openClientsConfigModal()" 
+                    class="clients-config-btn" 
+                    type="button"
+                    style="background: #203363; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                <i class="fas fa-users"></i>
+                <span>Gestionar Clientes</span>
+            </button>
+            <button onclick="saveCurrentClientToDatabase()" 
+                    class="clients-config-btn" 
+                    type="button"
+                    id="save-current-client-btn"
+                    style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                <i class="fas fa-save"></i>
+                <span>Guardar Cliente</span>
+            </button>
+        </div>
     </div>
-                        
-                        <form id="modal-customer-details-form">
-                            <div class="form-group">
-                                <label for="modal-customer-name" class="form-label required">
-                                    Nombre Completo
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="modal-customer-name" 
-                                    name="customer_name" 
-                                    class="form-input" 
-                                    placeholder="Ej: Juan Pérez"
-                                    required
-                                >
-                            </div>
+    
+    <form id="modal-customer-details-form">
+        <div class="form-group">
+            <label for="modal-customer-name" class="form-label required">
+                Nombre Completo
+            </label>
+            <input 
+                type="text" 
+                id="modal-customer-name" 
+                name="customer_name" 
+                class="form-input" 
+                placeholder="Ej: Juan Pérez"
+                required
+            >
+            <small style="display: block; margin-top: 4px; color: #6b7280; font-size: 0.8rem;">
+                <i class="fas fa-info-circle"></i>
+                Ingresa el nombre completo del cliente
+            </small>
+        </div>
 
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="modal-customer-email" class="form-label">
-                                        Correo Electrónico
-                                    </label>
-                                    <input 
-                                        type="email" 
-                                        id="modal-customer-email" 
-                                        name="customer_email" 
-                                        class="form-input" 
-                                        placeholder="ejemplo@correo.com"
-                                    >
-                                </div>
+        <div class="form-group-row">
+            <div class="form-group">
+                <label for="modal-customer-email" class="form-label">
+                    Correo Electrónico
+                </label>
+                <input 
+                    type="email" 
+                    id="modal-customer-email" 
+                    name="customer_email" 
+                    class="form-input" 
+                    placeholder="ejemplo@correo.com"
+                >
+            </div>
 
-                                <div class="form-group">
-                                    <label for="modal-customer-phone" class="form-label">
-                                        Teléfono
-                                    </label>
-                                    <input 
-                                        type="tel" 
-                                        id="modal-customer-phone" 
-                                        name="customer_phone" 
-                                        class="form-input" 
-                                        placeholder="7xxxxxxx"
-                                    >
-                                </div>
-                            </div>
+            <div class="form-group">
+                <label for="modal-customer-phone" class="form-label">
+                    Teléfono
+                </label>
+                <input 
+                    type="tel" 
+                    id="modal-customer-phone" 
+                    name="customer_phone" 
+                    class="form-input" 
+                    placeholder="+591 7xxxxxxx"
+                >
+            </div>
+        </div>
 
-                            <div class="form-group">
-                                <label for="modal-customer-notes" class="form-label">
-                                    Notas Adicionales
-                                </label>
-                                <textarea 
-                                    id="modal-customer-notes" 
-                                    name="customer_notes" 
-                                    class="form-input" 
-                                    rows="3"
-                                    placeholder="Alguna solicitud especial o detalle adicional..."
-                                ></textarea>
-                            </div>
-                        </form>
-                    </div>
+        <!-- NUEVA SECCIÓN: Documento de Identidad -->
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: #203363; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-id-card"></i>
+                Documento de Identidad (Opcional)
+            </h5>
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label for="modal-customer-doc-type" class="form-label">
+                        Tipo de Documento
+                    </label>
+                    <select id="modal-customer-doc-type" name="customer_doc_type" class="form-select">
+                        <option value="CI">CI - Carnet de Identidad</option>
+                        <option value="NIT">NIT</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-customer-doc-number" class="form-label">
+                        Número de Documento
+                    </label>
+                    <input 
+                        type="text" 
+                        id="modal-customer-doc-number" 
+                        name="customer_doc_number" 
+                        class="form-input" 
+                        placeholder="Ej: 1234567"
+                        style="font-family: monospace;"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- NUEVA SECCIÓN: Ubicación -->
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: #203363; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-map-marker-alt"></i>
+                Ubicación (Opcional)
+            </h5>
+            <div class="form-group">
+                <label for="modal-customer-address" class="form-label">
+                    Dirección
+                </label>
+                <input 
+                    type="text" 
+                    id="modal-customer-address" 
+                    name="customer_address" 
+                    class="form-input" 
+                    placeholder="Ej: Calle 123, Zona Centro"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="modal-customer-city" class="form-label">
+                    Ciudad
+                </label>
+                <input 
+                    type="text" 
+                    id="modal-customer-city" 
+                    name="customer_city" 
+                    class="form-input" 
+                    placeholder="Ej: La Paz"
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-customer-notes" class="form-label">
+                Notas Adicionales
+            </label>
+            <textarea 
+                id="modal-customer-notes" 
+                name="customer_notes" 
+                class="form-input" 
+                rows="3"
+                placeholder="Alguna solicitud especial o detalle adicional..."
+            ></textarea>
+        </div>
+
+        <!-- Indicador de cliente guardado -->
+        <div id="client-saved-indicator" style="display: none; background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                <div>
+                    <strong>Cliente guardado en la base de datos</strong>
+                    <br>
+                    <small id="saved-client-info">ID: <span id="saved-client-id"></span></small>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
                 </div>
 
                 <div class="step-actions">
@@ -3370,5 +3464,56 @@ window.addEventListener('load', function() {
     }
 }
 /* ✅ Asegurar que el mensaje y el botón siempre sean visibles cuando la sección está visible */
+/* Estilos para el botón de guardar cliente actual */
+#save-current-client-btn {
+    background: #10b981;
+    color: white;
+}
 
+#save-current-client-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+#save-current-client-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Indicador de cliente guardado */
+#client-saved-indicator {
+    animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilo para campos opcionales */
+.form-label::after {
+    content: '';
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: #ef4444;
+}
+
+/* Secciones del formulario */
+#modal-customer-details-form > div[style*="background: #f8fafc"] {
+    transition: all 0.2s ease;
+}
+
+#modal-customer-details-form > div[style*="background: #f8fafc"]:hover {
+    background: #f1f5f9 !important;
+}
     </style>

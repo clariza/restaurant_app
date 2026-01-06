@@ -2432,22 +2432,20 @@ async function confirmAndProcessOrder() {
 
     syncPaymentRowsFromDOM();
 
-    console.log('📦 window.paymentRows actual:', window.paymentRows);
-
-    // ✅ VALIDACIÓN CRÍTICA
     if (!window.paymentRows || window.paymentRows.length === 0) {
         alert('Error: No hay métodos de pago registrados. Por favor regresa al Paso 2 y agrega un método de pago.');
-        console.error('❌ No hay métodos de pago en window.paymentRows');
         return;
     }
-    // Validar que todos los métodos tengan datos válidos
+
     const validPayments = window.paymentRows.filter(row =>
         row.method && row.amount > 0
     );
+
     if (validPayments.length === 0) {
         alert('Por favor completa todos los métodos de pago con método y monto válido');
         return;
     }
+
     // Validar formulario de cliente
     const customerName = document.getElementById('modal-customer-name')?.value?.trim();
 
@@ -2456,12 +2454,17 @@ async function confirmAndProcessOrder() {
         return;
     }
 
-    // Recopilar datos del cliente
+    // Recopilar TODOS los datos del cliente (incluyendo los nuevos campos)
     const customerData = {
         name: customerName,
         email: document.getElementById('modal-customer-email')?.value?.trim() || '',
         phone: document.getElementById('modal-customer-phone')?.value?.trim() || '',
-        notes: document.getElementById('modal-customer-notes')?.value?.trim() || ''
+        notes: document.getElementById('modal-customer-notes')?.value?.trim() || '',
+        document_type: document.getElementById('modal-customer-doc-type')?.value || 'CI',
+        document_number: document.getElementById('modal-customer-doc-number')?.value?.trim() || '',
+        address: document.getElementById('modal-customer-address')?.value?.trim() || '',
+        city: document.getElementById('modal-customer-city')?.value?.trim() || '',
+        client_id: localStorage.getItem('selectedClientId') || null // ID si ya fue guardado
     };
 
     // Preparar métodos de pago
@@ -2472,6 +2475,7 @@ async function confirmAndProcessOrder() {
     }));
 
     console.log('💳 Métodos de pago preparados:', paymentMethods);
+    console.log('👤 Datos del cliente:', customerData);
 
     // Guardar en localStorage
     localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
@@ -3308,6 +3312,227 @@ async function deleteClient(clientId) {
 function refreshClientsList() {
     loadClientsFromDB();
 }
+// ============================================
+// GUARDAR CLIENTE ACTUAL DEL FORMULARIO
+// ============================================
+
+async function saveCurrentClientToDatabase() {
+    console.log('💾 Guardando cliente actual del formulario...');
+
+    // Obtener datos del formulario
+    const customerName = document.getElementById('modal-customer-name')?.value?.trim();
+    const customerEmail = document.getElementById('modal-customer-email')?.value?.trim();
+    const customerPhone = document.getElementById('modal-customer-phone')?.value?.trim();
+    const customerDocType = document.getElementById('modal-customer-doc-type')?.value;
+    const customerDocNumber = document.getElementById('modal-customer-doc-number')?.value?.trim();
+    const customerAddress = document.getElementById('modal-customer-address')?.value?.trim();
+    const customerCity = document.getElementById('modal-customer-city')?.value?.trim();
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim();
+
+    // Validar nombre completo (requerido)
+    if (!customerName) {
+        alert('⚠️ Por favor ingresa el nombre completo del cliente antes de guardar');
+        document.getElementById('modal-customer-name')?.focus();
+        return;
+    }
+
+    // Separar nombre y apellido
+    const nameParts = customerName.split(' ');
+    let firstName = '';
+    let lastName = '';
+
+    if (nameParts.length === 1) {
+        firstName = nameParts[0];
+        lastName = '';
+    } else if (nameParts.length === 2) {
+        firstName = nameParts[0];
+        lastName = nameParts[1];
+    } else {
+        // Si tiene más de 2 palabras, tomar la primera como nombre y el resto como apellido
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ');
+    }
+
+    // Construir objeto de datos
+    const clientData = {
+        name: firstName,
+        last_name: lastName,
+        document_type: customerDocType || 'CI',
+        document_number: customerDocNumber || null,
+        phone: customerPhone || null,
+        email: customerEmail || null,
+        address: customerAddress || null,
+        city: customerCity || null,
+        notes: customerNotes || null,
+        is_active: true,
+        _token: document.querySelector('meta[name="csrf-token"]')?.content || ''
+    };
+
+    console.log('📤 Datos a enviar:', clientData);
+
+    // Obtener botón y mostrar loading
+    const saveBtn = document.getElementById('save-current-client-btn');
+    const originalBtnContent = saveBtn?.innerHTML;
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    }
+
+    try {
+        const response = await fetch('/clients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': clientData._token,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(clientData)
+        });
+
+        console.log('📡 Respuesta HTTP:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('📥 Respuesta del servidor:', result);
+
+        if (!result.success) {
+            throw new Error(result.message || 'Error al guardar el cliente');
+        }
+
+        // ✅ Cliente guardado exitosamente
+        const clientId = result.client?.id || result.id;
+
+        // Guardar el ID en localStorage
+        localStorage.setItem('selectedClientId', clientId);
+
+        // Mostrar indicador de éxito
+        showClientSavedIndicator(clientId, customerName);
+
+        // Mostrar notificación
+        showSuccessMessage(`✅ Cliente "${customerName}" guardado correctamente (ID: ${clientId})`);
+
+        // Actualizar la lista de clientes si el modal está abierto
+        const clientsModal = document.getElementById('clients-config-modal');
+        if (clientsModal && clientsModal.classList.contains('show')) {
+            await loadClientsFromDB();
+        }
+
+        console.log('✅ Cliente guardado exitosamente');
+
+    } catch (error) {
+        console.error('❌ Error al guardar cliente:', error);
+        alert(`❌ Error al guardar el cliente:\n${error.message}`);
+    } finally {
+        // Restaurar botón
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnContent;
+        }
+    }
+}
+
+// Mostrar indicador de que el cliente fue guardado
+function showClientSavedIndicator(clientId, clientName) {
+    const indicator = document.getElementById('client-saved-indicator');
+    const savedIdSpan = document.getElementById('saved-client-id');
+
+    if (indicator && savedIdSpan) {
+        savedIdSpan.textContent = clientId;
+        indicator.style.display = 'block';
+
+        // Agregar animación
+        indicator.style.animation = 'slideInDown 0.4s ease-out';
+
+        // Opcional: ocultar después de unos segundos
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+            indicator.style.transition = 'opacity 0.5s ease';
+
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                indicator.style.opacity = '1';
+            }, 500);
+        }, 5000);
+    }
+}
+
+// Limpiar indicador de cliente guardado
+function clearClientSavedIndicator() {
+    const indicator = document.getElementById('client-saved-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// Modificar la función selectClientForOrder para incluir más campos
+function selectClientForOrder(clientId) {
+    const client = clientsData.find(c => c.id === clientId);
+
+    if (!client) {
+        console.error('Cliente no encontrado');
+        return;
+    }
+
+    // Rellenar TODOS los campos del formulario
+    const nameInput = document.getElementById('modal-customer-name');
+    const emailInput = document.getElementById('modal-customer-email');
+    const phoneInput = document.getElementById('modal-customer-phone');
+    const docTypeInput = document.getElementById('modal-customer-doc-type');
+    const docNumberInput = document.getElementById('modal-customer-doc-number');
+    const addressInput = document.getElementById('modal-customer-address');
+    const cityInput = document.getElementById('modal-customer-city');
+    const notesInput = document.getElementById('modal-customer-notes');
+
+    const fullName = client.full_name || `${client.name} ${client.last_name}`;
+
+    if (nameInput) nameInput.value = fullName;
+    if (emailInput) emailInput.value = client.email || '';
+    if (phoneInput) phoneInput.value = client.phone || '';
+    if (docTypeInput) docTypeInput.value = client.document_type || 'CI';
+    if (docNumberInput) docNumberInput.value = client.document_number || '';
+    if (addressInput) addressInput.value = client.address || '';
+    if (cityInput) cityInput.value = client.city || '';
+    if (notesInput) notesInput.value = client.notes || '';
+
+    // Guardar en localStorage
+    localStorage.setItem('customerName', fullName);
+    localStorage.setItem('customerEmail', client.email || '');
+    localStorage.setItem('customerPhone', client.phone || '');
+    localStorage.setItem('selectedClientId', client.id);
+
+    // Mostrar indicador de que el cliente ya está en BD
+    showClientSavedIndicator(client.id, fullName);
+
+    // Cerrar modal
+    closeClientsConfigModal();
+
+    // Mostrar notificación
+    showSuccessMessage(`Cliente "${fullName}" seleccionado correctamente`);
+}
+
+// Agregar listener para limpiar el indicador cuando se cambie el nombre
+document.addEventListener('DOMContentLoaded', function () {
+    const nameInput = document.getElementById('modal-customer-name');
+    if (nameInput) {
+        nameInput.addEventListener('input', function () {
+            // Si el usuario modifica el nombre, ocultar el indicador
+            clearClientSavedIndicator();
+        });
+    }
+});
+
+// Exponer funciones globalmente
+window.saveCurrentClientToDatabase = saveCurrentClientToDatabase;
+window.showClientSavedIndicator = showClientSavedIndicator;
+window.clearClientSavedIndicator = clearClientSavedIndicator;
+
+console.log('✅ Función de guardar cliente desde formulario cargada');
 
 // Exponer funciones globalmente
 window.openClientsConfigModal = openClientsConfigModal;
