@@ -374,7 +374,17 @@ async function showPaymentModal() {
     }
 
     console.log('🔧 Abriendo modal de pago...');
+    const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
+    const proformaId = localStorage.getItem('proformaId');
 
+    console.log('🔍 Estado al abrir modal:', {
+        convertingFromProforma: convertingFromProforma,
+        proformaId: proformaId
+    });
+    if (convertingFromProforma && !proformaId) {
+        console.warn('⚠️ Limpiando banderas inconsistentes');
+        clearProformaConversionFlags();
+    }
     // 🔥 PRIMERO: Sincronizar estado de mesas ANTES de abrir el modal
     await syncInitialTablesState();
 
@@ -519,6 +529,13 @@ function increaseItemQuantity(index) {
 // Función para cerrar el modal de pago
 function closePaymentModal() {
     const modal = document.getElementById('payment-modal');
+    modal.classList.add('hidden');
+    currentStep = 1;
+
+    // ✅ LIMPIAR window.paymentRows correctamente
+    window.paymentRows = [];
+    selectedTable = null;
+    selectedDeliveryService = null;
     if (modal) {
         modal.classList.add('hidden');
     }
@@ -537,7 +554,13 @@ function closePaymentModal() {
     // ✅ Limpiar flags
     window._orderTypeButtonsConfigured = false;
     window._tableVisibilityChecked = false;
+    const orderWasProcessed = localStorage.getItem('orderProcessed') === 'true';
+    if (!orderWasProcessed) {
+        console.log('⚠️ Modal cerrado sin confirmar pedido, limpiando banderas');
+        clearProformaConversionFlags();
+    }
 
+    console.log('✅ Modal cerrado y paymentRows limpiado');
 
     // ✅ NUEVO: Limpiar bandera para permitir reconfiguración
     window._orderTypeButtonsConfigured = false;
@@ -1787,6 +1810,16 @@ function calcularTotal() {
 async function processOrder() {
     const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
     const proformaId = localStorage.getItem('proformaId');
+    console.log('🔍 Estado de conversión al procesar:', {
+        convertingFromProforma: convertingFromProforma,
+        proformaId: proformaId,
+        hasProformaId: !!proformaId
+    });
+    if (convertingFromProforma && !proformaId) {
+        console.warn('⚠️ Inconsistencia detectada: convertingFromProforma es true pero no hay proformaId');
+        localStorage.removeItem('convertingFromProforma');
+        localStorage.removeItem('proformaNotes');
+    }
     if (typeof syncPaymentRowsFromDOM === 'function') {
         syncPaymentRowsFromDOM();
     }
@@ -2031,7 +2064,11 @@ async function processOrder() {
             // 🔥 CRÍTICO: Agregar ID de proforma si está convirtiendo
             converting_from_proforma: (convertingFromProforma && proformaId) ? parseInt(proformaId) : null
         };
-
+        console.log('📤 Datos a enviar (incluyendo proforma):', {
+            converting_from_proforma: requestData.converting_from_proforma,
+            convertingFromProforma: convertingFromProforma,
+            proformaId: proformaId
+        });
         console.log('📤 Datos a enviar al servidor (incluyendo proforma):', requestData);
 
         // ============================================
@@ -2089,13 +2126,17 @@ async function processOrder() {
             localStorage.removeItem('deliveryService');
             localStorage.removeItem('pickupNotes');
 
+            localStorage.removeItem('convertingProforma');
+            localStorage.removeItem('proformaId');
+            localStorage.removeItem('proformaNotes');
+            console.log('🧹 Datos de conversión de proforma limpiados');
             // 🔥 IMPORTANTE: Limpiar datos de conversión de proforma
-            if (convertingFromProforma) {
-                localStorage.removeItem('convertingProforma');
-                localStorage.removeItem('proformaId');
-                localStorage.removeItem('proformaNotes');
-                console.log('🧹 Datos de conversión de proforma limpiados');
-            }
+            // if (convertingFromProforma) {
+            //     localStorage.removeItem('convertingProforma');
+            //     localStorage.removeItem('proformaId');
+            //     localStorage.removeItem('proformaNotes');
+            //     console.log('🧹 Datos de conversión de proforma limpiados');
+            // }
 
             // Limpiar variables globales
             if (window.paymentRows) {
@@ -2124,6 +2165,11 @@ async function processOrder() {
 
     } catch (error) {
         console.error('❌ Error en processOrder:', error);
+        // 🔥 En caso de error, limpiar banderas de conversión
+        localStorage.removeItem('convertingProforma');
+        localStorage.removeItem('proformaId');
+        localStorage.removeItem('proformaNotes');
+
         alert(`Error al procesar el pedido:\n${error.message}`);
 
         // Rehabilitar interfaz si hay error
@@ -3165,8 +3211,14 @@ function checkProformaConversion() {
 
         const order = JSON.parse(localStorage.getItem('order')) || [];
         const isConverting = localStorage.getItem('convertingProforma') === 'true';
+        const proformaId = localStorage.getItem('proformaId');
+        if (!isConverting || !proformaId) {
+            console.warn('⚠️ Banderas de conversión inválidas, limpiando');
+            clearProformaConversionFlags();
+            return;
+        }
 
-        if (order.length > 0 && isConverting) {
+        if (order.length > 0 && isConverting && proformaId) {
             console.log('✅ Abriendo modal automáticamente...');
 
             setTimeout(() => {
@@ -3437,7 +3489,26 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 });
+function clearProformaConversionFlags() {
+    console.log('🧹 Limpiando banderas de conversión de proforma');
+    localStorage.removeItem('convertingProforma');
+    localStorage.removeItem('proformaId');
+    localStorage.removeItem('proformaNotes');
+}
+function debugProformaConversion() {
+    console.log('🔍 === DEBUG CONVERSIÓN DE PROFORMA ===');
+    console.log('convertingProforma:', localStorage.getItem('convertingProforma'));
+    console.log('proformaId:', localStorage.getItem('proformaId'));
+    console.log('proformaNotes:', localStorage.getItem('proformaNotes'));
+    console.log('order:', JSON.parse(localStorage.getItem('order') || '[]').length, 'items');
+    console.log('===================================');
+}
 
+// Exportar
+window.debugProformaConversion = debugProformaConversion;
+
+// Exportar la función
+window.clearProformaConversionFlags = clearProformaConversionFlags;
 // Exportar función de debug
 window.debugTablesState = debugTablesState;
 // ✅ Exportar funciones al scope global

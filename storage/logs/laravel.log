@@ -11384,3 +11384,8 @@ Stack trace:
 [2026-01-06 02:08:34] local.INFO: ✅ Sale creada: {"sale_id":1,"transaction_number":"7888889"} 
 [2026-01-06 02:08:34] local.INFO: ℹ️ No se está convirtiendo desde proforma  
 [2026-01-06 02:08:34] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":1,"proforma_converted":false} 
+[2026-01-07 03:36:56] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"all_data":{"customer_name":"Gloria Estefan","customer_email":null,"customer_phone":null,"order_type":"Recoger","table_number":null,"delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"quantity\":1}]","payment_method":"QR","transaction_number":"66666668","payment_methods":[{"method":"QR","amount":20,"transaction_number":"66666668"}],"converting_from_proforma":null}} 
+[2026-01-07 03:36:56] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"type":"NULL"} 
+[2026-01-07 03:36:56] local.INFO: ✅ Sale creada: {"sale_id":2,"transaction_number":"66666668"} 
+[2026-01-07 03:36:56] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-01-07 03:36:56] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":2,"proforma_converted":false} 

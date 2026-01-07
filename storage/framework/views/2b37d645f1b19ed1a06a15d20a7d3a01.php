@@ -366,6 +366,9 @@
     
     // Función para convertir proforma a orden
 async function convertToOrder(proformaId) {
+    localStorage.removeItem('convertingProforma');
+    localStorage.removeItem('proformaId');
+    localStorage.removeItem('proformaNotes');
     try {
         // Mostrar loader inicial
         Swal.fire({
@@ -376,7 +379,11 @@ async function convertToOrder(proformaId) {
                 Swal.showLoading();
             }
         });
-
+         if (!confirmResult.isConfirmed) {
+            // 🔥 Usuario canceló, NO establecer banderas
+            console.log('❌ Usuario canceló conversión');
+            return;
+        }
         // 1. Obtener los datos de la proforma
         const response = await fetch(`/proformas/${proformaId}`, {
             method: 'GET',
@@ -509,6 +516,9 @@ async function convertToOrder(proformaId) {
 
     } catch (error) {
         console.error('Error al convertir proforma:', error);
+        localStorage.removeItem('convertingProforma');
+        localStorage.removeItem('proformaId');
+        localStorage.removeItem('proformaNotes');
         Swal.fire({
             title: 'Error',
             html: `
