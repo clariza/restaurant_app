@@ -3002,7 +3002,19 @@ async function loadClientsFromDB() {
         }
 
         const result = await response.json();
-        clientsData = result.clients || result || [];
+        let clientsArray = [];
+
+        if (result.clients && result.clients.data) {
+            // Si viene paginado (estructura de Laravel)
+            clientsArray = result.clients.data;
+        } else if (Array.isArray(result.clients)) {
+            // Si viene como array directo
+            clientsArray = result.clients;
+        } else if (Array.isArray(result)) {
+            // Si el resultado es directamente el array
+            clientsArray = result;
+        }
+        clientsData = clientsArray;
 
         console.log('✅ Clientes cargados:', clientsData.length);
 
@@ -3024,6 +3036,7 @@ async function loadClientsFromDB() {
     }
 }
 
+// Renderizar tabla de clientes
 // Renderizar tabla de clientes
 function renderClientsTable(clients) {
     const tbody = document.getElementById('clients-tbody');
@@ -3073,10 +3086,9 @@ function renderClientsTable(clients) {
                     <button 
                         class="table-action-btn edit" 
                         onclick="selectClientForOrder(${client.id})"
-                        title="Seleccionar cliente"
+                        title="Seleccionar cliente para el pedido"
                     >
                         <i class="fas fa-check"></i>
-                        Seleccionar
                     </button>
                     <button 
                         class="table-action-btn edit" 
@@ -3084,15 +3096,13 @@ function renderClientsTable(clients) {
                         title="Editar cliente"
                     >
                         <i class="fas fa-edit"></i>
-                        Editar
                     </button>
                     <button 
                         class="table-action-btn delete" 
-                        onclick="confirmDeleteClient(${client.id}, '${client.name}')"
+                        onclick="confirmDeleteClient(${client.id}, '${(client.name || '').replace(/'/g, "\\'")}')"
                         title="Eliminar cliente"
                     >
                         <i class="fas fa-trash"></i>
-                        Eliminar
                     </button>
                 </div>
             </td>
