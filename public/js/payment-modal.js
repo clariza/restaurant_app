@@ -865,6 +865,448 @@ function updateNoPaymentsMessage() {
         message.style.display = 'none';
     }
 }
+/**
+ * Agregar una nueva fila de gasto en el modal de cierre
+ */
+function addExpenseModalClosure() {
+    console.log('➕ Agregando nueva fila de gasto en modal de cierre...');
+
+    const container = document.getElementById('expensesContainerClosure');
+
+    if (!container) {
+        console.error('❌ No se encontró expensesContainerClosure');
+        return;
+    }
+
+    // Crear nueva fila de gasto
+    const expenseRow = document.createElement('div');
+    expenseRow.className = 'expense-row';
+
+    expenseRow.innerHTML = `
+        <div class="expense-field">
+            <input type="text" 
+                   class="expense-input" 
+                   placeholder="Nombre del gasto" 
+                   name="expense_name[]"
+                   autocomplete="off">
+        </div>
+        <div class="expense-field">
+            <input type="text" 
+                   class="expense-input" 
+                   placeholder="Descripción/Categoría" 
+                   name="expense_description[]"
+                   autocomplete="off">
+        </div>
+        <div class="expense-field">
+            <input type="number" 
+                   class="expense-input" 
+                   placeholder="Monto" 
+                   step="0.01" 
+                   min="0" 
+                   name="expense_amount[]"
+                   autocomplete="off"
+                   oninput="actualizarTotalGastosClosure()">
+        </div>
+        <div class="expense-actions">
+            <button type="button" 
+                    class="btn btn-danger" 
+                    onclick="removeExpenseClosure(this)"
+                    aria-label="Eliminar gasto">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    // Agregar animación de entrada
+    expenseRow.style.opacity = '0';
+    expenseRow.style.transform = 'translateY(-10px)';
+
+    container.appendChild(expenseRow);
+
+    // Animar entrada
+    setTimeout(() => {
+        expenseRow.style.transition = 'all 0.3s ease';
+        expenseRow.style.opacity = '1';
+        expenseRow.style.transform = 'translateY(0)';
+    }, 10);
+
+    console.log('✅ Nueva fila de gasto agregada');
+
+    // Scroll al final del contenedor
+    container.scrollTop = container.scrollHeight;
+}
+/**
+ * Eliminar una fila de gasto del modal de cierre
+ */
+function removeExpenseClosure(button) {
+    console.log('🗑️ Eliminando fila de gasto...');
+
+    const expenseRow = button.closest('.expense-row');
+    const container = document.getElementById('expensesContainerClosure');
+
+    if (!expenseRow) {
+        console.error('❌ No se encontró la fila de gasto');
+        return;
+    }
+
+    // Verificar que no sea la única fila
+    const totalRows = container.querySelectorAll('.expense-row').length;
+
+    if (totalRows === 1) {
+        // Si es la única fila, limpiar los campos en lugar de eliminar
+        const inputs = expenseRow.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+
+        console.log('ℹ️ Se limpiaron los campos de la única fila existente');
+        showNotification('No se puede eliminar la última fila. Se limpiaron los campos.', 'info');
+
+        // Actualizar total de gastos
+        actualizarTotalGastosClosure();
+        return;
+    }
+
+    // Animar salida
+    expenseRow.style.transition = 'all 0.3s ease';
+    expenseRow.style.opacity = '0';
+    expenseRow.style.transform = 'translateX(-20px)';
+
+    setTimeout(() => {
+        expenseRow.remove();
+        console.log('✅ Fila de gasto eliminada');
+
+        // Actualizar total de gastos después de eliminar
+        actualizarTotalGastosClosure();
+    }, 300);
+}
+/**
+ * Actualizar el total de gastos en el modal de cierre
+ */
+function actualizarTotalGastosClosure() {
+    console.log('🔄 Actualizando total de gastos...');
+
+    const container = document.getElementById('expensesContainerClosure');
+    const totalGastosInput = document.getElementById('total-gastos-closure');
+
+    if (!container || !totalGastosInput) {
+        console.error('❌ No se encontraron elementos necesarios');
+        return;
+    }
+
+    // Obtener todos los inputs de montos
+    const amountInputs = container.querySelectorAll('input[name="expense_amount[]"]');
+
+    let totalGastos = 0;
+
+    amountInputs.forEach(input => {
+        const amount = parseFloat(input.value) || 0;
+        totalGastos += amount;
+    });
+
+    // Obtener gastos existentes de la BD (si existen)
+    const gastosExistentesBD = parseFloat(totalGastosInput.dataset.gastosBd) || 0;
+
+    // Sumar gastos nuevos + gastos de BD
+    const totalFinal = totalGastos + gastosExistentesBD;
+
+    // Actualizar input
+    totalGastosInput.value = totalFinal.toFixed(2);
+
+    console.log('💰 Total gastos actualizado:', {
+        nuevosGastos: totalGastos.toFixed(2),
+        gastosExistentes: gastosExistentesBD.toFixed(2),
+        totalFinal: totalFinal.toFixed(2)
+    });
+
+    // Actualizar cálculos de cierre (si existe la función)
+    if (typeof actualizarCalculosCierre === 'function') {
+        actualizarCalculosCierre();
+    }
+}
+/**
+ * Validar gastos antes de guardar el cierre
+ */
+function validarGastosCierre() {
+    console.log('🔍 Validando gastos del cierre...');
+
+    const container = document.getElementById('expensesContainerClosure');
+
+    if (!container) {
+        console.error('❌ No se encontró el contenedor de gastos');
+        return false;
+    }
+
+    const rows = container.querySelectorAll('.expense-row');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        const nameInput = row.querySelector('input[name="expense_name[]"]');
+        const amountInput = row.querySelector('input[name="expense_amount[]"]');
+
+        const name = nameInput?.value?.trim();
+        const amount = parseFloat(amountInput?.value) || 0;
+
+        // Si hay monto pero no hay nombre
+        if (amount > 0 && !name) {
+            alert(`⚠️ Por favor ingresa un nombre para el gasto de la fila ${i + 1}`);
+            nameInput?.focus();
+            return false;
+        }
+
+        // Si hay nombre pero no hay monto (o es cero)
+        if (name && amount <= 0) {
+            alert(`⚠️ Por favor ingresa un monto válido para "${name}"`);
+            amountInput?.focus();
+            return false;
+        }
+    }
+
+    console.log('✅ Validación de gastos exitosa');
+    return true;
+}
+/**
+ * Recopilar datos de gastos para enviar al backend
+ */
+function recopilarGastosCierre() {
+    console.log('📦 Recopilando datos de gastos...');
+
+    const container = document.getElementById('expensesContainerClosure');
+
+    if (!container) {
+        console.error('❌ No se encontró el contenedor de gastos');
+        return [];
+    }
+
+    const rows = container.querySelectorAll('.expense-row');
+    const gastos = [];
+
+    rows.forEach((row, index) => {
+        const nameInput = row.querySelector('input[name="expense_name[]"]');
+        const descriptionInput = row.querySelector('input[name="expense_description[]"]');
+        const amountInput = row.querySelector('input[name="expense_amount[]"]');
+
+        const name = nameInput?.value?.trim();
+        const description = descriptionInput?.value?.trim();
+        const amount = parseFloat(amountInput?.value) || 0;
+
+        // Solo agregar si tiene nombre Y monto
+        if (name && amount > 0) {
+            gastos.push({
+                expense_name: name,
+                description: description || null,
+                amount: amount
+            });
+
+            console.log(`  📝 Gasto ${index + 1}:`, {
+                name,
+                description: description || '(sin descripción)',
+                amount: amount.toFixed(2)
+            });
+        }
+    });
+
+    console.log(`✅ Total gastos recopilados: ${gastos.length}`);
+    return gastos;
+}
+/**
+ * Limpiar todos los gastos del modal de cierre
+ */
+function limpiarGastosCierre() {
+    console.log('🧹 Limpiando gastos del modal de cierre...');
+
+    const container = document.getElementById('expensesContainerClosure');
+
+    if (!container) {
+        console.error('❌ No se encontró el contenedor de gastos');
+        return;
+    }
+
+    // Eliminar todas las filas excepto la primera
+    const rows = container.querySelectorAll('.expense-row');
+
+    rows.forEach((row, index) => {
+        if (index === 0) {
+            // Limpiar la primera fila
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => input.value = '');
+        } else {
+            // Eliminar las demás filas
+            row.remove();
+        }
+    });
+
+    // Actualizar total
+    actualizarTotalGastosClosure();
+
+    console.log('✅ Gastos limpiados');
+}
+/**
+ * Mostrar notificación en el modal de cierre
+ */
+function showNotification(message, type = 'success') {
+    const bgColor = type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+            type === 'info' ? 'bg-blue-500' :
+                'bg-yellow-500';
+
+    const icon = type === 'success' ? 'check-circle' :
+        type === 'error' ? 'exclamation-circle' :
+            type === 'info' ? 'info-circle' :
+                'exclamation-triangle';
+
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-[10000] transform transition-all duration-300`;
+    notification.style.animation = 'slideInRight 0.3s ease-out';
+
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${icon} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(20px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+/**
+ * Función principal para guardar el cierre (MODIFICADA)
+ */
+async function guardarCierreUnificado() {
+    console.log('\n🚀 === INICIANDO GUARDADO DE CIERRE ===\n');
+
+    // 1. Validar gastos PRIMERO
+    if (!validarGastosCierre()) {
+        console.error('❌ Validación de gastos fallida');
+        return;
+    }
+
+    // 2. Recopilar datos de gastos
+    const gastosNuevos = recopilarGastosCierre();
+    console.log('📦 Gastos nuevos a guardar:', gastosNuevos);
+
+    // 3. Obtener ID de caja chica
+    const pettyCashId = document.getElementById('petty_cash_id_closure')?.value;
+
+    if (!pettyCashId) {
+        alert('❌ Error: No se encontró el ID de caja chica');
+        console.error('❌ No se encontró petty_cash_id_closure');
+        return;
+    }
+
+    // 4. Recopilar otros datos del cierre (denominaciones, ventas, etc.)
+    const cierreData = {
+        petty_cash_id: pettyCashId,
+        gastos_nuevos: gastosNuevos, // ✅ Agregar gastos al objeto
+        total_gastos: parseFloat(document.getElementById('total-gastos-closure')?.value) || 0,
+        ventas_efectivo: parseFloat(document.getElementById('ventas-efectivo-closure')?.value) || 0,
+        ventas_qr: parseFloat(document.getElementById('ventas-qr-closure')?.value) || 0,
+        ventas_tarjeta: parseFloat(document.getElementById('ventas-tarjeta-closure')?.value) || 0,
+        total_efectivo: parseFloat(document.getElementById('total-closure')?.textContent?.replace('$', '')) || 0,
+        denominaciones: recopilarDenominaciones()
+    };
+
+    console.log('📤 Datos completos del cierre:', cierreData);
+
+    // 5. Deshabilitar botón de guardar
+    const saveBtn = document.querySelector('.save-btn');
+    const originalText = saveBtn?.innerHTML;
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    }
+
+    try {
+        // 6. Enviar al backend
+        const response = await fetch('/petty-cash/save-closure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(cierreData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Error HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Respuesta del servidor:', result);
+
+        if (!result.success) {
+            throw new Error(result.message || 'Error al guardar el cierre');
+        }
+
+        // 7. Éxito
+        showNotification('✅ Cierre guardado exitosamente', 'success');
+
+        // 8. Cerrar modal y limpiar
+        setTimeout(() => {
+            closeInternalModalClosure();
+
+            // Opcional: recargar página o actualizar lista
+            if (typeof loadPettyCashData === 'function') {
+                loadPettyCashData();
+            }
+        }, 1500);
+
+        console.log('✅ === CIERRE GUARDADO EXITOSAMENTE ===\n');
+
+    } catch (error) {
+        console.error('❌ Error al guardar cierre:', error);
+        alert(`❌ Error al guardar el cierre:\n${error.message}`);
+
+    } finally {
+        // Rehabilitar botón
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+        }
+    }
+}
+/**
+ * Cerrar modal interno de cierre
+ */
+function closeInternalModalClosure() {
+    const modal = document.getElementById('modal-closure-internal');
+    const overlay = document.getElementById('closure-internal-overlay');
+
+    if (modal) {
+        modal.classList.remove('active');
+    }
+
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+
+    // Limpiar gastos
+    limpiarGastosCierre();
+}
+/**
+ * Recopilar datos de denominaciones
+ */
+function recopilarDenominaciones() {
+    const denominaciones = {};
+
+    document.querySelectorAll('.contar-input-closure').forEach(input => {
+        const denominacion = input.dataset.denominacion;
+        const cantidad = parseInt(input.value) || 0;
+
+        if (cantidad > 0) {
+            denominaciones[denominacion] = cantidad;
+        }
+    });
+
+    return denominaciones;
+}
 function debugPaymentRows() {
     console.log('=== DEBUG PAYMENT ROWS ===');
     console.log('window.paymentRows existe:', typeof window.paymentRows !== 'undefined');
@@ -3621,3 +4063,12 @@ window.syncPaymentRowsFromDOM = syncPaymentRowsFromDOM;
 window.updatePaymentRowField = updatePaymentRowField;
 window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
 window.diagnosePaymentRowStructure = diagnosePaymentRowStructure;
+
+window.addExpenseModalClosure = addExpenseModalClosure;
+window.removeExpenseClosure = removeExpenseClosure;
+window.actualizarTotalGastosClosure = actualizarTotalGastosClosure;
+window.validarGastosCierre = validarGastosCierre;
+window.recopilarGastosCierre = recopilarGastosCierre;
+window.limpiarGastosCierre = limpiarGastosCierre;
+window.guardarCierreUnificado = guardarCierreUnificado;
+window.closeInternalModalClosure = closeInternalModalClosure;

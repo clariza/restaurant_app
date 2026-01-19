@@ -3,9 +3,9 @@
 
 <!-- Modal de cierre interno -->
 <div class="closure-internal-modal">
-    @if($openPettyCash)
+    <?php if($openPettyCash): ?>
         <!-- ✅ INPUT OCULTO CON ID DE CAJA CHICA -->
-        <input  id="petty_cash_id_closure" hidden name="petty_cash_id_closure" value="{{ $openPettyCash->id }}">
+        <input  id="petty_cash_id_closure" hidden name="petty_cash_id_closure" value="<?php echo e($openPettyCash->id); ?>">
         
         <!-- Header del modal -->
         <div class="closure-header">
@@ -67,7 +67,7 @@
                     
                     <div class="denominations-section">
                         <div class="section-container">
-                            <h4 class="section-title">Conteo de Efectivo</h4>
+                            <h4 class="section-title">Conteo de Efectivo en modal content</h4>
                             <div class="table-container">
                                 <table class="denominations-table">
                                     <thead>
@@ -78,17 +78,17 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach([0.5, 1, 2, 5, 10, 20, 50, 100, 200] as $denominacion)
+                                        <?php $__currentLoopData = [0.5, 1, 2, 5, 10, 20, 50, 100, 200]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $denominacion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr>
                                             <td class="text-left">
-                                                <strong>${{ number_format($denominacion, 2) }}</strong>
+                                                <strong>$<?php echo e(number_format($denominacion, 2)); ?></strong>
                                             </td>
                                             <td class="text-center">
                                                 <input type="number" 
                                                        min="0" 
                                                        max="999"
                                                        class="denomination-input2 contar-input-closure"
-                                                       data-denominacion="{{ $denominacion }}" 
+                                                       data-denominacion="<?php echo e($denominacion); ?>" 
                                                        placeholder="0"
                                                        autocomplete="off">
                                             </td>
@@ -96,7 +96,7 @@
                                                 <span class="subtotal-closure">$0.00</span>
                                             </td>
                                         </tr>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <tr class="total-row">
                                             <td colspan="2" class="text-right">
                                                 <strong>Total Efectivo:</strong>
@@ -122,8 +122,8 @@
                                     <input type="number" 
                                            id="total-gastos-closure" 
                                            class="form-control"
-                                           value="{{ $totalExpenses ?? 0 }}" 
-                                           data-gastos-bd="{{ $totalExpenses ?? 0 }}"
+                                           value="<?php echo e($totalExpenses ?? 0); ?>" 
+                                           data-gastos-bd="<?php echo e($totalExpenses ?? 0); ?>"
                                            step="0.01" 
                                            readonly
                                            tabindex="-1">
@@ -150,7 +150,7 @@
                                     <input type="number" 
                                            id="ventas-qr-closure" 
                                            class="form-control"
-                                           value="{{ $totalSalesQR ?? 0 }}" 
+                                           value="<?php echo e($totalSalesQR ?? 0); ?>" 
                                            step="0.01"
                                            min="0"
                                            autocomplete="off">
@@ -162,7 +162,7 @@
                                     <input type="number" 
                                            id="ventas-tarjeta-closure" 
                                            class="form-control"
-                                           value="{{ $totalSalesCard ?? 0 }}" 
+                                           value="<?php echo e($totalSalesCard ?? 0); ?>" 
                                            step="0.01"
                                            min="0"
                                            autocomplete="off">
@@ -189,8 +189,8 @@
             </div>
         </div>
 
-    @else
-        {{-- Mensaje cuando no hay caja abierta --}}
+    <?php else: ?>
+        
         <div class="closure-header">
             <h3 class="closure-title">Cierre de Caja Chica</h3>
             <button type="button" onclick="closeInternalModalClosure()" class="closure-close-btn">
@@ -206,18 +206,18 @@
                 </div>
             </div>
             <div class="no-petty-cash-actions">
-                <button onclick="window.location.href='{{ route('petty-cash.create') }}'" 
+                <button onclick="window.location.href='<?php echo e(route('petty-cash.create')); ?>'" 
                         class="btn btn-primary">
                     <i class="fas fa-plus-circle"></i> Abrir Nueva Caja Chica
                 </button>
             </div>
         </div>
-    @endif
+    <?php endif; ?>
 </div>
 
-{{-- ============================================ --}}
-{{-- ESTILOS DEL MODAL DE CIERRE --}}
-{{-- ============================================ --}}
+
+
+
 <style>
     #modal-closure-internal {
         position: fixed;
@@ -854,4 +854,4 @@
     .expense-row {
         animation: slideIn 0.3s ease;
     }
-</style>
+</style><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/modal-content.blade.php ENDPATH**/ ?>

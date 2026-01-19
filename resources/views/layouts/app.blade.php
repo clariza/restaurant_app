@@ -610,8 +610,7 @@
                 class="action-btn-minimal action-btn-expenses
                        w-10 h-10 rounded-full flex items-center justify-center 
                        transition-all duration-200 hover:shadow-lg group"
-                title="Gestión de Gastos"
-            >
+                title="Gestión de Gastos">
                 <i class="fas fa-receipt text-base transition-transform duration-200 group-hover:scale-110"></i>
             </button>
             
@@ -628,12 +627,11 @@
             
             <!-- Botón Caja Chica - Rosa/Rojo -->
            <button 
-    onclick="openPettyCashModal()" 
-    class="action-btn-minimal action-btn-cash
-           w-10 h-10 rounded-full flex items-center justify-center 
-           transition-all duration-200 hover:shadow-lg group"
-    title="Gestión de Caja Chica"
->
+                onclick="openPettyCashModal()" 
+                class="action-btn-minimal action-btn-cash
+                        w-10 h-10 rounded-full flex items-center justify-center 
+                        transition-all duration-200 hover:shadow-lg group"
+                title="Gestión de Caja Chica">
     <i class="fas fa-cash-register text-base transition-transform duration-200 group-hover:scale-110"></i>
 </button>
         </div>
@@ -1142,9 +1140,9 @@
     }
 
     // 🔥 Función placeholder para abrir modal de gastos
-    window.openExpensesModal = function() {
-        alert('Funcionalidad de gastos en desarrollo');
-    };
+    // window.openExpensesModal = function() {
+    //     alert('Funcionalidad de gastos en desarrollo');
+    // };
 
     console.log('✅ Sistema de modal de caja chica configurado desde app.blade.php');
 </script>

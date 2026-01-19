@@ -492,9 +492,14 @@ async function saveExpense(event) {
     
     const url = expenseId ? `/expenses/${expenseId}` : '/expenses';
     
+    // ✅ SOLUCIÓN: Agregar _method para simular PUT en formularios
+    if (method === 'PUT') {
+        formData.append('_method', 'PUT');
+    }
+    
     try {
         const response = await fetch(url, {
-            method: 'POST',
+            method: 'POST', // ✅ Siempre POST, pero con _method para simular PUT
             headers: {
                 'X-CSRF-TOKEN': window.csrfToken,
                 'Accept': 'application/json',
@@ -502,17 +507,25 @@ async function saveExpense(event) {
             body: formData
         });
         
-        if (!response.ok) throw new Error('Error al guardar el gasto');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al guardar el gasto');
+        }
+        
+        const data = await response.json();
         
         // Recargar lista
         await loadExpenses();
         hideExpenseForm();
         
         // Mostrar mensaje de éxito
-        showNotification(expenseId ? 'Gasto actualizado exitosamente' : 'Gasto creado exitosamente', 'success');
+        showNotification(
+            expenseId ? 'Gasto actualizado exitosamente' : 'Gasto creado exitosamente', 
+            'success'
+        );
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Error al guardar el gasto', 'error');
+        showNotification(error.message || 'Error al guardar el gasto', 'error');
     }
 }
 
