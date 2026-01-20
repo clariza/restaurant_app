@@ -67,7 +67,7 @@
                     
                     <div class="denominations-section">
                         <div class="section-container">
-                            <h4 class="section-title">Conteo de Efectivo en modal content</h4>
+                            <h4 class="section-title">Conteo de Efectivo</h4>
                             <div class="table-container">
                                 <table class="denominations-table">
                                     <thead>
@@ -176,8 +176,8 @@
                                         <i class="fas fa-times"></i> Cancelar
                                     </button>
                                     <button type="button" 
-        class="btn btn-primary btn-sm save-btn" 
-        onclick="guardarCierreUnificado()">
+                                            class="btn btn-primary btn-sm save-btn" 
+                                            onclick="guardarCierreUnificado()">
     <i class="fas fa-save mr-1"></i> Guardar Cierre
     </button>
                                 </div>

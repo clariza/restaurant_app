@@ -176,8 +176,8 @@
                                         <i class="fas fa-times"></i> Cancelar
                                     </button>
                                     <button type="button" 
-        class="btn btn-primary btn-sm save-btn" 
-        onclick="guardarCierreUnificado()">
+                                            class="btn btn-primary btn-sm save-btn" 
+                                            onclick="guardarCierreUnificado()">
     <i class="fas fa-save mr-1"></i> Guardar Cierre
     </button>
                                 </div>
