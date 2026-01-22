@@ -384,8 +384,7 @@
                     </div>
 
                     <!-- Formulario de Datos del Cliente -->
-                    <!-- Formulario de Datos del Cliente -->
-<div class="customer-form-card">
+    <div class="customer-form-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h4>
             <i class="fas fa-id-card"></i>
@@ -411,6 +410,7 @@
     </div>
     
     <form id="modal-customer-details-form">
+        <!-- Campo Nombre - SIEMPRE VISIBLE -->
         <div class="form-group">
             <label for="modal-customer-name" class="form-label required">
                 Nombre Completo
@@ -429,101 +429,130 @@
             </small>
         </div>
 
-        <div class="form-group-row">
-            <div class="form-group">
-                <label for="modal-customer-email" class="form-label">
-                    Correo Electrónico
-                </label>
-                <input 
-                    type="email" 
-                    id="modal-customer-email" 
-                    name="customer_email" 
-                    class="form-input" 
-                    placeholder="ejemplo@correo.com"
-                >
-            </div>
+         <!-- SECCIÓN DESPLEGABLE: Información de Contacto -->
+        <div class="collapsible-section">
+            <button type="button" 
+                    class="collapsible-header" 
+                    onclick="toggleCollapsibleSection('contact-section')">
+                <div class="collapsible-title">
+                    <i class="fas fa-phone"></i>
+                    Información de Contacto (Opcional)
+                </div>
+                <i class="fas fa-chevron-down collapsible-icon" id="contact-section-icon"></i>
+            </button>
+            <div class="collapsible-content" id="contact-section">
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="modal-customer-email" class="form-label">
+                            Correo Electrónico
+                        </label>
+                        <input 
+                            type="email" 
+                            id="modal-customer-email" 
+                            name="customer_email" 
+                            class="form-input" 
+                            placeholder="ejemplo@correo.com"
+                        >
+                    </div>
 
-            <div class="form-group">
-                <label for="modal-customer-phone" class="form-label">
-                    Teléfono
-                </label>
-                <input 
-                    type="tel" 
-                    id="modal-customer-phone" 
-                    name="customer_phone" 
-                    class="form-input" 
-                    placeholder="+591 7xxxxxxx"
-                >
+                    <div class="form-group">
+                        <label for="modal-customer-phone" class="form-label">
+                            Teléfono
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="modal-customer-phone" 
+                            name="customer_phone" 
+                            class="form-input" 
+                            placeholder="+591 7xxxxxxx"
+                        >
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- NUEVA SECCIÓN: Documento de Identidad -->
-        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-            <h5 style="margin: 0 0 12px 0; color: #203363; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-id-card"></i>
-                Documento de Identidad (Opcional)
-            </h5>
-            <div class="form-group-row">
-                <div class="form-group">
-                    <label for="modal-customer-doc-type" class="form-label">
-                        Tipo de Documento
-                    </label>
-                    <select id="modal-customer-doc-type" name="customer_doc_type" class="form-select">
-                        <option value="CI">CI - Carnet de Identidad</option>
-                        <option value="NIT">NIT</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                    </select>
+        <div class="collapsible-section">
+            <button type="button" 
+                    class="collapsible-header" 
+                    onclick="toggleCollapsibleSection('document-section')">
+                <div class="collapsible-title">
+                    <i class="fas fa-id-card"></i>
+                    Documento de Identidad (Opcional)
                 </div>
+                <i class="fas fa-chevron-down collapsible-icon" id="document-section-icon"></i>
+            </button>
+            <div class="collapsible-content" id="document-section">
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="modal-customer-doc-type" class="form-label">
+                            Tipo de Documento
+                        </label>
+                        <select id="modal-customer-doc-type" name="customer_doc_type" class="form-select">
+                            <option value="CI">CI - Carnet de Identidad</option>
+                            <option value="NIT">NIT</option>
+                            <option value="Pasaporte">Pasaporte</option>
+                        </select>
+                    </div>
 
+                    <div class="form-group">
+                        <label for="modal-customer-doc-number" class="form-label">
+                            Número de Documento
+                        </label>
+                        <input 
+                            type="text" 
+                            id="modal-customer-doc-number" 
+                            name="customer_doc_number" 
+                            class="form-input" 
+                            placeholder="Ej: 1234567"
+                            style="font-family: monospace;"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DESPLEGABLE: Ubicación -->
+        <div class="collapsible-section">
+            <button type="button" 
+                    class="collapsible-header" 
+                    onclick="toggleCollapsibleSection('location-section')">
+                <div class="collapsible-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Ubicación (Opcional)
+                </div>
+                <i class="fas fa-chevron-down collapsible-icon" id="location-section-icon"></i>
+            </button>
+            <div class="collapsible-content" id="location-section">
                 <div class="form-group">
-                    <label for="modal-customer-doc-number" class="form-label">
-                        Número de Documento
+                    <label for="modal-customer-address" class="form-label">
+                        Dirección
                     </label>
                     <input 
                         type="text" 
-                        id="modal-customer-doc-number" 
-                        name="customer_doc_number" 
+                        id="modal-customer-address" 
+                        name="customer_address" 
                         class="form-input" 
-                        placeholder="Ej: 1234567"
-                        style="font-family: monospace;"
+                        placeholder="Ej: Calle 123, Zona Centro"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-customer-city" class="form-label">
+                        Ciudad
+                    </label>
+                    <input 
+                        type="text" 
+                        id="modal-customer-city" 
+                        name="customer_city" 
+                        class="form-input" 
+                        placeholder="Ej: La Paz"
                     >
                 </div>
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Ubicación -->
-        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-            <h5 style="margin: 0 0 12px 0; color: #203363; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-map-marker-alt"></i>
-                Ubicación (Opcional)
-            </h5>
-            <div class="form-group">
-                <label for="modal-customer-address" class="form-label">
-                    Dirección
-                </label>
-                <input 
-                    type="text" 
-                    id="modal-customer-address" 
-                    name="customer_address" 
-                    class="form-input" 
-                    placeholder="Ej: Calle 123, Zona Centro"
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="modal-customer-city" class="form-label">
-                    Ciudad
-                </label>
-                <input 
-                    type="text" 
-                    id="modal-customer-city" 
-                    name="customer_city" 
-                    class="form-input" 
-                    placeholder="Ej: La Paz"
-                >
-            </div>
-        </div>
-
+           <!-- Notas Adicionales - SIEMPRE VISIBLE -->
         <div class="form-group">
             <label for="modal-customer-notes" class="form-label">
                 Notas Adicionales
@@ -537,7 +566,7 @@
             ></textarea>
         </div>
 
-        <!-- Indicador de cliente guardado -->
+             <!-- Indicador de cliente guardado -->
         <div id="client-saved-indicator" style="display: none; background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 16px;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
@@ -3516,5 +3545,117 @@ window.addEventListener('load', function() {
 
 #modal-customer-details-form > div[style*="background: #f8fafc"]:hover {
     background: #f1f5f9 !important;
+}
+/* ============================================
+   ESTILOS PARA SECCIONES DESPLEGABLES
+   ============================================ */
+
+.collapsible-section {
+    margin-bottom: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+}
+
+.collapsible-section:hover {
+    border-color: #cbd5e1 !important;
+}
+
+.collapsible-header {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 16px !important;
+    background: #f8fafc !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-align: left !important;
+}
+
+.collapsible-header:hover {
+    background: #f1f5f9 !important;
+}
+
+.collapsible-header.active {
+    background: #e0f2fe !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+.collapsible-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #203363 !important;
+}
+
+.collapsible-title i {
+    color: #6380a6 !important;
+    font-size: 1rem !important;
+}
+
+.collapsible-icon {
+    color: #6b7280 !important;
+    font-size: 0.85rem !important;
+    transition: transform 0.3s ease !important;
+}
+
+.collapsible-icon.rotated {
+    transform: rotate(180deg) !important;
+}
+
+.collapsible-content {
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: white !important;
+}
+
+.collapsible-content.open {
+    max-height: 500px !important;
+    padding: 20px 16px !important;
+    border-top: 1px solid #e5e7eb !important;
+}
+
+/* Animación suave para el contenido */
+.collapsible-content > * {
+    opacity: 0 !important;
+    transform: translateY(-10px) !important;
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+.collapsible-content.open > * {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Responsive para secciones desplegables */
+@media (max-width: 768px) {
+    .collapsible-header {
+        padding: 12px 14px !important;
+    }
+    
+    .collapsible-title {
+        font-size: 0.9rem !important;
+    }
+    
+    .collapsible-content.open {
+        padding: 16px 14px !important;
+        max-height: 600px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .collapsible-title {
+        font-size: 0.85rem !important;
+    }
+    
+    .collapsible-title i {
+        font-size: 0.9rem !important;
+    }
 }
     </style><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/partials/payment-modal.blade.php ENDPATH**/ ?>

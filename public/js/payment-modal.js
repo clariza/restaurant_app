@@ -3978,7 +3978,225 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+// ============================================
+// FUNCIONES PARA SECCIONES DESPLEGABLES
+// ============================================
 
+/**
+ * Alternar visibilidad de secciones desplegables
+ * @param {string} sectionId - ID de la sección a mostrar/ocultar
+ */
+function toggleCollapsibleSection(sectionId) {
+    console.log('🔄 Alternando sección:', sectionId);
+
+    const content = document.getElementById(sectionId);
+    const icon = document.getElementById(`${sectionId}-icon`);
+    const header = content?.previousElementSibling;
+
+    if (!content || !icon) {
+        console.error('❌ No se encontró la sección:', sectionId);
+        return;
+    }
+
+    // Alternar clase 'open'
+    const isOpen = content.classList.contains('open');
+
+    if (isOpen) {
+        // Cerrar sección
+        content.classList.remove('open');
+        icon.classList.remove('rotated');
+        header?.classList.remove('active');
+
+        console.log(`📦 Sección "${sectionId}" cerrada`);
+    } else {
+        // Abrir sección
+        content.classList.add('open');
+        icon.classList.add('rotated');
+        header?.classList.add('active');
+
+        console.log(`📂 Sección "${sectionId}" abierta`);
+    }
+}
+
+/**
+ * Abrir una sección específica programáticamente
+ * @param {string} sectionId - ID de la sección a abrir
+ */
+function openCollapsibleSection(sectionId) {
+    console.log('📂 Abriendo sección:', sectionId);
+
+    const content = document.getElementById(sectionId);
+    const icon = document.getElementById(`${sectionId}-icon`);
+    const header = content?.previousElementSibling;
+
+    if (!content || !icon) {
+        console.error('❌ No se encontró la sección:', sectionId);
+        return;
+    }
+
+    content.classList.add('open');
+    icon.classList.add('rotated');
+    header?.classList.add('active');
+}
+
+/**
+ * Cerrar una sección específica programáticamente
+ * @param {string} sectionId - ID de la sección a cerrar
+ */
+function closeCollapsibleSection(sectionId) {
+    console.log('📦 Cerrando sección:', sectionId);
+
+    const content = document.getElementById(sectionId);
+    const icon = document.getElementById(`${sectionId}-icon`);
+    const header = content?.previousElementSibling;
+
+    if (!content || !icon) {
+        console.error('❌ No se encontró la sección:', sectionId);
+        return;
+    }
+
+    content.classList.remove('open');
+    icon.classList.remove('rotated');
+    header?.classList.remove('active');
+}
+
+/**
+ * Cerrar todas las secciones desplegables
+ */
+function closeAllCollapsibleSections() {
+    console.log('📦 Cerrando todas las secciones desplegables...');
+
+    const sections = ['contact-section', 'document-section', 'location-section'];
+
+    sections.forEach(sectionId => {
+        closeCollapsibleSection(sectionId);
+    });
+}
+
+/**
+ * Abrir todas las secciones desplegables
+ */
+function openAllCollapsibleSections() {
+    console.log('📂 Abriendo todas las secciones desplegables...');
+
+    const sections = ['contact-section', 'document-section', 'location-section'];
+
+    sections.forEach(sectionId => {
+        openCollapsibleSection(sectionId);
+    });
+}
+
+// ============================================
+// MODIFICAR selectClientForOrder PARA ABRIR SECCIONES
+// ============================================
+
+// Modificar la función existente selectClientForOrder
+function selectClientForOrder(clientId) {
+    const client = clientsData.find(c => c.id === clientId);
+
+    if (!client) {
+        console.error('Cliente no encontrado');
+        return;
+    }
+
+    // Rellenar TODOS los campos del formulario
+    const nameInput = document.getElementById('modal-customer-name');
+    const emailInput = document.getElementById('modal-customer-email');
+    const phoneInput = document.getElementById('modal-customer-phone');
+    const docTypeInput = document.getElementById('modal-customer-doc-type');
+    const docNumberInput = document.getElementById('modal-customer-doc-number');
+    const addressInput = document.getElementById('modal-customer-address');
+    const cityInput = document.getElementById('modal-customer-city');
+    const notesInput = document.getElementById('modal-customer-notes');
+
+    const fullName = client.full_name || `${client.name} ${client.last_name}`;
+
+    if (nameInput) nameInput.value = fullName;
+    if (emailInput) emailInput.value = client.email || '';
+    if (phoneInput) phoneInput.value = client.phone || '';
+    if (docTypeInput) docTypeInput.value = client.document_type || 'CI';
+    if (docNumberInput) docNumberInput.value = client.document_number || '';
+    if (addressInput) addressInput.value = client.address || '';
+    if (cityInput) cityInput.value = client.city || '';
+    if (notesInput) notesInput.value = client.notes || '';
+
+    // ✅ ABRIR SECCIONES DESPLEGABLES SI TIENEN DATOS
+    setTimeout(() => {
+        // Abrir sección de contacto si hay email o teléfono
+        if (client.email || client.phone) {
+            openCollapsibleSection('contact-section');
+        }
+
+        // Abrir sección de documento si hay número de documento
+        if (client.document_number) {
+            openCollapsibleSection('document-section');
+        }
+
+        // Abrir sección de ubicación si hay dirección o ciudad
+        if (client.address || client.city) {
+            openCollapsibleSection('location-section');
+        }
+    }, 100);
+
+    // Guardar en localStorage
+    localStorage.setItem('customerName', fullName);
+    localStorage.setItem('customerEmail', client.email || '');
+    localStorage.setItem('customerPhone', client.phone || '');
+    localStorage.setItem('selectedClientId', client.id);
+
+    // Mostrar indicador de que el cliente ya está en BD
+    showClientSavedIndicator(client.id, fullName);
+
+    // Cerrar modal
+    closeClientsConfigModal();
+
+    // Mostrar notificación
+    showSuccessMessage(`Cliente "${fullName}" seleccionado correctamente`);
+}
+
+// ============================================
+// LIMPIAR SECCIONES AL CERRAR MODAL
+// ============================================
+
+// Modificar la función clearModalData existente
+function clearModalData() {
+    // Limpiar formulario del cliente
+    const customerForm = document.getElementById('modal-customer-details-form');
+    if (customerForm) {
+        customerForm.reset();
+    }
+
+    // ✅ CERRAR TODAS LAS SECCIONES DESPLEGABLES
+    closeAllCollapsibleSections();
+
+    // ✅ LIMPIAR window.paymentRows
+    window.paymentRows = [];
+
+    const paymentContainer = document.getElementById('payment-rows-container');
+    if (paymentContainer) {
+        paymentContainer.innerHTML = '';
+    }
+
+    // Resetear paso al inicio
+    currentStep = 1;
+
+    // Limpiar selección de mesa
+    selectedTable = null;
+
+    // Limpiar servicio de delivery
+    selectedDeliveryService = null;
+
+    console.log('✅ Datos del modal limpiados');
+}
+
+// Exponer funciones globalmente
+window.toggleCollapsibleSection = toggleCollapsibleSection;
+window.openCollapsibleSection = openCollapsibleSection;
+window.closeCollapsibleSection = closeCollapsibleSection;
+window.closeAllCollapsibleSections = closeAllCollapsibleSections;
+window.openAllCollapsibleSections = openAllCollapsibleSections;
+
+console.log('✅ Funciones de secciones desplegables cargadas');
 // Exponer funciones globalmente
 window.saveCurrentClientToDatabase = saveCurrentClientToDatabase;
 window.showClientSavedIndicator = showClientSavedIndicator;
