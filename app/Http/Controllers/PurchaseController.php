@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\InventoryMovement;
+use App\Models\Branch;
 
 class PurchaseController extends Controller
 {
@@ -79,17 +80,21 @@ class PurchaseController extends Controller
     {
         $suppliers = Supplier::all();
         $categorias = Category::all();
+        $branches = \App\Models\Branch::where('is_active', true)
+            ->orderBy('is_main', 'desc')
+            ->orderBy('name')
+            ->get();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('purchases.create', compact('suppliers', 'hasOpenPettyCash', 'categorias'));
+
+        return view('purchases.create', compact('suppliers', 'hasOpenPettyCash', 'categorias', 'branches'));
     }
 
     public function store(Request $request)
     {
-
-
         // Validación
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'branch_id' => 'required|exists:branches,id',
             'reference_number' => 'nullable|string|max:100',
             'purchase_date' => 'required|date',
             'products' => 'required|array|min:1',
@@ -107,9 +112,10 @@ class PurchaseController extends Controller
             // Crear la compra
             $purchase = Purchase::create([
                 'supplier_id' => $validated['supplier_id'],
+                'branch_id' => $validated['branch_id'],
                 'reference_number' => $validated['reference_number'],
                 'purchase_date' => $validated['purchase_date'],
-                'total_amount' => 0, // Lo calculamos después
+                'total_amount' => 0,
                 'user_id' => Auth::id(),
             ]);
 
@@ -119,24 +125,19 @@ class PurchaseController extends Controller
             foreach ($validated['products'] as $productData) {
                 $product = MenuItem::findOrFail($productData['product_id']);
 
-                // Calcular valores
                 $quantity = floatval($productData['quantity']);
                 $unitCost = floatval($productData['unit_cost']);
                 $discount = floatval($productData['discount'] ?? 0);
                 $sellingPrice = floatval($productData['selling_price']);
 
-                // Costo unitario después del descuento
                 $unitCostAfterDiscount = $unitCost * (1 - ($discount / 100));
-
-                // Total de la línea
                 $lineTotal = $quantity * $unitCostAfterDiscount;
 
-                // Calcular margen de utilidad
                 $profitMargin = $unitCostAfterDiscount > 0
                     ? (($sellingPrice - $unitCostAfterDiscount) / $unitCostAfterDiscount) * 100
                     : 0;
 
-                // 1. CREAR REGISTRO EN LA TABLA STOCK
+                // Crear registro en la tabla STOCK
                 $stock = Stock::create([
                     'product_id' => $product->id,
                     'purchase_id' => $purchase->id,
@@ -149,8 +150,7 @@ class PurchaseController extends Controller
                     'expiry_date' => $productData['expiry_date'] ?? null,
                 ]);
 
-
-                // 2. ACTUALIZAR EL STOCK DEL PRODUCTO (si tiene gestión de inventario)
+                // Actualizar el stock del producto
                 if ($product->manage_inventory) {
                     $oldStock = $product->stock;
                     $newStock = $oldStock + $quantity;
@@ -158,21 +158,21 @@ class PurchaseController extends Controller
                     $product->stock = $newStock;
                     $product->save();
 
-                    // 3. REGISTRAR MOVIMIENTO DE INVENTARIO
+                    // Registrar movimiento de inventario
                     $movement = InventoryMovement::create([
                         'menu_item_id' => $product->id,
                         'user_id' => Auth::id(),
-                        'movement_type' => 'addition', // Siempre es adición en compras
+                        'movement_type' => 'addition',
                         'quantity' => $quantity,
                         'old_stock' => $oldStock,
                         'new_stock' => $newStock,
                         'notes' => "Compra #" . $purchase->id .
-                            ($purchase->reference_number ? " - Ref: {$purchase->reference_number}" : "")
+                            ($purchase->reference_number ? " - Ref: {$purchase->reference_number}" : "") .
+                            " - Sucursal: " . $purchase->branch->name
                     ]);
                 }
 
-                // 4. ACTUALIZAR PRECIO DE VENTA DEL PRODUCTO (opcional)
-                // Si quieres actualizar automáticamente el precio de venta del producto
+                // Actualizar precio de venta del producto
                 if ($sellingPrice > 0) {
                     $product->price = $sellingPrice;
                     $product->save();
@@ -187,8 +187,6 @@ class PurchaseController extends Controller
 
             DB::commit();
 
-
-
             return response()->json([
                 'success' => true,
                 'message' => 'Compra registrada exitosamente',
@@ -197,8 +195,6 @@ class PurchaseController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-
 
             return response()->json([
                 'success' => false,

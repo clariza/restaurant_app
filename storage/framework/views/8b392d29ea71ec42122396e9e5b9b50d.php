@@ -1,5 +1,5 @@
-@extends('layouts.app')
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     :root {
         --primary-color: #203363;
@@ -448,7 +448,7 @@
 <div class="container mx-auto px-4 py-6">
     <!-- Botones de acción superiores -->
     <div class="action-buttons">
-        <a href="{{ route('orders.index') }}" class="btn btn-secondary">
+        <a href="<?php echo e(route('orders.index')); ?>" class="btn btn-secondary">
             <i class="fas fa-list"></i>
             Volver al listado
         </a>
@@ -464,11 +464,13 @@
         <div class="order-header">
             <h1 class="text-3xl font-bold mb-2">
                 <i class="fas fa-receipt mr-3"></i>
-                Orden #{{ $order->transaction_number }}
+                Orden #<?php echo e($order->transaction_number); ?>
+
             </h1>
             <p class="text-sm opacity-90">
                 <i class="fas fa-calendar-alt mr-2"></i>
-                {{ $order->created_at->format('d/m/Y H:i') }}
+                <?php echo e($order->created_at->format('d/m/Y H:i')); ?>
+
             </p>
         </div>
 
@@ -477,49 +479,49 @@
                 <span class="info-label-simple">
                     <i class="fas fa-calendar mr-2"></i>Fecha:
                 </span>
-                <span class="info-value-simple">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                <span class="info-value-simple"><?php echo e($order->created_at->format('d/m/Y H:i')); ?></span>
             </div>
             
             <div class="info-row-simple">
                 <span class="info-label-simple">
                     <i class="fas fa-shopping-bag mr-2"></i>Tipo de Orden:
                 </span>
-                <span class="info-value-simple">{{ ucfirst($order->order_type) }}</span>
+                <span class="info-value-simple"><?php echo e(ucfirst($order->order_type)); ?></span>
             </div>
             
             <div class="info-row-simple">
                 <span class="info-label-simple">
                     <i class="fas fa-user-tie mr-2"></i>Atendido por:
                 </span>
-                <span class="info-value-simple">{{ $order->user->name }}</span>
+                <span class="info-value-simple"><?php echo e($order->user->name); ?></span>
             </div>
 
-            @if($order->customer_name)
+            <?php if($order->customer_name): ?>
             <div class="info-row-simple">
                 <span class="info-label-simple">
                     <i class="fas fa-user mr-2"></i>Cliente:
                 </span>
-                <span class="info-value-simple">{{ $order->customer_name }}</span>
+                <span class="info-value-simple"><?php echo e($order->customer_name); ?></span>
             </div>
-            @endif
+            <?php endif; ?>
 
-            @if($order->phone)
+            <?php if($order->phone): ?>
             <div class="info-row-simple">
                 <span class="info-label-simple">
                     <i class="fas fa-phone mr-2"></i>Teléfono:
                 </span>
-                <span class="info-value-simple">{{ $order->phone }}</span>
+                <span class="info-value-simple"><?php echo e($order->phone); ?></span>
             </div>
-            @endif
+            <?php endif; ?>
 
-            @if($order->table_number)
+            <?php if($order->table_number): ?>
             <div class="info-row-simple">
                 <span class="info-label-simple">
                     <i class="fas fa-chair mr-2"></i>Mesa:
                 </span>
-                <span class="info-value-simple">#{{ $order->table_number }}</span>
+                <span class="info-value-simple">#<?php echo e($order->table_number); ?></span>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
         
         <div class="p-6">
@@ -551,14 +553,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($order->items as $item)
+                        <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td class="font-medium">{{ $item->menuItem->name }}</td>
-                            <td class="text-right">{{ $item->quantity }}</td>
-                            <td class="text-right">Bs. {{ number_format($item->price, 2) }}</td>
-                            <td class="text-right font-semibold">Bs. {{ number_format($item->quantity * $item->price, 2) }}</td>
+                            <td class="font-medium"><?php echo e($item->menuItem->name); ?></td>
+                            <td class="text-right"><?php echo e($item->quantity); ?></td>
+                            <td class="text-right">Bs. <?php echo e(number_format($item->price, 2)); ?></td>
+                            <td class="text-right font-semibold">Bs. <?php echo e(number_format($item->quantity * $item->price, 2)); ?></td>
                         </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                     <tfoot>
                         <tr>
@@ -567,22 +569,23 @@
                                 TOTAL:
                             </td>
                             <td class="text-right">
-                                Bs. {{ number_format($order->total, 2) }}
+                                Bs. <?php echo e(number_format($order->total, 2)); ?>
+
                             </td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            @if($order->order_notes)
+            <?php if($order->order_notes): ?>
             <div class="notes-section">
                 <div class="notes-label">
                     <i class="fas fa-sticky-note mr-2"></i>
                     Notas del pedido
                 </div>
-                <div class="notes-content">{{ $order->order_notes }}</div>
+                <div class="notes-content"><?php echo e($order->order_notes); ?></div>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -591,39 +594,41 @@
         <div class="nav-info">
             <div class="order-number">
                 <i class="fas fa-receipt"></i>
-                Orden #{{ $order->transaction_number }}
+                Orden #<?php echo e($order->transaction_number); ?>
+
             </div>
             <div class="order-date">
-                {{ $order->created_at->format('d/m/Y H:i') }}
+                <?php echo e($order->created_at->format('d/m/Y H:i')); ?>
+
             </div>
         </div>
 
         <div class="nav-buttons-container">
-            @if(isset($previousOrder) && $previousOrder)
-                <a href="{{ route('orders.show', $previousOrder->id) }}" class="nav-btn nav-btn-enabled">
+            <?php if(isset($previousOrder) && $previousOrder): ?>
+                <a href="<?php echo e(route('orders.show', $previousOrder->id)); ?>" class="nav-btn nav-btn-enabled">
                     <i class="fas fa-chevron-left"></i>
                     <span>Anterior</span>
                 </a>
-            @else
+            <?php else: ?>
                 <span class="nav-btn nav-btn-disabled">
                     <i class="fas fa-chevron-left"></i>
                     <span>Anterior</span>
                 </span>
-            @endif
+            <?php endif; ?>
 
             <div class="nav-separator"></div>
 
-            @if(isset($nextOrder) && $nextOrder)
-                <a href="{{ route('orders.show', $nextOrder->id) }}" class="nav-btn nav-btn-enabled">
+            <?php if(isset($nextOrder) && $nextOrder): ?>
+                <a href="<?php echo e(route('orders.show', $nextOrder->id)); ?>" class="nav-btn nav-btn-enabled">
                     <span>Siguiente</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-            @else
+            <?php else: ?>
                 <span class="nav-btn nav-btn-disabled">
                     <span>Siguiente</span>
                     <i class="fas fa-chevron-right"></i>
                 </span>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -632,48 +637,48 @@
 <div id="thermal-ticket">
     <div class="thermal-header">
         <div class="thermal-title">RESTAURANTE MIQUNA</div>
-        <div class="thermal-subtitle">{{ $order->created_at->format('d/m/Y H:i') }}</div>
+        <div class="thermal-subtitle"><?php echo e($order->created_at->format('d/m/Y H:i')); ?></div>
     </div>
     <div class="thermal-divider"></div>
     
     <div class="thermal-item-row">
         <span>Vendedor:</span>
-        <span>{{ $order->user->name }}</span>
+        <span><?php echo e($order->user->name); ?></span>
     </div>
     <div class="thermal-item-row">
         <span>Pedido:</span>
-        <span>{{ $order->transaction_number }}</span>
+        <span><?php echo e($order->transaction_number); ?></span>
     </div>
     <div class="thermal-divider"></div>
     
-    @if($order->order_type)
+    <?php if($order->order_type): ?>
     <div class="thermal-item-row">
         <span>Tipo:</span>
-        <span>{{ ucfirst($order->order_type) }}@if($order->table_number) Mesa {{ $order->table_number }}@endif</span>
+        <span><?php echo e(ucfirst($order->order_type)); ?><?php if($order->table_number): ?> Mesa <?php echo e($order->table_number); ?><?php endif; ?></span>
     </div>
-    @endif
+    <?php endif; ?>
     
-    @if($order->customer_name)
+    <?php if($order->customer_name): ?>
     <div class="thermal-item-row">
         <span>Cliente:</span>
-        <span>{{ $order->customer_name }}</span>
+        <span><?php echo e($order->customer_name); ?></span>
     </div>
-    @endif
+    <?php endif; ?>
     
     <div class="thermal-divider"></div>
     
-    @foreach($order->items as $item)
+    <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
     <div class="thermal-item-row">
-        <span>{{ $item->quantity }}x {{ Str::limit($item->menuItem->name, 20) }}</span>
-        <span>Bs.{{ number_format($item->price * $item->quantity, 2) }}</span>
+        <span><?php echo e($item->quantity); ?>x <?php echo e(Str::limit($item->menuItem->name, 20)); ?></span>
+        <span>Bs.<?php echo e(number_format($item->price * $item->quantity, 2)); ?></span>
     </div>
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     
     <div class="thermal-divider"></div>
     
     <div class="thermal-item-row">
         <span>Subtotal:</span>
-        <span>Bs.{{ number_format($order->total, 2) }}</span>
+        <span>Bs.<?php echo e(number_format($order->total, 2)); ?></span>
     </div>
     <div class="thermal-item-row">
         <span>Impuesto:</span>
@@ -681,13 +686,13 @@
     </div>
     <div class="thermal-item-row thermal-total-row">
         <span>TOTAL:</span>
-        <span>Bs.{{ number_format($order->total, 2) }}</span>
+        <span>Bs.<?php echo e(number_format($order->total, 2)); ?></span>
     </div>
     
-    @if($order->order_notes)
+    <?php if($order->order_notes): ?>
     <div class="thermal-divider"></div>
-    <div class="thermal-notes">Notas del pedido: {{ $order->order_notes }}</div>
-    @endif
+    <div class="thermal-notes">Notas del pedido: <?php echo e($order->order_notes); ?></div>
+    <?php endif; ?>
     
     <div class="thermal-divider"></div>
     <div class="thermal-footer">
@@ -700,15 +705,15 @@
         // Navegación con teclas de flecha
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowLeft' || e.keyCode === 37) {
-                @if(isset($previousOrder) && $previousOrder)
-                    window.location.href = "{{ route('orders.show', $previousOrder->id) }}";
-                @endif
+                <?php if(isset($previousOrder) && $previousOrder): ?>
+                    window.location.href = "<?php echo e(route('orders.show', $previousOrder->id)); ?>";
+                <?php endif; ?>
             }
             
             if (e.key === 'ArrowRight' || e.keyCode === 39) {
-                @if(isset($nextOrder) && $nextOrder)
-                    window.location.href = "{{ route('orders.show', $nextOrder->id) }}";
-                @endif
+                <?php if(isset($nextOrder) && $nextOrder): ?>
+                    window.location.href = "<?php echo e(route('orders.show', $nextOrder->id)); ?>";
+                <?php endif; ?>
             }
         });
 
@@ -732,4 +737,5 @@
         });
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/orders/show.blade.php ENDPATH**/ ?>

@@ -24,9 +24,7 @@
         </span>
     </div>
     @endif
-
-    <!-- Encabezado con título -->
-    <div class="mb-6">
+   <div class="mb-6">
         <h1 class="text-xl font-bold mb-4 text-[var(--primary-color)] relative pb-2 section-title">
             Agregar Compra
         </h1>
@@ -62,6 +60,37 @@
                 </div>
                 <p class="mt-4 text-xs font-semibold text-[var(--text-light)]">
                     Dirección: <span id="supplier-address" class="font-normal text-[var(--text-color)]">-</span>
+                </p>
+            </div>
+
+            <!-- Sucursal -->
+            <div>
+                <label for="sucursal" class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                    Sucursal: <span class="text-[var(--red)]">*</span>
+                </label>
+                <div class="flex items-center border border-[var(--gray-light)] rounded text-[var(--text-color)] text-sm">
+                    <span class="px-3 border-r border-[var(--gray-light)]">
+                        <i class="fas fa-store"></i>
+                    </span>
+                    <select id="sucursal" name="branch_id" class="flex-grow py-2 px-3 focus:outline-none bg-transparent" aria-required="true">
+                        <option value="">Seleccione</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}" 
+                                    {{ $branch->is_main ? 'selected' : '' }}
+                                    data-city="{{ $branch->city }}" 
+                                    data-address="{{ $branch->address }}">
+                                {{ $branch->name }} {{ $branch->is_main ? '(Principal)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('branches.create') }}" class="ml-2 mr-1 text-[var(--blue)] hover:text-[var(--primary-light)] focus:outline-none transition duration-200">
+                        <i class="fas fa-plus-circle fa-lg"></i>
+                    </a>
+                    @endif
+                </div>
+                <p class="mt-4 text-xs font-semibold text-[var(--text-light)]">
+                    Ciudad: <span id="branch-city" class="font-normal text-[var(--text-color)]">{{ $branches->where('is_main', true)->first()->city ?? '-' }}</span>
                 </p>
             </div>
 
@@ -185,7 +214,7 @@
                 </table>
             </div>
 
-            <!-- Botón flotante para agregar más productos (aparece cuando ya hay productos) -->
+            <!-- Botón flotante para agregar más productos -->
            <div id="add-product-footer" class="hidden mt-6 pt-4 border-t-2 border-dashed border-[var(--gray-light)] flex justify-end">
     <button type="button" id="add-product-btn" 
             class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] hover:from-[var(--primary-light)] hover:to-[var(--primary-color)] text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-md hover:shadow-xl transform hover:scale-105">
@@ -194,7 +223,6 @@
         <i class="fas fa-arrow-down ml-2 text-sm animate-bounce"></i>
     </button>
 </div>
-
 
             <!-- Totales -->
             <div class="flex justify-end space-x-8 text-sm text-[var(--text-color)] font-semibold mt-4 pt-4 border-t border-[var(--gray-light)]">
@@ -240,6 +268,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('nit').value = nit;
         document.getElementById('supplier-address').textContent = address;
+    });
+     // Actualizar ciudad de la sucursal
+    document.getElementById('sucursal').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const city = selectedOption.getAttribute('data-city') || '-';
+        
+        document.getElementById('branch-city').textContent = city;
     });
 
     // Botón para agregar fila vacía desde el mensaje inicial
@@ -481,7 +516,11 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Por favor seleccione un proveedor');
             return;
         }
-
+        const branchId = document.getElementById('sucursal').value;
+        if (!branchId) {
+            alert('Por favor seleccione una sucursal');
+            return;
+        }
         // Validar que haya productos
         const products = getProductsData();
         if (products.length === 0) {
@@ -500,6 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = {
             _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             supplier_id: supplierId,
+            branch_id: branchId,
             reference_number: document.querySelector('[name="reference_number"]').value,
             purchase_date: document.querySelector('[name="purchase_date"]').value,
             products: products
@@ -587,19 +627,17 @@ document.addEventListener('DOMContentLoaded', function() {
             row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
             row.querySelector('.line-total').value = lineTotal.toFixed(2);
             
-            // Calcular margen de utilidad
             if (sellingPrice > 0 && unitCostAfterDiscount > 0) {
                 const profitMargin = ((sellingPrice - unitCostAfterDiscount) / unitCostAfterDiscount) * 100;
                 const profitMarginElement = row.querySelector('.profit-margin');
                 profitMarginElement.textContent = profitMargin.toFixed(2) + '%';
                 
-                // Cambiar color según el margen
                 if (profitMargin < 0) {
-                    profitMarginElement.style.color = '#dc3545'; // Rojo
+                    profitMarginElement.style.color = '#dc3545';
                 } else if (profitMargin < 20) {
-                    profitMarginElement.style.color = '#ffc107'; // Amarillo
+                    profitMarginElement.style.color = '#ffc107';
                 } else {
-                    profitMarginElement.style.color = '#28a745'; // Verde
+                    profitMarginElement.style.color = '#28a745';
                 }
             } else {
                 row.querySelector('.profit-margin').textContent = '-';

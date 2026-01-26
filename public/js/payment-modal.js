@@ -3780,6 +3780,7 @@ async function saveCurrentClientToDatabase() {
     const customerAddress = document.getElementById('modal-customer-address')?.value?.trim();
     const customerCity = document.getElementById('modal-customer-city')?.value?.trim();
     const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim();
+    const customerBirthday = document.getElementById('modal-customer-birthday')?.value; // ✅ NUEVO CAMPO
 
     // Validar nombre completo (requerido)
     if (!customerName) {
@@ -3800,7 +3801,6 @@ async function saveCurrentClientToDatabase() {
         firstName = nameParts[0];
         lastName = nameParts[1];
     } else {
-        // Si tiene más de 2 palabras, tomar la primera como nombre y el resto como apellido
         firstName = nameParts[0];
         lastName = nameParts.slice(1).join(' ');
     }
@@ -3815,6 +3815,7 @@ async function saveCurrentClientToDatabase() {
         email: customerEmail || null,
         address: customerAddress || null,
         city: customerCity || null,
+        birthday: customerBirthday || null, // ✅ NUEVO CAMPO
         notes: customerNotes || null,
         is_active: true,
         _token: document.querySelector('meta[name="csrf-token"]')?.content || ''
@@ -3866,8 +3867,12 @@ async function saveCurrentClientToDatabase() {
         // Mostrar indicador de éxito
         showClientSavedIndicator(clientId, customerName);
 
-        // Mostrar notificación
-        showSuccessMessage(`✅ Cliente "${customerName}" guardado correctamente (ID: ${clientId})`);
+        // ✅ Mostrar mensaje especial si es cumpleaños
+        if (customerBirthday && isBirthdayToday(customerBirthday)) {
+            showSuccessMessage(`🎂 ¡Cliente "${customerName}" guardado! Hoy es su cumpleaños 🎉`);
+        } else {
+            showSuccessMessage(`✅ Cliente "${customerName}" guardado correctamente (ID: ${clientId})`);
+        }
 
         // Actualizar la lista de clientes si el modal está abierto
         const clientsModal = document.getElementById('clients-config-modal');
@@ -3880,6 +3885,7 @@ async function saveCurrentClientToDatabase() {
     } catch (error) {
         console.error('❌ Error al guardar cliente:', error);
         alert(`❌ Error al guardar el cliente:\n${error.message}`);
+
     } finally {
         // Restaurar botón
         if (saveBtn) {
@@ -3921,8 +3927,17 @@ function clearClientSavedIndicator() {
         indicator.style.display = 'none';
     }
 }
+function hasAdditionalInfo(client) {
+    return !!(
+        client.email ||
+        client.phone ||
+        client.document_number ||
+        client.address ||
+        client.city ||
+        client.birthday // ✅ NUEVO CAMPO
+    );
+}
 
-// Modificar la función selectClientForOrder para incluir más campos
 function selectClientForOrder(clientId) {
     const client = clientsData.find(c => c.id === clientId);
 
@@ -3940,6 +3955,7 @@ function selectClientForOrder(clientId) {
     const addressInput = document.getElementById('modal-customer-address');
     const cityInput = document.getElementById('modal-customer-city');
     const notesInput = document.getElementById('modal-customer-notes');
+    const birthdayInput = document.getElementById('modal-customer-birthday'); // ✅ NUEVO CAMPO
 
     const fullName = client.full_name || `${client.name} ${client.last_name}`;
 
@@ -3951,6 +3967,25 @@ function selectClientForOrder(clientId) {
     if (addressInput) addressInput.value = client.address || '';
     if (cityInput) cityInput.value = client.city || '';
     if (notesInput) notesInput.value = client.notes || '';
+    if (birthdayInput) birthdayInput.value = client.birthday || ''; // ✅ NUEVO CAMPO
+
+    // ✅ Actualizar edad si hay cumpleaños
+    setTimeout(() => {
+        if (client.birthday) {
+            updateAgeFromBirthday();
+        }
+    }, 100);
+
+    // ✅ ABRIR SECCIÓN SI EL CLIENTE TIENE INFORMACIÓN ADICIONAL
+    setTimeout(() => {
+        if (hasAdditionalInfo(client)) {
+            openAdditionalInfoSection();
+            console.log('📂 Sección de información adicional abierta (cliente tiene datos)');
+        } else {
+            closeAdditionalInfoSection();
+            console.log('📦 Sección de información adicional cerrada (cliente sin datos adicionales)');
+        }
+    }, 150);
 
     // Guardar en localStorage
     localStorage.setItem('customerName', fullName);
@@ -3964,8 +3999,12 @@ function selectClientForOrder(clientId) {
     // Cerrar modal
     closeClientsConfigModal();
 
-    // Mostrar notificación
-    showSuccessMessage(`Cliente "${fullName}" seleccionado correctamente`);
+    // ✅ Mensaje especial si es cumpleaños
+    if (client.birthday && isBirthdayToday(client.birthday)) {
+        showSuccessMessage(`🎂 Cliente "${fullName}" seleccionado - ¡Hoy es su cumpleaños! 🎉`);
+    } else {
+        showSuccessMessage(`Cliente "${fullName}" seleccionado correctamente`);
+    }
 }
 
 // Agregar listener para limpiar el indicador cuando se cambie el nombre
@@ -4089,6 +4128,17 @@ function openAllCollapsibleSections() {
 // ============================================
 // MODIFICAR selectClientForOrder PARA ABRIR SECCIONES
 // ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    // Listener para calcular edad automáticamente
+    const birthdayInput = document.getElementById('modal-customer-birthday');
+
+    if (birthdayInput) {
+        birthdayInput.addEventListener('change', updateAgeFromBirthday);
+        birthdayInput.addEventListener('input', updateAgeFromBirthday);
+
+        console.log('✅ Listener de cumpleaños inicializado');
+    }
+});
 
 // Modificar la función existente selectClientForOrder
 function selectClientForOrder(clientId) {
@@ -4188,6 +4238,182 @@ function clearModalData() {
 
     console.log('✅ Datos del modal limpiados');
 }
+// ============================================
+// FUNCIONES PARA CAMPO DE CUMPLEAÑOS
+// ============================================
+
+/**
+ * Calcular edad desde fecha de cumpleaños
+ * @param {string} birthday - Fecha en formato YYYY-MM-DD
+ * @returns {number} - Edad en años
+ */
+function calculateAge(birthday) {
+    if (!birthday) return null;
+
+    const birthDate = new Date(birthday);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    // Ajustar si aún no ha cumplido años este año
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    return age;
+}
+
+/**
+ * Verificar si el cumpleaños es hoy
+ * @param {string} birthday - Fecha en formato YYYY-MM-DD
+ * @returns {boolean}
+ */
+function isBirthdayToday(birthday) {
+    if (!birthday) return false;
+
+    const birthDate = new Date(birthday);
+    const today = new Date();
+
+    return birthDate.getDate() === today.getDate() &&
+        birthDate.getMonth() === today.getMonth();
+}
+
+/**
+ * Verificar si el cumpleaños es próximo (dentro de 7 días)
+ * @param {string} birthday - Fecha en formato YYYY-MM-DD
+ * @returns {number|null} - Días restantes o null
+ */
+function daysUntilBirthday(birthday) {
+    if (!birthday) return null;
+
+    const birthDate = new Date(birthday);
+    const today = new Date();
+
+    // Establecer el cumpleaños de este año
+    let nextBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+
+    // Si ya pasó este año, usar el del próximo año
+    if (nextBirthday < today) {
+        nextBirthday = new Date(today.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
+    }
+
+    // Calcular diferencia en días
+    const diffTime = nextBirthday - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+}
+
+/**
+ * Actualizar campo de edad cuando cambia el cumpleaños
+ */
+function updateAgeFromBirthday() {
+    const birthdayInput = document.getElementById('modal-customer-birthday');
+    const ageInput = document.getElementById('modal-customer-age');
+
+    if (!birthdayInput || !ageInput) return;
+
+    const birthday = birthdayInput.value;
+
+    if (!birthday) {
+        ageInput.value = '';
+        birthdayInput.classList.remove('birthday-today');
+        removeBirthdayIndicator();
+        return;
+    }
+
+    // Calcular edad
+    const age = calculateAge(birthday);
+
+    if (age !== null && age >= 0) {
+        ageInput.value = `${age} años`;
+
+        // Verificar si es hoy
+        if (isBirthdayToday(birthday)) {
+            birthdayInput.classList.add('birthday-today');
+            showBirthdayIndicator('¡Hoy es su cumpleaños! 🎉');
+            console.log('🎂 ¡Es el cumpleaños del cliente!');
+        } else {
+            birthdayInput.classList.remove('birthday-today');
+
+            // Verificar si es próximo (dentro de 7 días)
+            const daysLeft = daysUntilBirthday(birthday);
+
+            if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0) {
+                showBirthdayIndicator(`Cumpleaños en ${daysLeft} día${daysLeft > 1 ? 's' : ''} 🎈`);
+                console.log(`📅 Cumpleaños próximo: en ${daysLeft} días`);
+            } else {
+                removeBirthdayIndicator();
+            }
+        }
+    } else {
+        ageInput.value = 'Fecha inválida';
+    }
+}
+
+/**
+ * Mostrar indicador de cumpleaños
+ * @param {string} message - Mensaje a mostrar
+ */
+function showBirthdayIndicator(message) {
+    const birthdayInput = document.getElementById('modal-customer-birthday');
+
+    if (!birthdayInput) return;
+
+    // Remover indicador anterior si existe
+    removeBirthdayIndicator();
+
+    // Crear nuevo indicador
+    const indicator = document.createElement('div');
+    indicator.className = 'birthday-indicator';
+    indicator.id = 'birthday-indicator';
+    indicator.innerHTML = `
+        <i class="fas fa-birthday-cake"></i>
+        <span>${message}</span>
+    `;
+
+    // Insertar después del input
+    birthdayInput.parentElement.appendChild(indicator);
+}
+
+/**
+ * Remover indicador de cumpleaños
+ */
+function removeBirthdayIndicator() {
+    const indicator = document.getElementById('birthday-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+/**
+ * Formatear fecha para mostrar en español
+ * @param {string} date - Fecha en formato YYYY-MM-DD
+ * @returns {string} - Fecha formateada
+ */
+function formatBirthdayES(date) {
+    if (!date) return '';
+
+    const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    const birthDate = new Date(date);
+    const day = birthDate.getDate();
+    const month = months[birthDate.getMonth()];
+
+    return `${day} de ${month}`;
+}
+// Exponer funciones globalmente
+window.calculateAge = calculateAge;
+window.isBirthdayToday = isBirthdayToday;
+window.daysUntilBirthday = daysUntilBirthday;
+window.updateAgeFromBirthday = updateAgeFromBirthday;
+window.showBirthdayIndicator = showBirthdayIndicator;
+window.removeBirthdayIndicator = removeBirthdayIndicator;
+window.formatBirthdayES = formatBirthdayES;
 
 // Exponer funciones globalmente
 window.toggleCollapsibleSection = toggleCollapsibleSection;

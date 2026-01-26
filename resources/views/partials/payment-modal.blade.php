@@ -384,7 +384,8 @@
                     </div>
 
                     <!-- Formulario de Datos del Cliente -->
-    <div class="customer-form-card">
+                    <!-- Formulario de Datos del Cliente -->
+<div class="customer-form-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h4>
             <i class="fas fa-id-card"></i>
@@ -429,130 +430,174 @@
             </small>
         </div>
 
-         <!-- SECCIÓN DESPLEGABLE: Información de Contacto -->
+        <!-- SECCIÓN DESPLEGABLE UNIFICADA: Información Adicional -->
         <div class="collapsible-section">
             <button type="button" 
                     class="collapsible-header" 
-                    onclick="toggleCollapsibleSection('contact-section')">
+                    onclick="toggleCollapsibleSection('additional-info-section')">
                 <div class="collapsible-title">
-                    <i class="fas fa-phone"></i>
-                    Información de Contacto (Opcional)
+                    <i class="fas fa-plus-circle"></i>
+                    Agregar Información Adicional (Opcional)
                 </div>
-                <i class="fas fa-chevron-down collapsible-icon" id="contact-section-icon"></i>
+                <i class="fas fa-chevron-down collapsible-icon" id="additional-info-section-icon"></i>
             </button>
-            <div class="collapsible-content" id="contact-section">
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label for="modal-customer-email" class="form-label">
-                            Correo Electrónico
-                        </label>
-                        <input 
-                            type="email" 
-                            id="modal-customer-email" 
-                            name="customer_email" 
-                            class="form-input" 
-                            placeholder="ejemplo@correo.com"
-                        >
-                    </div>
+            <div class="collapsible-content" id="additional-info-section">
+                
+                <!-- Subsección: Información de Contacto -->
+                <div class="subsection-container">
+                    {{-- <div class="subsection-header">
+                        <i class="fas fa-phone"></i>
+                        <span>Información de Contacto</span>
+                    </div> --}}
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="modal-customer-email" class="form-label">
+                                Correo Electrónico
+                            </label>
+                            <input 
+                                type="email" 
+                                id="modal-customer-email" 
+                                name="customer_email" 
+                                class="form-input" 
+                                placeholder="ejemplo@correo.com"
+                            >
+                        </div>
 
-                    <div class="form-group">
-                        <label for="modal-customer-phone" class="form-label">
-                            Teléfono
-                        </label>
-                        <input 
-                            type="tel" 
-                            id="modal-customer-phone" 
-                            name="customer_phone" 
-                            class="form-input" 
-                            placeholder="+591 7xxxxxxx"
-                        >
+                        <div class="form-group">
+                            <label for="modal-customer-phone" class="form-label">
+                                Teléfono
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="modal-customer-phone" 
+                                name="customer_phone" 
+                                class="form-input" 
+                                placeholder="+591 7xxxxxxx"
+                            >
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- NUEVA SECCIÓN: Documento de Identidad -->
-        <div class="collapsible-section">
-            <button type="button" 
-                    class="collapsible-header" 
-                    onclick="toggleCollapsibleSection('document-section')">
-                <div class="collapsible-title">
-                    <i class="fas fa-id-card"></i>
-                    Documento de Identidad (Opcional)
-                </div>
-                <i class="fas fa-chevron-down collapsible-icon" id="document-section-icon"></i>
-            </button>
-            <div class="collapsible-content" id="document-section">
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label for="modal-customer-doc-type" class="form-label">
-                            Tipo de Documento
-                        </label>
-                        <select id="modal-customer-doc-type" name="customer_doc_type" class="form-select">
-                            <option value="CI">CI - Carnet de Identidad</option>
-                            <option value="NIT">NIT</option>
-                            <option value="Pasaporte">Pasaporte</option>
-                        </select>
+                <!-- Subsección: Documento de Identidad -->
+                <div class="subsection-container">
+                    {{-- <div class="subsection-header">
+                        <i class="fas fa-id-card"></i>
+                        <span>Documento de Identidad</span>
+                    </div> --}}
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="modal-customer-doc-type" class="form-label">
+                                Tipo de Documento
+                            </label>
+                            <select id="modal-customer-doc-type" name="customer_doc_type" class="form-select">
+                                <option value="CI">CI - Carnet de Identidad</option>
+                                <option value="NIT">NIT</option>
+                                <option value="Pasaporte">Pasaporte</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modal-customer-doc-number" class="form-label">
+                                Número de Documento
+                            </label>
+                            <input 
+                                type="text" 
+                                id="modal-customer-doc-number" 
+                                name="customer_doc_number" 
+                                class="form-input" 
+                                placeholder="Ej: 1234567"
+                                style="font-family: monospace;"
+                            >
+                        </div>
                     </div>
+                </div>
 
+                <!-- Subsección: Ubicación -->
+                <div class="subsection-container">
+                    <div class="subsection-header">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Ubicación</span>
+                    </div>
                     <div class="form-group">
-                        <label for="modal-customer-doc-number" class="form-label">
-                            Número de Documento
+                        <label for="modal-customer-address" class="form-label">
+                            Dirección
                         </label>
                         <input 
                             type="text" 
-                            id="modal-customer-doc-number" 
-                            name="customer_doc_number" 
+                            id="modal-customer-address" 
+                            name="customer_address" 
                             class="form-input" 
-                            placeholder="Ej: 1234567"
-                            style="font-family: monospace;"
+                            placeholder="Ej: Calle 123, Zona Centro"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-customer-city" class="form-label">
+                            Ciudad
+                        </label>
+                        <input 
+                            type="text" 
+                            id="modal-customer-city" 
+                            name="customer_city" 
+                            class="form-input" 
+                            placeholder="Ej: La Paz"
                         >
                     </div>
                 </div>
+
+                <!-- ✅ NUEVA SUBSECCIÓN: Información Personal -->
+                <div class="subsection-container">
+                    {{-- <div class="subsection-header">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span>Información Personal</span>
+                    </div> --}}
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="modal-customer-birthday" class="form-label">
+                                <i class="fas fa-calendar-day" style="margin-right: 6px; color: #6380a6;"></i>
+                                Fecha de Cumpleaños
+                            </label>
+                            <input 
+                                type="date" 
+                                id="modal-customer-birthday" 
+                                name="customer_birthday" 
+                                class="form-input birthday-input"
+                                placeholder="dd/mm/aaaa"
+                                max="{{ date('Y-m-d') }}"
+                            >
+                            <small style="display: block; margin-top: 6px; color: #6b7280; font-size: 0.75rem;">
+                                <i class="fas fa-gift" style="color: #f59e0b; margin-right: 4px;"></i>
+                                Útil para enviar promociones o descuentos especiales
+                            </small>
+                        </div>
+
+                        <!-- Campo adicional: Edad (calculada automáticamente) -->
+                        <div class="form-group">
+                            <label for="modal-customer-age" class="form-label">
+                                <i class="fas fa-user-clock" style="margin-right: 6px; color: #6380a6;"></i>
+                                Edad
+                            </label>
+                            <input 
+                                type="text" 
+                                id="modal-customer-age" 
+                                name="customer_age" 
+                                class="form-input age-display" 
+                                placeholder="Se calcula automáticamente"
+                                readonly
+                                style="background: #f1f5f9; cursor: not-allowed;"
+                            >
+                            <small style="display: block; margin-top: 6px; color: #6b7280; font-size: 0.75rem;">
+                                <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+                                Se actualiza al seleccionar fecha de cumpleaños
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- SECCIÓN DESPLEGABLE: Ubicación -->
-        <div class="collapsible-section">
-            <button type="button" 
-                    class="collapsible-header" 
-                    onclick="toggleCollapsibleSection('location-section')">
-                <div class="collapsible-title">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Ubicación (Opcional)
-                </div>
-                <i class="fas fa-chevron-down collapsible-icon" id="location-section-icon"></i>
-            </button>
-            <div class="collapsible-content" id="location-section">
-                <div class="form-group">
-                    <label for="modal-customer-address" class="form-label">
-                        Dirección
-                    </label>
-                    <input 
-                        type="text" 
-                        id="modal-customer-address" 
-                        name="customer_address" 
-                        class="form-input" 
-                        placeholder="Ej: Calle 123, Zona Centro"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="modal-customer-city" class="form-label">
-                        Ciudad
-                    </label>
-                    <input 
-                        type="text" 
-                        id="modal-customer-city" 
-                        name="customer_city" 
-                        class="form-input" 
-                        placeholder="Ej: La Paz"
-                    >
-                </div>
-            </div>
-        </div>
-
-           <!-- Notas Adicionales - SIEMPRE VISIBLE -->
+        <!-- Notas Adicionales - SIEMPRE VISIBLE -->
         <div class="form-group">
             <label for="modal-customer-notes" class="form-label">
                 Notas Adicionales
@@ -566,7 +611,7 @@
             ></textarea>
         </div>
 
-             <!-- Indicador de cliente guardado -->
+        <!-- Indicador de cliente guardado -->
         <div id="client-saved-indicator" style="display: none; background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 16px;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
@@ -1664,6 +1709,87 @@ window.addEventListener('load', function() {
 </script>
 
 <style>
+    /* ============================================
+   ESTILOS PARA CAMPO DE CUMPLEAÑOS
+   ============================================ */
+
+.birthday-input {
+    position: relative !important;
+}
+
+.birthday-input::-webkit-calendar-picker-indicator {
+    cursor: pointer !important;
+    opacity: 0.6 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.birthday-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1 !important;
+}
+
+.age-display {
+    font-weight: 600 !important;
+    color: #203363 !important;
+    text-align: center !important;
+    font-size: 1.1rem !important;
+}
+
+/* Indicador visual cuando hay cumpleaños próximo */
+.birthday-indicator {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 10px !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    color: #92400e !important;
+    border-radius: 12px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    margin-top: 6px !important;
+    animation: pulse 2s ease-in-out infinite !important;
+}
+
+.birthday-indicator i {
+    color: #f59e0b !important;
+    font-size: 0.9rem !important;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.85;
+        transform: scale(1.02);
+    }
+}
+
+/* Estilos para el input de fecha en diferentes navegadores */
+.birthday-input::-webkit-inner-spin-button,
+.birthday-input::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.birthday-input[type="date"] {
+    position: relative !important;
+}
+
+.birthday-input[type="date"]::-webkit-datetime-edit {
+    padding: 0 !important;
+}
+
+.birthday-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 0 !important;
+}
+
+/* Estilo cuando el cumpleaños es hoy */
+.birthday-today {
+    border: 2px solid #f59e0b !important;
+    background: #fffbeb !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1) !important;
+}
     .clients-config-btn {
     background: #203363;
     color: white;
