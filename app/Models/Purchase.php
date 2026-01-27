@@ -11,6 +11,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'supplier_id',
+        'branch_id',
         'user_id',
         'reference_number',
         'purchase_date',
@@ -30,6 +31,10 @@ class Purchase extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function user()

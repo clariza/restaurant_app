@@ -158,6 +158,9 @@ class PurchaseController extends Controller
                     $product->stock = $newStock;
                     $product->save();
 
+                    // Obtener el nombre de la sucursal
+                    $branchName = \App\Models\Branch::find($validated['branch_id'])->name ?? 'N/A';
+
                     // Registrar movimiento de inventario
                     $movement = InventoryMovement::create([
                         'menu_item_id' => $product->id,
@@ -168,7 +171,7 @@ class PurchaseController extends Controller
                         'new_stock' => $newStock,
                         'notes' => "Compra #" . $purchase->id .
                             ($purchase->reference_number ? " - Ref: {$purchase->reference_number}" : "") .
-                            " - Sucursal: " . $purchase->branch->name
+                            " - Sucursal: " . $branchName
                     ]);
                 }
 
