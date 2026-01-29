@@ -13881,3 +13881,24 @@ Stack trace:
 [2026-01-25 19:22:28] local.INFO: Movimientos encontrados {"item_id":"2","count":0} 
 [2026-01-25 19:22:40] local.INFO: updateStock llamado {"request":{"_token":"BTBxiEhTXZ3ioKPN7ApTlDy3YZf964gvQHfVP46C","item_id":"2","movement_type":"addition","quantity":"20","notes":null}} 
 [2026-01-25 19:22:40] local.INFO: Stock actualizado correctamente {"item_id":2,"movement_id":3,"old_stock":"0.00","new_stock":20.0,"user_id":1} 
+[2026-01-28 23:56:37] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":1,"all_data":{"customer_name":"Juan Luis","customer_email":null,"customer_phone":null,"order_type":"Comer aquí","table_number":null,"delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":null,\"name\":\"Hamburguesa Simple\",\"price\":20,\"quantity\":1}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":20,"transaction_number":null}],"converting_from_proforma":1}} 
+[2026-01-28 23:56:39] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":1,"converting_from_proforma_parsed":1,"is_null":false,"type":"integer"} 
+[2026-01-28 23:56:39] local.INFO: ✅ Sale creada: {"sale_id":2,"transaction_number":null} 
+[2026-01-28 23:56:39] local.INFO: 🔄 INTENTANDO CONVERTIR PROFORMA {"proforma_id":1,"sale_id":2} 
+[2026-01-28 23:56:39] local.INFO: 📋 Proforma encontrada: {"id":1,"converted_to_order":false,"status":"reservado"} 
+[2026-01-28 23:56:39] local.INFO: 🔍 DESPUÉS DEL UPDATE: {"update_result":true,"proforma_id":1,"converted_to_order":true,"converted_order_id":2,"status":"completed"} 
+[2026-01-28 23:56:39] local.INFO: ✅ PROFORMA CONVERTIDA EXITOSAMENTE {"proforma_id":1,"sale_id":2} 
+[2026-01-28 23:56:39] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":2,"proforma_converted":true} 
+[2026-01-29 00:19:16] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"all_data":{"customer_name":"Maria cespedes","customer_email":null,"customer_phone":null,"order_type":"Comer aquí","table_number":null,"delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"quantity\":2}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":40,"transaction_number":null}],"converting_from_proforma":null}} 
+[2026-01-29 00:19:19] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"type":"NULL"} 
+[2026-01-29 00:19:19] local.INFO: ✅ Sale creada: {"sale_id":3,"transaction_number":null} 
+[2026-01-29 00:19:19] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-01-29 00:19:19] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":3,"proforma_converted":false} 
+[2026-01-29 00:28:00] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":2,"all_data":{"customer_name":"Juan Carlos","customer_email":null,"customer_phone":null,"order_type":"Comer aquí","table_number":null,"delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":null,\"name\":\"Hamburguesa Simple\",\"price\":20,\"quantity\":1},{\"menu_item_id\":null,\"name\":\"Cocacola s/ Azucar\",\"price\":14,\"quantity\":1}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":34,"transaction_number":null}],"converting_from_proforma":2}} 
+[2026-01-29 00:28:03] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":2,"converting_from_proforma_parsed":2,"is_null":false,"type":"integer"} 
+[2026-01-29 00:28:03] local.INFO: ✅ Sale creada: {"sale_id":4,"transaction_number":null} 
+[2026-01-29 00:28:03] local.INFO: 🔄 INTENTANDO CONVERTIR PROFORMA {"proforma_id":2,"sale_id":4} 
+[2026-01-29 00:28:03] local.INFO: 📋 Proforma encontrada: {"id":2,"converted_to_order":false,"status":"reservado"} 
+[2026-01-29 00:28:03] local.INFO: 🔍 DESPUÉS DEL UPDATE: {"update_result":true,"proforma_id":2,"converted_to_order":true,"converted_order_id":4,"status":"completed"} 
+[2026-01-29 00:28:03] local.INFO: ✅ PROFORMA CONVERTIDA EXITOSAMENTE {"proforma_id":2,"sale_id":4} 
+[2026-01-29 00:28:04] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":4,"proforma_converted":true} 

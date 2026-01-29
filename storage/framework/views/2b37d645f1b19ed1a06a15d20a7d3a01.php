@@ -366,170 +366,170 @@
     
     // Función para convertir proforma a orden
 async function convertToOrder(proformaId) {
-    localStorage.removeItem('convertingProforma');
-    localStorage.removeItem('proformaId');
-    localStorage.removeItem('proformaNotes');
-    try {
-        // Mostrar loader inicial
-        Swal.fire({
-            title: 'Cargando proforma...',
-            html: 'Por favor espera',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-         if (!confirmResult.isConfirmed) {
-            // 🔥 Usuario canceló, NO establecer banderas
-            console.log('❌ Usuario canceló conversión');
-            return;
-        }
-        // 1. Obtener los datos de la proforma
-        const response = await fetch(`/proformas/${proformaId}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al obtener la proforma');
-        }
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.message || 'Error al cargar la proforma');
-        }
-
-        const proforma = data.proforma;
-
-        // 2. Validar que puede ser convertida
-        if (!data.can_convert) {
-            Swal.close();
-            let errorMsg = 'Esta proforma no puede ser convertida';
-            let errorDetail = '';
-            
-            if (data.is_converted) {
-                errorMsg = 'Proforma ya convertida';
-                errorDetail = 'Esta proforma ya fue convertida anteriormente a una orden de venta.';
-            } else if (data.reason === 'insufficient_stock') {
-                errorMsg = 'Stock insuficiente';
-                errorDetail = 'Algunos productos no tienen stock disponible:<br><br>';
-                data.stock_issues.forEach(issue => {
-                    errorDetail += `• <strong>${issue.item_name}</strong>: Requiere ${issue.required}, disponible ${issue.available}<br>`;
-                });
-            } else if (data.reason === 'no_open_petty_cash') {
-                errorMsg = 'Sin caja chica abierta';
-                errorDetail = 'No hay una caja chica abierta para registrar la venta.';
-            }
-            
-            Swal.fire({
-                title: errorMsg,
-                html: errorDetail,
-                icon: 'warning',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#203363'
-            });
-            return;
-        }
-
-        // 3. Confirmar conversión
-        const confirmResult = await Swal.fire({
-            title: '¿Convertir proforma a orden?',
-            html: `
-                <div class="text-left">
-                    <p class="mb-3">Se cargará la siguiente proforma al sistema de pedidos:</p>
-                    <div class="bg-gray-50 p-4 rounded-lg mb-3">
-                        <p class="text-sm"><strong>ID:</strong> PROF-${proforma.id}</p>
-                        <p class="text-sm"><strong>Cliente:</strong> ${proforma.customer_name}</p>
-                        <p class="text-sm"><strong>Items:</strong> ${proforma.items.length}</p>
-                        <p class="text-sm"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
-                    </div>
-                    <p class="text-sm text-gray-600">Podrás revisar el pedido y proceder con el pago.</p>
-                </div>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#203363',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, cargar al sistema',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'swal-wide'
-            }
-        });
-
-        if (!confirmResult.isConfirmed) {
-            return;
-        }
-
-        // 4. Cargar items al sistema de pedidos
-        const orderItems = proforma.items.map(item => ({
-            id: item.menu_item_id,
-            name: item.name,
-            price: parseFloat(item.price),
-            quantity: item.quantity,
-            menu_item_id: item.menu_item_id
-        }));
-
-        // Guardar en localStorage
-        localStorage.setItem('order', JSON.stringify(orderItems));
-        localStorage.setItem('orderType', proforma.order_type || 'Comer aquí');
-        localStorage.setItem('orderNotes', proforma.notes || '');
-        localStorage.setItem('customerName', proforma.customer_name || '');
-        localStorage.setItem('customerPhone', proforma.customer_phone || '');
-        
-        // Marcar que estamos convirtiendo una proforma
-        localStorage.setItem('convertingProforma', 'true');
-        localStorage.setItem('proformaId', proformaId);
-        localStorage.setItem('proformaNotes', proforma.notes || '');
-
-        // 5. Mostrar notificación de éxito y redirigir
-        Swal.fire({
-            title: '¡Proforma Cargada!',
-            html: `
-                <div class="text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-check-circle text-green-500 text-5xl"></i>
-                    </div>
-                    <p class="mb-3">La proforma se ha cargado exitosamente al sistema de pedidos.</p>
-                    <div class="bg-blue-50 p-4 rounded-lg mb-3">
-                        <p class="text-sm text-blue-800"><strong>Cliente:</strong> ${proforma.customer_name}</p>
-                        <p class="text-sm text-blue-800"><strong>Items cargados:</strong> ${orderItems.length}</p>
-                        <p class="text-sm text-blue-800"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
-                    </div>
-                    <p class="text-sm text-gray-600">Serás redirigido al menú para procesar el pago.</p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'Ir al Menú',
-            confirmButtonColor: '#203363',
-            allowOutsideClick: false,
-            timer: 3000,
-            timerProgressBar: true
-        }).then(() => {
-            // Redirigir al menú con parámetro para abrir modal automáticamente
-            window.location.href = '<?php echo e(route("menu.index")); ?>?open_payment=true';
-        });
-
-    } catch (error) {
-        console.error('Error al convertir proforma:', error);
+        // Limpiar localStorage al inicio
         localStorage.removeItem('convertingProforma');
         localStorage.removeItem('proformaId');
         localStorage.removeItem('proformaNotes');
-        Swal.fire({
-            title: 'Error',
-            html: `
-                <p class="mb-2">No se pudo cargar la proforma:</p>
-                <p class="text-sm text-red-600">${error.message}</p>
-            `,
-            icon: 'error',
-            confirmButtonText: 'Aceptar',
-            confirmButtonColor: '#dc2626'
-        });
-    }
+        
+        try {
+            // Mostrar loader inicial
+            Swal.fire({
+                title: 'Cargando proforma...',
+                html: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // 1. Obtener los datos de la proforma
+            const response = await fetch(`/proformas/${proformaId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener la proforma');
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Error al cargar la proforma');
+            }
+
+            const proforma = data.proforma;
+
+            // 2. Validar que puede ser convertida
+            if (!data.can_convert) {
+                Swal.close();
+                let errorMsg = 'Esta proforma no puede ser convertida';
+                let errorDetail = '';
+                
+                if (data.is_converted) {
+                    errorMsg = 'Proforma ya convertida';
+                    errorDetail = 'Esta proforma ya fue convertida anteriormente a una orden de venta.';
+                } else if (data.reason === 'insufficient_stock') {
+                    errorMsg = 'Stock insuficiente';
+                    errorDetail = 'Algunos productos no tienen stock disponible:<br><br>';
+                    data.stock_issues.forEach(issue => {
+                        errorDetail += `• <strong>${issue.item_name}</strong>: Requiere ${issue.required}, disponible ${issue.available}<br>`;
+                    });
+                } else if (data.reason === 'no_open_petty_cash') {
+                    errorMsg = 'Sin caja chica abierta';
+                    errorDetail = 'No hay una caja chica abierta para registrar la venta.';
+                }
+                
+                Swal.fire({
+                    title: errorMsg,
+                    html: errorDetail,
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#203363'
+                });
+                return;
+            }
+
+            // 3. Confirmar conversión
+            const confirmResult = await Swal.fire({
+                title: '¿Convertir proforma a orden?',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">Se cargará la siguiente proforma al sistema de pedidos:</p>
+                        <div class="bg-gray-50 p-4 rounded-lg mb-3">
+                            <p class="text-sm"><strong>ID:</strong> PROF-${proforma.id}</p>
+                            <p class="text-sm"><strong>Cliente:</strong> ${proforma.customer_name}</p>
+                            <p class="text-sm"><strong>Items:</strong> ${proforma.items.length}</p>
+                            <p class="text-sm"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                        </div>
+                        <p class="text-sm text-gray-600">Podrás revisar el pedido y proceder con el pago.</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#203363',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cargar al sistema',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'swal-wide'
+                }
+            });
+
+            // Verificar si el usuario canceló
+            if (!confirmResult.isConfirmed) {
+                console.log('❌ Usuario canceló conversión');
+                return;
+            }
+
+            // 4. Cargar items al sistema de pedidos
+            const orderItems = proforma.items.map(item => ({
+                id: item.menu_item_id,
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: item.quantity,
+                menu_item_id: item.menu_item_id
+            }));
+
+            // Guardar en localStorage
+            localStorage.setItem('order', JSON.stringify(orderItems));
+            localStorage.setItem('orderType', proforma.order_type || 'Comer aquí');
+            localStorage.setItem('orderNotes', proforma.notes || '');
+            localStorage.setItem('customerName', proforma.customer_name || '');
+            localStorage.setItem('customerPhone', proforma.customer_phone || '');
+            
+            // Marcar que estamos convirtiendo una proforma
+            localStorage.setItem('convertingProforma', 'true');
+            localStorage.setItem('proformaId', proformaId);
+            localStorage.setItem('proformaNotes', proforma.notes || '');
+
+            // 5. Mostrar notificación de éxito y redirigir
+            Swal.fire({
+                title: '¡Proforma Cargada!',
+                html: `
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-green-500 text-5xl"></i>
+                        </div>
+                        <p class="mb-3">La proforma se ha cargado exitosamente al sistema de pedidos.</p>
+                        <div class="bg-blue-50 p-4 rounded-lg mb-3">
+                            <p class="text-sm text-blue-800"><strong>Cliente:</strong> ${proforma.customer_name}</p>
+                            <p class="text-sm text-blue-800"><strong>Items cargados:</strong> ${orderItems.length}</p>
+                            <p class="text-sm text-blue-800"><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                        </div>
+                        <p class="text-sm text-gray-600">Serás redirigido al menú para procesar el pago.</p>
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Ir al Menú',
+                confirmButtonColor: '#203363',
+                allowOutsideClick: false,
+                timer: 3000,
+                timerProgressBar: true
+            }).then(() => {
+                // Redirigir al menú con parámetro para abrir modal automáticamente
+                window.location.href = '<?php echo e(route("menu.index")); ?>?open_payment=true';
+            });
+
+        } catch (error) {
+            console.error('Error al convertir proforma:', error);
+            localStorage.removeItem('convertingProforma');
+            localStorage.removeItem('proformaId');
+            localStorage.removeItem('proformaNotes');
+            Swal.fire({
+                title: 'Error',
+                html: `
+                    <p class="mb-2">No se pudo cargar la proforma:</p>
+                    <p class="text-sm text-red-600">${error.message}</p>
+                `,
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#dc2626'
+            });
+        }
 }
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
