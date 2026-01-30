@@ -19,16 +19,20 @@ class Proforma extends Model
         'total',
         'status',
         'user_id',
+        'is_converted',
         'converted_to_order',
-        'converted_order_id'
+        'converted_order_id',
+        'converted_at'
     ];
     protected $casts = [
         'converted_to_order' => 'boolean',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
+        'is_converted' => 'boolean',
         'total' => 'decimal:2',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
+        'converted_at' => 'datetime',
     ];
     public function items()
     {
@@ -49,8 +53,15 @@ class Proforma extends Model
 
     public function canBeConverted()
     {
+        if ($this->isConverted()) {
+            return false;
+        }
         // ✅ AGREGAR esta validación primero
         if ($this->converted_to_order) {
+            return false;
+        }
+        $openPettyCash = \App\Models\PettyCash::where('status', 'open')->exists();
+        if (!$openPettyCash) {
             return false;
         }
 
@@ -72,11 +83,35 @@ class Proforma extends Model
 
         return true;
     }
+    public function markAsConverted(int $orderId): void
+    {
+        $this->update([
+            'is_converted' => true,
+            'converted_order_id' => $orderId,
+            'converted_at' => now(),
+        ]);
+    }
+    /**
+     * Desmarca la proforma como convertida (por ejemplo, si se elimina la orden)
+     */
+    public function unmarkAsConverted(): void
+    {
+        $this->update([
+            'is_converted' => false,
+            'converted_order_id' => null,
+            'converted_at' => null,
+        ]);
+    }
+
     // En App\Models\Proforma.php
 
     public function isConverted()
     {
         return $this->converted_to_order == true;
+    }
+    public function convertedOrder()
+    {
+        return $this->belongsTo(Sale::class, 'converted_order_id');
     }
     public function getConversionStatusAttribute(): string
     {
@@ -103,6 +138,10 @@ class Proforma extends Model
     public function scopeConverted($query)
     {
         return $query->where('converted_to_order', true);
+    }
+    public function scopeCanBeConverted($query)
+    {
+        return $query->where('is_converted', false);
     }
 
     public function scopeToday($query)

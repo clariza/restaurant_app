@@ -12,25 +12,36 @@ class Sale extends Model
     protected $fillable = [
         'user_id',
         'customer_name',
+        'customer_email',
+        'customer_phone',
         'phone',
         'order_type',
         'table_number',
         'subtotal',
         'discount',
         'service_charge',
+        'delivery_service',
+        'pickup_notes',
         'tax',
+        'subtotal',
         'total',
         'transaction_number',
         'petty_cash_id',
+        'proforma_id',
         'payment_method',
         'order_notes',
         'daily_order_number',
-        'order_date'
+        'order_date',
+        'transaction_number_ref',
     ];
 
 
-    // Método para generar número de pedido
-    // En app/Models/Sale.php
+    protected $casts = [
+        'subtotal' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'total' => 'decimal:2',
+    ];
+
 
     public static function generateOrderNumber()
     {
@@ -75,6 +86,22 @@ class Sale extends Model
     {
         return $this->belongsTo(PettyCash::class, 'petty_cash_id');
     }
+    public function proforma()
+    {
+        return $this->belongsTo(Proforma::class, 'proforma_id');
+    }
+    public function isFromProforma(): bool
+    {
+        return !is_null($this->proforma_id);
+    }
+    /**
+     * Obtiene la proforma origen si existe
+     */
+    public function getSourceProforma()
+    {
+        return $this->proforma;
+    }
+
     public static function generateTransactionNumber()
     {
         do {

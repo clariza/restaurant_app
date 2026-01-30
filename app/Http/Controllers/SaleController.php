@@ -89,6 +89,8 @@ class SaleController extends Controller
         // 🔥 CRÍTICO: Log de entrada para debugging
         Log::info('📥 REQUEST RECIBIDO EN STORE:', [
             'converting_from_proforma' => $request->input('converting_from_proforma'),
+            'customer_name' => $request->input('customer_name'),
+            'order_type' => $request->input('order_type'),
             'all_data' => $request->all()
         ]);
 
@@ -105,7 +107,7 @@ class SaleController extends Controller
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'customer_phone' => 'nullable|string|max:20',
-            'order' => 'required|string', // ✅ Cambiar a string, no json
+            'order' => 'required|string', // JSON string
             'order_type' => 'required|string',
             'table_number' => 'nullable|string',
             'transaction_number' => 'nullable|string',
@@ -135,8 +137,39 @@ class SaleController extends Controller
                 'converting_from_proforma_raw' => $request->input('converting_from_proforma'),
                 'converting_from_proforma_parsed' => $convertingFromProforma,
                 'is_null' => is_null($convertingFromProforma),
-                'type' => gettype($convertingFromProforma)
+                'is_numeric' => is_numeric($convertingFromProforma),
+                'type' => gettype($convertingFromProforma),
+                'value' => $convertingFromProforma
             ]);
+
+            // 🔥 CRÍTICO: Validar y obtener proforma ANTES de crear la venta
+            $proforma = null;
+            if ($convertingFromProforma) {
+                $proforma = Proforma::find($convertingFromProforma);
+
+                if (!$proforma) {
+                    Log::error('❌ PROFORMA NO ENCONTRADA', [
+                        'proforma_id' => $convertingFromProforma
+                    ]);
+                    throw new \Exception("Proforma ID {$convertingFromProforma} no encontrada");
+                }
+
+                Log::info('📋 Proforma encontrada:', [
+                    'id' => $proforma->id,
+                    'customer' => $proforma->customer_name,
+                    'converted_to_order' => $proforma->converted_to_order ?? 'campo no existe',
+                    'status' => $proforma->status
+                ]);
+
+                // Verificar que no esté ya convertida
+                if (isset($proforma->converted_to_order) && $proforma->converted_to_order) {
+                    Log::warning('⚠️ Proforma ya convertida anteriormente', [
+                        'proforma_id' => $convertingFromProforma,
+                        'converted_order_id' => $proforma->converted_order_id ?? 'no definido'
+                    ]);
+                    throw new \Exception("Esta proforma ya fue convertida anteriormente");
+                }
+            }
 
             // Verificar caja chica abierta
             $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
@@ -158,8 +191,8 @@ class SaleController extends Controller
             // Generar número de pedido
             $orderNumber = Sale::generateOrderNumber();
 
-            // Crear la venta
-            $sale = Sale::create([
+            // 🔥 CREAR LA VENTA CON PROFORMA_ID SI CORRESPONDE
+            $saleData = [
                 'user_id' => Auth::id(),
                 'petty_cash_id' => $openPettyCash->id,
                 'customer_name' => $request->customer_name,
@@ -177,11 +210,20 @@ class SaleController extends Controller
                 'order_notes' => $request->order_notes,
                 'daily_order_number' => $orderNumber,
                 'order_date' => now()->toDateString(),
-            ]);
+            ];
+
+            // ✅ AGREGAR proforma_id SI EXISTE LA COLUMNA Y HAY CONVERSIÓN
+            if ($convertingFromProforma && Schema::hasColumn('sales', 'proforma_id')) {
+                $saleData['proforma_id'] = $convertingFromProforma;
+                Log::info('✅ Agregando proforma_id a la venta', ['proforma_id' => $convertingFromProforma]);
+            }
+
+            $sale = Sale::create($saleData);
 
             Log::info('✅ Sale creada:', [
                 'sale_id' => $sale->id,
-                'transaction_number' => $sale->transaction_number
+                'transaction_number' => $sale->transaction_number,
+                'proforma_id' => $sale->proforma_id ?? 'no asignado'
             ]);
 
             // ✅ Procesar items y stock
@@ -192,6 +234,11 @@ class SaleController extends Controller
                     throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
                 }
 
+                // Verificar stock disponible
+                if ($menuItem->manage_inventory && $menuItem->stock < $item['quantity']) {
+                    throw new \Exception("Stock insuficiente para {$menuItem->name}. Disponible: {$menuItem->stock}, Requerido: {$item['quantity']}");
+                }
+
                 $sale->items()->create([
                     'menu_item_id' => $menuItem->id,
                     'name' => $item['name'],
@@ -200,6 +247,7 @@ class SaleController extends Controller
                     'total' => $item['price'] * $item['quantity'],
                 ]);
 
+                // Crear movimiento de inventario
                 InventoryMovement::create([
                     'menu_item_id' => $menuItem->id,
                     'user_id' => Auth::id(),
@@ -207,74 +255,82 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'old_stock' => $menuItem->stock,
                     'new_stock' => $menuItem->stock - $item['quantity'],
-                    'notes' => "Venta #{$orderNumber}"
+                    'notes' => "Venta #{$orderNumber}" . ($convertingFromProforma ? " (Proforma #{$convertingFromProforma})" : '')
                 ]);
 
-                $menuItem->stock -= $item['quantity'];
-                $menuItem->save();
+                // Actualizar stock
+                if ($menuItem->manage_inventory) {
+                    $menuItem->decrement('stock', $item['quantity']);
+                    Log::info("Stock actualizado para {$menuItem->name}: -{$item['quantity']}");
+                }
             }
 
             // ✅ MARCAR PROFORMA COMO CONVERTIDA
             $proformaConverted = false;
 
-            if ($convertingFromProforma) {
-                Log::info('🔄 INTENTANDO CONVERTIR PROFORMA', [
-                    'proforma_id' => $convertingFromProforma,
+            if ($proforma) {
+                Log::info('🔄 MARCANDO PROFORMA COMO CONVERTIDA', [
+                    'proforma_id' => $proforma->id,
                     'sale_id' => $sale->id
                 ]);
 
-                $proforma = Proforma::find($convertingFromProforma);
+                try {
+                    // Verificar qué campos existen en la proforma
+                    $fillableFields = $proforma->getFillable();
+                    Log::info('📋 Campos fillable de Proforma:', ['fields' => $fillableFields]);
 
-                if (!$proforma) {
-                    Log::error('❌ PROFORMA NO ENCONTRADA', [
-                        'proforma_id' => $convertingFromProforma
-                    ]);
-                } else {
-                    Log::info('📋 Proforma encontrada:', [
-                        'id' => $proforma->id,
-                        'converted_to_order' => $proforma->converted_to_order,
-                        'status' => $proforma->status
+                    // Preparar datos para actualizar
+                    $updateData = ['status' => 'completed'];
+
+                    // ✅ Usar los campos correctos según tu modelo
+                    if (in_array('converted_to_order', $fillableFields)) {
+                        $updateData['converted_to_order'] = true;
+                    }
+                    if (in_array('is_converted', $fillableFields)) {
+                        $updateData['is_converted'] = true;
+                    }
+                    if (in_array('converted_order_id', $fillableFields)) {
+                        $updateData['converted_order_id'] = $sale->id;
+                    }
+                    if (in_array('converted_at', $fillableFields)) {
+                        $updateData['converted_at'] = now();
+                    }
+
+                    Log::info('📝 Datos a actualizar en proforma:', $updateData);
+
+                    // Actualizar la proforma
+                    $updateResult = $proforma->update($updateData);
+
+                    // Recargar para verificar
+                    $proforma->refresh();
+
+                    Log::info('🔍 DESPUÉS DEL UPDATE:', [
+                        'update_result' => $updateResult,
+                        'proforma_id' => $proforma->id,
+                        'status' => $proforma->status,
+                        'converted_to_order' => $proforma->converted_to_order ?? 'campo no existe',
+                        'is_converted' => $proforma->is_converted ?? 'campo no existe',
+                        'converted_order_id' => $proforma->converted_order_id ?? 'campo no existe',
                     ]);
 
-                    // Verificar que no esté ya convertida
-                    if ($proforma->converted_to_order) {
-                        Log::warning('⚠️ Proforma ya convertida anteriormente', [
-                            'proforma_id' => $convertingFromProforma,
-                            'converted_order_id' => $proforma->converted_order_id
+                    if ($updateResult) {
+                        $proformaConverted = true;
+                        Log::info('✅ PROFORMA CONVERTIDA EXITOSAMENTE', [
+                            'proforma_id' => $proforma->id,
+                            'sale_id' => $sale->id
                         ]);
                     } else {
-                        // ✅ ACTUALIZAR LA PROFORMA
-                        $updateResult = $proforma->update([
-                            'converted_to_order' => true,
-                            'converted_order_id' => $sale->id,
-                            'status' => 'completed'
+                        Log::error('❌ UPDATE RETORNÓ FALSE', [
+                            'proforma_id' => $proforma->id
                         ]);
-
-                        // Verificar que se actualizó
-                        $proforma->refresh();
-
-                        Log::info('🔍 DESPUÉS DEL UPDATE:', [
-                            'update_result' => $updateResult,
-                            'proforma_id' => $proforma->id,
-                            'converted_to_order' => $proforma->converted_to_order,
-                            'converted_order_id' => $proforma->converted_order_id,
-                            'status' => $proforma->status
-                        ]);
-
-                        if ($updateResult && $proforma->converted_to_order == true) {
-                            $proformaConverted = true;
-                            Log::info('✅ PROFORMA CONVERTIDA EXITOSAMENTE', [
-                                'proforma_id' => $convertingFromProforma,
-                                'sale_id' => $sale->id
-                            ]);
-                        } else {
-                            Log::error('❌ FALLO AL ACTUALIZAR PROFORMA', [
-                                'proforma_id' => $convertingFromProforma,
-                                'update_result' => $updateResult
-                            ]);
-                            throw new \Exception('No se pudo actualizar la proforma');
-                        }
                     }
+                } catch (\Exception $updateError) {
+                    Log::error('❌ ERROR AL ACTUALIZAR PROFORMA:', [
+                        'error' => $updateError->getMessage(),
+                        'trace' => $updateError->getTraceAsString()
+                    ]);
+                    // No lanzar excepción para no revertir la venta
+                    // Solo registrar el error
                 }
             } else {
                 Log::info('ℹ️ No se está convirtiendo desde proforma');
@@ -285,6 +341,7 @@ class SaleController extends Controller
 
             Log::info('✅ TRANSACCIÓN COMPLETADA', [
                 'sale_id' => $sale->id,
+                'daily_order_number' => $sale->daily_order_number,
                 'proforma_converted' => $proformaConverted
             ]);
 
@@ -294,7 +351,7 @@ class SaleController extends Controller
                 'order_number' => $sale->transaction_number,
                 'daily_order_number' => $sale->daily_order_number,
                 'message' => 'Pedido procesado correctamente.',
-                'converted_from_proforma' => $proformaConverted // ✅ Agregar este campo
+                'converted_from_proforma' => $proformaConverted // ✅ Informar si se convirtió
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -420,8 +477,6 @@ class SaleController extends Controller
             // Formatear con prefijo y ceros a la izquierda (5 dígitos)
             $formattedOrderNumber = 'PED-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-
-
             return response()->json([
                 'success' => true,
                 'next_order_number' => $formattedOrderNumber,
@@ -429,8 +484,6 @@ class SaleController extends Controller
                 'date' => $today->toDateString()
             ]);
         } catch (\Exception $e) {
-
-
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener el número de pedido',
