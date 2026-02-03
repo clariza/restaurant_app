@@ -276,7 +276,11 @@ function removeItem(index) {
 function setupEventListeners() {
     const notesTextarea = document.getElementById('order-notes');
     if (notesTextarea) {
-        notesTextarea.addEventListener('input', updateNotesCounter);
+        // ✅ CRÍTICO: Guardar en localStorage cuando el usuario escribe
+        notesTextarea.addEventListener('input', function () {
+            updateNotesCounter();
+            localStorage.setItem('orderNotes', this.value); // 👈 AGREGAR ESTA LÍNEA
+        });
     }
 
     document.querySelectorAll('.notes-examples span').forEach(span => {
@@ -1282,7 +1286,7 @@ function generateTicketContent(dailyOrderNumber) {
     if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
     if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de Recoger: ${pickupNotes}`;
+        allNotes += `Notas: ${pickupNotes}`;
     }
 
     console.log('✅ Ticket generado con:', {

@@ -29,6 +29,18 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
         </div>
+        <div class="mb-4">
+    <label for="branch_id" class="block text-sm font-medium text-[var(--table-data-color)]">Sucursal</label>
+    <select name="branch_id" id="branch_id" class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
+        <option value="">Seleccionar sucursal</option>
+        <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($branch->id); ?>" <?php echo e($branch->is_main ? 'selected' : ''); ?>>
+                <?php echo e($branch->name); ?> <?php echo e($branch->is_main ? '(Principal)' : ''); ?>
+
+            </option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+</div>
         
         <!-- Nueva sección mejorada para imagen -->
         <div class="mb-6 p-4 border border-[var(--tertiary-color)] rounded-md bg-gray-50">

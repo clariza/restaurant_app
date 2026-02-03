@@ -11,6 +11,7 @@ use App\Models\PettyCash;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -29,7 +30,18 @@ class OrderController extends Controller
             ->orderBy('id', 'asc');          // Desempate por ID
 
         // Query base para proformas (orden ASCENDENTE)
+        // ✅ EXCLUIR proformas ya convertidas
         $proformasQuery = Proforma::with(['items', 'user'])
+            ->where(function ($query) {
+                // Excluir si converted_to_order = 1
+                $query->where('converted_to_order', '!=', 1)
+                    ->orWhereNull('converted_to_order');
+            })
+            ->where(function ($query) {
+                // Excluir si is_converted = 1 (por compatibilidad)
+                $query->where('is_converted', '!=', 1)
+                    ->orWhereNull('is_converted');
+            })
             ->orderBy('created_at', 'asc')  // Orden ascendente por fecha
             ->orderBy('id', 'asc');          // Desempate por ID
 
@@ -107,6 +119,7 @@ class OrderController extends Controller
 
         return view('orders.index', compact('orders', 'proformas', 'hasOpenPettyCash', 'sellers'));
     }
+
     public function print($id)
     {
         // Obtener la orden con sus relaciones
@@ -115,6 +128,7 @@ class OrderController extends Controller
         // Retornar vista de impresión
         return view('orders.print', compact('order'));
     }
+
     public function show($id)
     {
         // Obtener la orden actual con sus relaciones
@@ -152,6 +166,7 @@ class OrderController extends Controller
         // Retornar la vista con todas las variables
         return view('orders.show', compact('order', 'previousOrder', 'nextOrder', 'hasOpenPettyCash'));
     }
+
     public function destroy($id)
     {
         try {
@@ -187,6 +202,75 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             try {
+                // 🔥 CRÍTICO: Si esta orden vino de una proforma, desmarcarla como convertida
+                $proformaId = null;
+
+                // Verificar si existe la columna proforma_id en la tabla sales
+                if (Schema::hasColumn('sales', 'proforma_id') && $order->proforma_id) {
+                    $proformaId = $order->proforma_id;
+
+                    Log::info('🔍 Orden viene de proforma, buscando para desmarcar:', [
+                        'order_id' => $order->id,
+                        'proforma_id' => $proformaId
+                    ]);
+
+                    $proforma = Proforma::find($proformaId);
+
+                    if ($proforma) {
+                        Log::info('📋 Proforma encontrada, desmarcando conversión:', [
+                            'proforma_id' => $proforma->id,
+                            'current_status' => $proforma->status,
+                            'converted_to_order' => $proforma->converted_to_order ?? 'campo no existe',
+                            'is_converted' => $proforma->is_converted ?? 'campo no existe'
+                        ]);
+
+                        // Preparar datos para desmarcar
+                        $fillableFields = $proforma->getFillable();
+                        $updateData = [];
+
+                        // Desmarcar según los campos disponibles
+                        if (in_array('converted_to_order', $fillableFields)) {
+                            $updateData['converted_to_order'] = false;
+                        }
+                        if (in_array('is_converted', $fillableFields)) {
+                            $updateData['is_converted'] = false;
+                        }
+                        if (in_array('converted_order_id', $fillableFields)) {
+                            $updateData['converted_order_id'] = null;
+                        }
+                        if (in_array('converted_at', $fillableFields)) {
+                            $updateData['converted_at'] = null;
+                        }
+                        if (in_array('status', $fillableFields)) {
+                            $updateData['status'] = 'reservado'; // Volver al estado original
+                        }
+
+                        if (!empty($updateData)) {
+                            $updateResult = $proforma->update($updateData);
+
+                            // Recargar para verificar
+                            $proforma->refresh();
+
+                            Log::info('✅ Proforma desmarcada:', [
+                                'proforma_id' => $proforma->id,
+                                'update_result' => $updateResult,
+                                'new_status' => $proforma->status,
+                                'converted_to_order' => $proforma->converted_to_order ?? 'campo no existe',
+                                'is_converted' => $proforma->is_converted ?? 'campo no existe',
+                                'converted_order_id' => $proforma->converted_order_id ?? 'campo no existe'
+                            ]);
+                        } else {
+                            Log::warning('⚠️ No hay campos para desmarcar en la proforma');
+                        }
+                    } else {
+                        Log::warning('⚠️ Proforma no encontrada para desmarcar', [
+                            'proforma_id' => $proformaId
+                        ]);
+                    }
+                } else {
+                    Log::info('ℹ️ Orden no viene de proforma o columna proforma_id no existe');
+                }
+
                 // Revertir el stock de los items
                 foreach ($order->items as $item) {
                     if ($item->menuItem) {
@@ -200,8 +284,10 @@ class OrderController extends Controller
                 // Eliminar los items de la orden
                 $order->items()->delete();
 
-                // Eliminar la orden
+                // Guardar número de orden antes de eliminar
                 $orderNumber = $order->transaction_number;
+
+                // Eliminar la orden
                 $order->delete();
 
                 // Actualizar el total de la caja chica
@@ -209,12 +295,17 @@ class OrderController extends Controller
 
                 DB::commit();
 
-                Log::info("Orden eliminada exitosamente: {$orderNumber} por usuario " . auth()->user()->name);
+                $logMessage = "Orden eliminada exitosamente: {$orderNumber} por usuario " . auth()->user()->name;
+                if ($proformaId) {
+                    $logMessage .= " (Proforma #{$proformaId} desmarcada)";
+                }
+                Log::info($logMessage);
 
                 if (request()->expectsJson()) {
                     return response()->json([
                         'success' => true,
-                        'message' => "La orden {$orderNumber} ha sido eliminada exitosamente."
+                        'message' => "La orden {$orderNumber} ha sido eliminada exitosamente.",
+                        'proforma_unmarked' => !is_null($proformaId) // Informar si se desmarcó proforma
                     ]);
                 }
 
@@ -224,7 +315,11 @@ class OrderController extends Controller
                 throw $e;
             }
         } catch (\Exception $e) {
-            Log::error("Error al eliminar orden: " . $e->getMessage());
+            Log::error("Error al eliminar orden: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
 
             if (request()->expectsJson()) {
                 return response()->json([

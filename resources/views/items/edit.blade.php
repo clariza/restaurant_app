@@ -36,6 +36,19 @@
                 @endforeach
             </select>
         </div>
+        <div class="mb-4">
+    <label for="branch_id" class="block text-sm font-medium text-[var(--table-data-color)]">Sucursal</label>
+    <select name="branch_id" id="branch_id" 
+            class="mt-1 block w-full px-3 py-2 border border-[var(--tertiary-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] sm:text-sm" required>
+        <option value="">Seleccionar sucursal</option>
+        @foreach($branches as $branch)
+            <option value="{{ $branch->id }}" 
+                    {{ old('branch_id', $item->branch_id) == $branch->id ? 'selected' : '' }}>
+                {{ $branch->name }} {{ $branch->is_main ? '(Principal)' : '' }}
+            </option>
+        @endforeach
+    </select>
+</div>
         
         <!-- Sección mejorada para imagen -->
         <div class="mb-6 p-4 border border-[var(--tertiary-color)] rounded-md bg-gray-50">

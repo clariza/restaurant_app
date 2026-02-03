@@ -50,7 +50,7 @@
                         <option value="Comer aquí" <?php echo e(request('type') == 'Comer aquí' ? 'selected' : ''); ?>>Comer aquí</option>
                         <option value="Para llevar" <?php echo e(request('type') == 'Para llevar' ? 'selected' : ''); ?>>Para llevar</option>
                         <option value="Recoger" <?php echo e(request('type') == 'Recoger' ? 'selected' : ''); ?>>Recoger</option>
-                        <option value="proforma" <?php echo e(request('type') == 'proforma' ? 'selected' : ''); ?>>Proformas</option>
+                        <option value="proforma" <?php echo e(request('type') == 'proforma' ? 'selected' : ''); ?>>Proformas Pendientes</option>
                     </select>
                 </div>
                 
@@ -120,6 +120,18 @@
         <?php $__empty_1 = true; $__currentLoopData = $orders->merge($proformas)->sortBy('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <?php
                 $isProforma = $record instanceof \App\Models\Proforma;
+                
+                // ✅ VERIFICACIÓN ADICIONAL: Saltar si es proforma convertida
+                if ($isProforma) {
+                    $isConverted = ($record->converted_to_order == 1) || 
+                                   (isset($record->is_converted) && $record->is_converted == 1) ||
+                                   (!empty($record->converted_order_id));
+                    
+                    if ($isConverted) {
+                        continue; // ✅ Saltar esta proforma
+                    }
+                }
+                
                 $badgeColor = $isProforma ? 'bg-[#EF476F]' : 'bg-[#203363]';
                 $typeColor = [
                     'Comer aquí' => 'bg-[#FFD166] text-[#203363]',
@@ -189,12 +201,12 @@
                         <i class="fas fa-print"></i>
                     </button>
                     
-                    <?php if($isProforma && !$record->isConverted() && $record->canBeConverted()): ?>
-                    <button class="text-green-600 hover:text-green-800 p-1"
-                        onclick="convertToOrder('<?php echo e($record->id); ?>')"
-                        title="Convertir a orden">
-                        <i class="fas fa-exchange-alt"></i>
-                    </button>
+                    <?php if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
+                        <button class="text-green-600 hover:text-green-800 p-1"
+                                onclick="convertToOrder('<?php echo e($record->id); ?>')"
+                                title="Convertir a orden">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
                     <?php endif; ?>
                     
                     <?php if(!$isProforma && $hasOpenPettyCash): ?>
@@ -236,7 +248,7 @@
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <div class="p-8 text-center text-gray-500">
                 <i class="fas fa-clipboard-list text-4xl mb-4"></i>
-                <p class="text-lg">No se encontraron órdenes o proformas</p>
+                <p class="text-lg">No se encontraron órdenes o proformas pendientes</p>
                 <p class="text-sm">Intenta con otros criterios de búsqueda</p>
             </div>
         <?php endif; ?>
@@ -365,7 +377,7 @@
     }
     
     // Función para convertir proforma a orden
-async function convertToOrder(proformaId) {
+    async function convertToOrder(proformaId) {
         // Limpiar localStorage al inicio
         localStorage.removeItem('convertingProforma');
         localStorage.removeItem('proformaId');
@@ -461,7 +473,6 @@ async function convertToOrder(proformaId) {
 
             // Verificar si el usuario canceló
             if (!confirmResult.isConfirmed) {
-                console.log('❌ Usuario canceló conversión');
                 return;
             }
 
@@ -510,7 +521,6 @@ async function convertToOrder(proformaId) {
                 timer: 3000,
                 timerProgressBar: true
             }).then(() => {
-                // Redirigir al menú con parámetro para abrir modal automáticamente
                 window.location.href = '<?php echo e(route("menu.index")); ?>?open_payment=true';
             });
 
@@ -530,111 +540,39 @@ async function convertToOrder(proformaId) {
                 confirmButtonColor: '#dc2626'
             });
         }
-}
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const openPayment = urlParams.get('open_payment');
-    
-    if (openPayment === 'true') {
-        // Verificar que hay items en el pedido
-        const order = JSON.parse(localStorage.getItem('order')) || [];
-        const isConverting = localStorage.getItem('convertingProforma') === 'true';
-        
-        if (order.length > 0 && isConverting) {
-            // Esperar a que todo esté cargado
-            setTimeout(() => {
-                // Actualizar la vista del pedido
-                if (typeof updateOrderDetails === 'function') {
-                    updateOrderDetails();
-                }
-                
-                // Abrir el modal de pago
-                if (typeof showPaymentModal === 'function') {
-                    showPaymentModal();
-                    
-                    // Mostrar notificación en el modal
-                    setTimeout(() => {
-                        const proformaId = localStorage.getItem('proformaId');
-                        if (proformaId) {
-                            showProformaConversionBanner(proformaId);
-                        }
-                    }, 500);
-                }
-            }, 1000);
-        }
-        
-        // Limpiar el parámetro de la URL sin recargar
-        window.history.replaceState({}, document.title, window.location.pathname);
     }
-});
-function showProformaConversionBanner(proformaId) {
-    const modalContent = document.querySelector('#payment-modal .payment-modal-content');
-    if (!modalContent) return;
-    
-    // Verificar si ya existe el banner
-    if (document.querySelector('.proforma-conversion-banner')) return;
-    
-    const infoBanner = document.createElement('div');
-    infoBanner.className = 'proforma-conversion-banner';
-    infoBanner.style.cssText = `
-        background: linear-gradient(135deg, #EF476F, #ff6b8a);
-        color: white;
-        padding: 16px 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
-        animation: slideInDown 0.5s ease-out;
-    `;
-    
-    const convertingNotes = localStorage.getItem('proformaNotes') || '';
-    
-    infoBanner.innerHTML = `
-        <i class="fas fa-file-invoice" style="font-size: 1.8rem;"></i>
-        <div style="flex: 1;">
-            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">
-                🔄 Convirtiendo Proforma a Orden
-            </div>
-            <div style="font-size: 0.9rem; opacity: 0.95;">
-                Proforma ID: PROF-${proformaId}
-                ${convertingNotes ? ` • ${convertingNotes}` : ''}
-            </div>
-        </div>
-        <i class="fas fa-arrow-right" style="font-size: 1.3rem; animation: pulse 2s ease-in-out infinite;"></i>
-    `;
-    
-    modalContent.insertBefore(infoBanner, modalContent.firstChild);
-}
 </script>
 
 <style>
     .swal-wide {
-    width: 600px !important;
-    max-width: 90% !important;
-}
-.swal2-html-container {
-    margin: 1em 0 !important;
-}
-/* Animación para el ícono de éxito */
-@keyframes checkmark {
-    0% {
-        transform: scale(0);
-        opacity: 0;
+        width: 600px !important;
+        max-width: 90% !important;
     }
-    50% {
-        transform: scale(1.2);
-        opacity: 1;
+    
+    .swal2-html-container {
+        margin: 1em 0 !important;
     }
-    100% {
-        transform: scale(1);
-        opacity: 1;
+    
+    /* Animación para el ícono de éxito */
+    @keyframes checkmark {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
     }
-}
-.swal2-icon.swal2-success .swal2-success-ring {
-    animation: checkmark 0.8s ease-in-out;
-}
+    
+    .swal2-icon.swal2-success .swal2-success-ring {
+        animation: checkmark 0.8s ease-in-out;
+    }
+    
     /* Estilos personalizados para la paginación */
     .pagination {
         display: flex;
