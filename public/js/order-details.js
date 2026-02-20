@@ -5,7 +5,32 @@ let paymentProcessed = false;
 let currentPrintContent = '';
 
 console.log('📋 order-details.js cargado');
+/**
+ * Verifica si hay una caja chica abierta
+ * @returns {Promise<boolean>}
+ */
+async function checkPettyCashOpen() {
+    try {
+        const response = await fetch('/petty-cash/check-status', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.csrfToken
+            }
+        });
 
+        if (!response.ok) {
+            throw new Error('Error al verificar estado de caja chica');
+        }
+
+        const data = await response.json();
+        return data.open === true;
+
+    } catch (error) {
+        console.error('❌ Error al verificar caja chica:', error);
+        return false;
+    }
+}
 // Verificar estado inicial de mesas
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
@@ -1812,6 +1837,56 @@ function calcularTotal() {
 }
 // Función para procesar el pedido
 async function processOrder() {
+    // ============================================
+    // 🔥 NUEVO: VERIFICAR CAJA CHICA ABIERTA
+    // ============================================
+
+    console.log('🔍 Verificando si hay caja chica abierta...');
+
+    const hasPettyCashOpen = await checkPettyCashOpen();
+
+    if (!hasPettyCashOpen) {
+        console.log('❌ No hay caja chica abierta');
+
+        // Mostrar modal de confirmación
+        const shouldOpenCash = await Swal.fire({
+            icon: 'warning',
+            title: '⚠️ Caja Chica Cerrada',
+            html: `
+                <div style="text-align: center;">
+                    <p style="font-size: 16px; margin: 15px 0;">
+                        No hay una caja chica abierta para procesar ventas.
+                    </p>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+                        Debes abrir una caja chica antes de continuar con el pedido.
+                    </p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#203363',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-cash-register mr-2"></i> Abrir Caja Chica',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancelar',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: {
+                popup: 'animated fadeInDown faster'
+            }
+        });
+
+        if (shouldOpenCash.isConfirmed) {
+            // Redirigir a la vista de apertura de caja
+            console.log('🔄 Redirigiendo a apertura de caja...');
+            window.location.href = '/petty-cash/create';
+            return; // Detener ejecución
+        } else {
+            // Usuario canceló - mantener en la página
+            console.log('ℹ️ Usuario canceló apertura de caja');
+            return; // Detener ejecución
+        }
+    }
+
+    console.log('✅ Caja chica abierta - continuando con el pedido...');
     const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
     const proformaId = localStorage.getItem('proformaId');
     console.log('🔍 Estado de conversión al procesar:', {

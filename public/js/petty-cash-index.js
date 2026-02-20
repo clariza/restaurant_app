@@ -366,13 +366,12 @@ window.calculateTotalExpenses = function () {
 // GUARDAR CIERRE
 // ========================================
 
-/**
- * Guardar cierre de caja
- */
 window.saveClosure = async function () {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('💾 Iniciando proceso de guardado de cierre...');
 
     try {
+        // Validar configuración
         if (typeof window.pettyCashData === 'undefined') {
             console.error('❌ window.pettyCashData es undefined');
             alert('Error: La configuración de la aplicación no se cargó correctamente. Por favor, recarga la página.');
@@ -380,21 +379,19 @@ window.saveClosure = async function () {
         }
 
         if (!window.pettyCashData.saveClosureUrl) {
-            console.error('❌ saveClosureUrl no está definido en window.pettyCashData');
+            console.error('❌ saveClosureUrl no está definido');
             console.log('Datos disponibles:', window.pettyCashData);
             alert('Error: URL de guardado no disponible. Por favor, contacta al administrador.');
             return;
         }
 
         if (!window.pettyCashData.csrfToken) {
-            console.error('❌ csrfToken no está definido en window.pettyCashData');
+            console.error('❌ csrfToken no está definido');
             alert('Error: Token de seguridad no disponible. Por favor, recarga la página.');
             return;
         }
-        if (!window.pettyCashData || !window.pettyCashData.saveClosureUrl) {
-            throw new Error('Configuración de caja chica no disponible');
-        }
 
+        // Obtener ID de caja chica
         const pettyCashId = document.getElementById('petty_cash_id')?.value;
 
         if (!pettyCashId) {
@@ -405,6 +402,7 @@ window.saveClosure = async function () {
 
         console.log('📌 Caja chica ID:', pettyCashId);
 
+        // Obtener valores de ventas
         const totalSalesCash = parseFloat(document.getElementById('total-efectivo')?.value) || 0;
         const totalSalesQR = parseFloat(document.getElementById('ventas-qr')?.value) || 0;
         const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta')?.value) || 0;
@@ -414,9 +412,11 @@ window.saveClosure = async function () {
         console.log('   - QR:', totalSalesQR);
         console.log('   - Tarjeta:', totalSalesCard);
 
+        // Calcular total de gastos
         const totalExpenses = calculateTotalExpenses();
         console.log('💸 Total gastos:', totalExpenses);
 
+        // Recopilar gastos nuevos
         const expenses = [];
         const expenseRows = document.querySelectorAll('#expensesContainer .expense-row');
 
@@ -441,6 +441,7 @@ window.saveClosure = async function () {
 
         console.log(`📋 Total gastos nuevos a registrar: ${expenses.length}`);
 
+        // Preparar datos
         const dataToSend = {
             petty_cash_id: pettyCashId,
             total_sales_cash: totalSalesCash,
@@ -452,6 +453,7 @@ window.saveClosure = async function () {
 
         console.log('📤 Datos a enviar:', dataToSend);
 
+        // Deshabilitar botón
         const saveBtn = document.querySelector('#btn-save-closure');
         if (!saveBtn) {
             console.error('❌ Botón de guardar no encontrado');
@@ -462,6 +464,7 @@ window.saveClosure = async function () {
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...';
         saveBtn.disabled = true;
 
+        // Enviar petición
         const response = await fetch(window.pettyCashData.saveClosureUrl, {
             method: 'POST',
             headers: {
@@ -484,17 +487,55 @@ window.saveClosure = async function () {
         console.log('✅ Respuesta del servidor:', data);
 
         if (data.success) {
-            alert(
-                '✅ ¡Cierre guardado correctamente!\n\n' +
-                `Gastos registrados: ${data.data?.expenses_count || 0}\n` +
-                `Monto final: Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}`
-            );
+            console.log('✅ Cierre guardado exitosamente');
+            console.log('🚪 Cerrando modal...');
 
+            // Cerrar el modal
             closeModal();
 
+            // ✅✅✅ MOSTRAR NOTIFICACIÓN Y REDIRECCIÓN AUTOMÁTICA ✅✅✅
             setTimeout(() => {
-                window.location.reload();
-            }, 500);
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cierre de Caja Exitoso!',
+                    html: `
+                        <div style="text-align: center;">
+                            <p style="font-size: 16px; margin: 15px 0;">El cierre se ha guardado correctamente</p>
+                            <hr style="margin: 20px 0;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                <p style="margin: 8px 0;"><strong>📊 Gastos registrados:</strong> ${data.data?.expenses_count || expenses.length}</p>
+                                <p style="margin: 8px 0;"><strong>💰 Monto final:</strong> Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}</p>
+                            </div>
+                            <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo a nueva caja...
+                            </p>
+                        </div>
+                    `,
+                    showConfirmButton: false, // ✅ SIN BOTÓN
+                    timer: 2500, // ✅ Se cierra automáticamente en 2.5 segundos
+                    timerProgressBar: true, // ✅ Muestra barra de progreso
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'animated fadeInDown faster'
+                    },
+                    // ✅ REDIRECCIÓN AUTOMÁTICA cuando se cierra el modal
+                    didClose: () => {
+                        console.log('🔄 [SUCCESS] Redirigiendo automáticamente...');
+                        console.log('🔄 [SUCCESS] URL destino: /petty-cash/create');
+                        window.location.href = '/petty-cash/create';
+                    }
+                });
+
+                // ✅ REDIRECCIÓN DE RESPALDO: Por si el didClose falla
+                setTimeout(() => {
+                    console.log('🔄 [FALLBACK] Ejecutando redirección de respaldo...');
+                    window.location.href = '/petty-cash/create';
+                }, 2500); // 100ms después de que se cierre el modal
+
+            }, 400); // Esperar a que el modal se cierre
+
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         } else {
             throw new Error(data.message || 'No se pudo guardar el cierre');
@@ -510,6 +551,8 @@ window.saveClosure = async function () {
             saveBtn.disabled = false;
         }
     }
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 };
 
 // ========================================

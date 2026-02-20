@@ -3,59 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <!-- Bootstrap CSS -->
+    <title>Iniciar Sesión - Miquna</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #203363;
+            --secondary-color: #ffa500;
+            --light-bg: #f8f9fa;
+        }
+
         body {
-            background-color: #203363; /* Color de fondo igual al botón */
-            color: #ffffff;
+            background: linear-gradient(135deg, #203363 0%, #2a4480 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
         }
+
         .login-container {
             background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
+            animation: slideIn 0.4s ease-out;
         }
-        .form-control {
-            margin-bottom: 15px;
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-section img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(32, 51, 99, 0.2);
+        }
+
+        .logo-section h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .logo-section p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group label i {
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(32, 51, 99, 0.1);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #adb5bd;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+
         .btn-login {
             width: 100%;
-            background-color: #203363;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #2a4480 100%);
             color: #ffffff;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
+
         .btn-login:hover {
-            background-color: #ffa500;
-            color: #203363;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #ff8c00 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 165, 0, 0.3);
         }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
         .alert {
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #203363;
-            text-align: center;
+            border-radius: 10px;
+            border: none;
             margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease-out;
         }
-        .form-group label {
-            color: #203363;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert-danger {
+            background-color: #fff5f5;
+            color: #c53030;
+            border-left: 4px solid #fc8181;
+        }
+
+        .alert-success {
+            background-color: #f0fff4;
+            color: #22543d;
+            border-left: 4px solid #68d391;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            color: #744210;
+            border-left: 4px solid #f6ad55;
+        }
+
+        .alert ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn-login.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-login.loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .logo-section h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>Iniciar Sesión</h2>
+        <div class="logo-section">
+            <img src="https://static.vecteezy.com/system/resources/previews/000/656/554/original/restaurant-badge-and-logo-good-for-print-vector.jpg" alt="Logo Miquna">
+            <h2>Miquna POS</h2>
+            <p>Sistema de Punto de Venta</p>
+        </div>
 
-        <!-- Mostrar errores de validación -->
         @if ($errors->any())
             <div class="alert alert-danger">
-                <ul>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error de Validación</strong>
+                </div>
+                <ul class="mb-0">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -63,33 +239,135 @@
             </div>
         @endif
 
-        <!-- Mostrar mensajes de éxito o error -->
         @if (session('status'))
             <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
                 {{ session('status') }}
             </div>
         @endif
 
-        <!-- Formulario de login -->
-        <form action="{{ route('login') }}" method="POST">
+        @if (session('warning'))
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        <form action="{{ route('login') }}" method="POST" id="loginForm">
             @csrf
+
             <div class="form-group">
-                <label for="email">Correo Electrónico</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="Ingresa tu correo" required>
+                <label for="branch_id">
+                    <i class="fas fa-store"></i>
+                    Sucursal
+                </label>
+                <select name="branch_id" id="branch_id" class="form-select" required>
+                    <option value="" disabled selected>Seleccione una sucursal</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                            @if($branch->city)
+                                - {{ $branch->city }}
+                            @endif
+                            @if($branch->is_main)
+                                ⭐ Principal
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
             </div>
+
             <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Ingresa tu contraseña" required>
+                <label for="email">
+                    <i class="fas fa-envelope"></i>
+                    Correo Electrónico
+                </label>
+                <input type="email" 
+                       name="email" 
+                       id="email" 
+                       class="form-control" 
+                       placeholder="correo@ejemplo.com" 
+                       value="{{ old('email') }}"
+                       required 
+                       autocomplete="email"
+                       autofocus>
             </div>
-            <button type="submit" class="btn btn-login">Iniciar Sesión</button>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i>
+                    Contraseña
+                </label>
+                <input type="password" 
+                       name="password" 
+                       id="password" 
+                       class="form-control" 
+                       placeholder="Ingrese su contraseña" 
+                       required
+                       autocomplete="current-password">
+                <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+            </div>
+
+            <button type="submit" class="btn-login" id="submitBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Iniciar Sesión</span>
+            </button>
         </form>
 
-        <!-- Enlace para registrarse (opcional) -->
-        <div class="text-center mt-3">
+        <div class="info-text">
+            <i class="fas fa-shield-alt me-1"></i>
+            Sistema seguro y confiable
         </div>
     </div>
 
-    <!-- Bootstrap JS (opcional, si necesitas funcionalidades de Bootstrap) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        loginForm.addEventListener('submit', function() {
+            submitBtn.classList.add('loading');
+            submitBtn.querySelector('i').classList.remove('fa-sign-in-alt');
+            submitBtn.querySelector('i').classList.add('fa-spinner', 'fa-spin');
+            submitBtn.querySelector('span').textContent = 'Iniciando...';
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const branchSelect = document.getElementById('branch_id');
+            const emailInput = document.getElementById('email');
+
+            if (!branchSelect.value) {
+                branchSelect.focus();
+            } else if (!emailInput.value) {
+                emailInput.focus();
+            }
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            const branchId = document.getElementById('branch_id').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!branchId || !email || !password) {
+                e.preventDefault();
+                alert('Por favor, complete todos los campos requeridos.');
+                submitBtn.classList.remove('loading');
+                submitBtn.querySelector('i').classList.add('fa-sign-in-alt');
+                submitBtn.querySelector('i').classList.remove('fa-spinner', 'fa-spin');
+                submitBtn.querySelector('span').textContent = 'Iniciar Sesión';
+            }
+        });
+    </script>
 </body>
 </html>

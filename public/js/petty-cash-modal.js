@@ -147,7 +147,7 @@ function openCreatePettyCashModal() {
 
 /**
  * ✅ FUNCIÓN PRINCIPAL MEJORADA PARA GUARDAR CIERRE
- * Asegura que el modal se cierre después de guardar exitosamente
+ * Redirección AUTOMÁTICA después de guardar exitosamente
  */
 async function guardarCierreUnificado(pettyCashId = null) {
     const context = detectContext();
@@ -264,28 +264,53 @@ async function guardarCierreUnificado(pettyCashId = null) {
 
         if (data.success) {
             console.log('✅ Cierre guardado exitosamente');
-
-            // Mostrar mensaje de éxito
-            alert(
-                `✅ ¡Cierre guardado correctamente!\n\n` +
-                `📊 Gastos registrados: ${data.data?.new_expenses_count || 0}\n` +
-                `💰 Monto final: $${data.data?.current_amount?.toFixed(2) || '0.00'}`
-            );
-
-            // ✅✅✅ CERRAR EL MODAL INMEDIATAMENTE ✅✅✅
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🚪 [SUCCESS] Cerrando modal después del éxito...');
+            console.log('🚪 [SUCCESS] Cerrando modal y mostrando notificación...');
 
-            // Cerrar modal de forma inmediata
+            // ✅ PASO 1: Cerrar modal inmediatamente
             closeInternalModalClosure();
 
-            // 8. Recargar la página después de un breve delay
-            if (window.location.pathname.includes('petty-cash')) {
-                console.log('🔄 [SUCCESS] Recargando página en 800ms...');
+            // ✅ PASO 2: Mostrar Toast de éxito (SIN BOTÓN, AUTO-CIERRA)
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cierre de Caja Exitoso!',
+                    html: `
+                        <div style="text-align: center;">
+                            <p style="font-size: 16px; margin: 15px 0;">El cierre se ha guardado correctamente</p>
+                            <hr style="margin: 20px 0;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                <p style="margin: 8px 0;"><strong>📊 Gastos registrados:</strong> ${data.data?.new_expenses_count || 0}</p>
+                                <p style="margin: 8px 0;"><strong>💰 Monto final:</strong> Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}</p>
+                            </div>
+                            <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo a nueva caja...
+                            </p>
+                        </div>
+                    `,
+                    showConfirmButton: false, // ✅ SIN BOTÓN
+                    timer: 2000, // ✅ Se cierra automáticamente en 2.5 segundos
+                    timerProgressBar: true, // ✅ Muestra barra de progreso
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'animated fadeInDown faster'
+                    },
+                    // ✅ REDIRECCIÓN AUTOMÁTICA cuando se cierra el modal
+                    didClose: () => {
+                        console.log('🔄 [SUCCESS] Redirigiendo automáticamente...');
+                        console.log('🔄 [SUCCESS] URL destino: /petty-cash/create');
+                        window.location.href = '/petty-cash/create';
+                    }
+                });
+
+                // ✅ REDIRECCIÓN ALTERNATIVA: Por si el didClose falla
                 setTimeout(() => {
-                    window.location.reload();
-                }, 800);
-            }
+                    console.log('🔄 [FALLBACK] Ejecutando redirección de respaldo...');
+                    window.location.href = '/petty-cash/create';
+                }, 2500); // 100ms después de que se cierre el modal
+
+            }, 400); // Esperar a que el modal se cierre completamente
 
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
@@ -315,7 +340,7 @@ async function guardarCierreUnificado(pettyCashId = null) {
         }
 
     } finally {
-        // Restaurar botón
+        // Restaurar botón (solo si hay error, ya que si hay éxito se redirige)
         if (saveButton) {
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
@@ -324,6 +349,7 @@ async function guardarCierreUnificado(pettyCashId = null) {
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
+
 
 /**
  * Detecta en qué contexto estamos
@@ -726,7 +752,7 @@ function removeExpenseRow(button) {
 }
 
 /**
- * Guardar cierre
+ * Guardar cierre (versión alternativa)
  */
 async function saveClosure(pettyCashId) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -800,18 +826,48 @@ async function saveClosure(pettyCashId) {
         const data = await response.json();
 
         if (data.success) {
-            console.log('✅ [SAVE] Cierre guardado exitosamente');
-            alert(`¡Cierre guardado correctamente!\nGastos registrados: ${data.data?.expenses_count || 0}`);
+            console.log('✅ Cierre guardado exitosamente');
+            console.log('🚪 [SUCCESS] Cerrando modal y mostrando notificación...');
 
-            // ✅ Cerrar modal inmediatamente
             closeInternalModalClosure();
 
-            // Recargar si estamos en la página de caja chica
-            if (window.location.pathname.includes('petty-cash')) {
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cierre de Caja Exitoso!',
+                    html: `
+                        <div style="text-align: center;">
+                            <p style="font-size: 16px; margin: 15px 0;">El cierre se ha guardado correctamente</p>
+                            <hr style="margin: 20px 0;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                <p style="margin: 8px 0;"><strong>📊 Gastos registrados:</strong> ${data.data?.new_expenses_count || 0}</p>
+                                <p style="margin: 8px 0;"><strong>💰 Monto final:</strong> Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}</p>
+                            </div>
+                            <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo a nueva caja...
+                            </p>
+                        </div>
+                    `,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'animated fadeInDown faster'
+                    },
+                    didClose: () => {
+                        console.log('🔄 [SUCCESS] Redirigiendo automáticamente...');
+                        window.location.href = '/petty-cash/create';
+                    }
+                });
+
                 setTimeout(() => {
-                    window.location.reload();
-                }, 500);
-            }
+                    window.location.href = '/petty-cash/create';
+                }, 2500);
+
+            }, 400);
+
         } else {
             throw new Error(data.message || 'No se pudo guardar el cierre');
         }
@@ -826,10 +882,6 @@ async function saveClosure(pettyCashId) {
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
-
-// =============================================
-// FUNCIONES EXISTENTES DEL MODAL PRINCIPAL
-// =============================================
 
 async function openPettyCashModal() {
     console.log('🔓 Abriendo modal de caja chica...');

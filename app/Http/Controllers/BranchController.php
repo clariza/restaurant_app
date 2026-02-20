@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\PettyCash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -167,6 +169,24 @@ class BranchController extends Controller
             'success' => true,
             'is_active' => $branch->is_active,
             'message' => 'Estado actualizado exitosamente.'
+        ]);
+    }
+    public function showLoginForm()
+    {
+        // Si ya está autenticado y no tiene caja abierta, redirigir a apertura
+        if (Auth::check() && !PettyCash::where('status', 'open')->exists()) {
+            return redirect()->route('petty-cash.create');
+        }
+
+        // Obtener sucursales activas ordenadas por principal primero
+        $branches = Branch::where('is_active', true)
+            ->orderBy('is_main', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('auth.login', [
+            'showOrderDetails' => false,
+            'branches' => $branches
         ]);
     }
 }

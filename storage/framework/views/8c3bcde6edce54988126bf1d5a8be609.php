@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Caja Chica - {{ $date }}</title>
+    <title>Reporte Caja Chica - <?php echo e($date); ?></title>
     <style>
         * {
             margin: 0;
@@ -300,24 +300,25 @@
 </head>
 <body>
     <div class="report-container">
-        {{-- Botón de impresión --}}
+        
         <button onclick="window.print()" class="print-button no-print">
             Imprimir Reporte
         </button>
 
-        {{-- Header Compacto --}}
+        
         <div class="header">
             <h1>REPORTE DE CAJA CHICA</h1>
             <div class="subtitle">
-                {{ $date }} | {{ $user->name }} | Caja #{{ str_pad($pettyCash->id, 6, '0', STR_PAD_LEFT) }}
+                <?php echo e($date); ?> | <?php echo e($user->name); ?> | Caja #<?php echo e(str_pad($pettyCash->id, 6, '0', STR_PAD_LEFT)); ?>
+
             </div>
         </div>
 
-        {{-- Grid de 2 columnas --}}
+        
         <div class="info-grid">
-            {{-- Columna 1: Comparación Sistema vs Caja --}}
+            
             <div>
-                @php
+                <?php
                     // Calcular ventas del sistema
                     $salesCashSystem = $pettyCash->sales()->where('payment_method', 'Efectivo')->sum('total');
                     $salesQRSystem = $pettyCash->sales()->where('payment_method', 'QR')->sum('total');
@@ -337,30 +338,32 @@
                     $diffTotal = $totalSalesBox - $totalSalesSystem;
                     
                     $hasInconsistencies = abs($diffCash) > 0.01 || abs($diffQR) > 0.01 || abs($diffCard) > 0.01;
-                @endphp
+                ?>
 
                 <div class="section-title">COMPARACIÓN: SISTEMA VS CAJA</div>
 
-                {{-- Alerta compacta --}}
-                @if($hasInconsistencies)
-                    <div class="alert-compact {{ abs($diffTotal) < 0.01 ? 'success' : ($diffTotal > 0 ? 'warning' : 'danger') }}">
+                
+                <?php if($hasInconsistencies): ?>
+                    <div class="alert-compact <?php echo e(abs($diffTotal) < 0.01 ? 'success' : ($diffTotal > 0 ? 'warning' : 'danger')); ?>">
                         <strong>
-                            @if(abs($diffTotal) < 0.01)
+                            <?php if(abs($diffTotal) < 0.01): ?>
                                 ✓ Coincide
-                            @elseif($diffTotal > 0)
-                                Sobrante: +Bs. {{ number_format($diffTotal, 2) }}
-                            @else
-                                ✗ Faltante: Bs. {{ number_format($diffTotal, 2) }}
-                            @endif
+                            <?php elseif($diffTotal > 0): ?>
+                                Sobrante: +Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+
+                            <?php else: ?>
+                                ✗ Faltante: Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+
+                            <?php endif; ?>
                         </strong>
                     </div>
-                @else
+                <?php else: ?>
                     <div class="alert-compact success">
                         <strong>✓ Los montos coinciden exactamente</strong>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                {{-- Tabla de comparación compacta --}}
+                
                 <table class="comparison-table">
                     <thead>
                         <tr>
@@ -373,57 +376,60 @@
                     <tbody>
                         <tr>
                             <td>Efectivo</td>
-                            <td class="text-right">{{ number_format($salesCashSystem, 2) }}</td>
-                            <td class="text-right">{{ number_format($salesCashBox, 2) }}</td>
-                            <td class="text-right {{ abs($diffCash) < 0.01 ? 'diff-neutral' : ($diffCash > 0 ? 'diff-positive' : 'diff-negative') }}">
-                                {{ $diffCash > 0 ? '+' : '' }}{{ number_format($diffCash, 2) }}
+                            <td class="text-right"><?php echo e(number_format($salesCashSystem, 2)); ?></td>
+                            <td class="text-right"><?php echo e(number_format($salesCashBox, 2)); ?></td>
+                            <td class="text-right <?php echo e(abs($diffCash) < 0.01 ? 'diff-neutral' : ($diffCash > 0 ? 'diff-positive' : 'diff-negative')); ?>">
+                                <?php echo e($diffCash > 0 ? '+' : ''); ?><?php echo e(number_format($diffCash, 2)); ?>
+
                             </td>
                         </tr>
                         <tr>
                             <td>QR</td>
-                            <td class="text-right">{{ number_format($salesQRSystem, 2) }}</td>
-                            <td class="text-right">{{ number_format($salesQRBox, 2) }}</td>
-                            <td class="text-right {{ abs($diffQR) < 0.01 ? 'diff-neutral' : ($diffQR > 0 ? 'diff-positive' : 'diff-negative') }}">
-                                {{ $diffQR > 0 ? '+' : '' }}{{ number_format($diffQR, 2) }}
+                            <td class="text-right"><?php echo e(number_format($salesQRSystem, 2)); ?></td>
+                            <td class="text-right"><?php echo e(number_format($salesQRBox, 2)); ?></td>
+                            <td class="text-right <?php echo e(abs($diffQR) < 0.01 ? 'diff-neutral' : ($diffQR > 0 ? 'diff-positive' : 'diff-negative')); ?>">
+                                <?php echo e($diffQR > 0 ? '+' : ''); ?><?php echo e(number_format($diffQR, 2)); ?>
+
                             </td>
                         </tr>
                         <tr>
                             <td>Tarjeta</td>
-                            <td class="text-right">{{ number_format($salesCardSystem, 2) }}</td>
-                            <td class="text-right">{{ number_format($salesCardBox, 2) }}</td>
-                            <td class="text-right {{ abs($diffCard) < 0.01 ? 'diff-neutral' : ($diffCard > 0 ? 'diff-positive' : 'diff-negative') }}">
-                                {{ $diffCard > 0 ? '+' : '' }}{{ number_format($diffCard, 2) }}
+                            <td class="text-right"><?php echo e(number_format($salesCardSystem, 2)); ?></td>
+                            <td class="text-right"><?php echo e(number_format($salesCardBox, 2)); ?></td>
+                            <td class="text-right <?php echo e(abs($diffCard) < 0.01 ? 'diff-neutral' : ($diffCard > 0 ? 'diff-positive' : 'diff-negative')); ?>">
+                                <?php echo e($diffCard > 0 ? '+' : ''); ?><?php echo e(number_format($diffCard, 2)); ?>
+
                             </td>
                         </tr>
                         <tr class="total-row">
                             <td><strong>TOTAL</strong></td>
-                            <td class="text-right"><strong>{{ number_format($totalSalesSystem, 2) }}</strong></td>
-                            <td class="text-right"><strong>{{ number_format($totalSalesBox, 2) }}</strong></td>
-                            <td class="text-right {{ abs($diffTotal) < 0.01 ? 'diff-neutral' : ($diffTotal > 0 ? 'diff-positive' : 'diff-negative') }}">
-                                <strong>{{ $diffTotal > 0 ? '+' : '' }}{{ number_format($diffTotal, 2) }}</strong>
+                            <td class="text-right"><strong><?php echo e(number_format($totalSalesSystem, 2)); ?></strong></td>
+                            <td class="text-right"><strong><?php echo e(number_format($totalSalesBox, 2)); ?></strong></td>
+                            <td class="text-right <?php echo e(abs($diffTotal) < 0.01 ? 'diff-neutral' : ($diffTotal > 0 ? 'diff-positive' : 'diff-negative')); ?>">
+                                <strong><?php echo e($diffTotal > 0 ? '+' : ''); ?><?php echo e(number_format($diffTotal, 2)); ?></strong>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            {{-- Columna 2: Información General --}}
+            
             <div>
                 <div class="section-title">INFORMACIÓN GENERAL</div>
                 <div class="info-box">
                     <div class="info-row">
                         <span class="info-label">Apertura:</span>
-                        <span class="info-value">{{ \Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y H:i') }}</span>
+                        <span class="info-value"><?php echo e(\Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y H:i')); ?></span>
                     </div>
-                    @if($pettyCash->closed_at)
+                    <?php if($pettyCash->closed_at): ?>
                     <div class="info-row">
                         <span class="info-label">Cierre:</span>
-                        <span class="info-value">{{ \Carbon\Carbon::parse($pettyCash->closed_at)->format('d/m/Y H:i') }}</span>
+                        <span class="info-value"><?php echo e(\Carbon\Carbon::parse($pettyCash->closed_at)->format('d/m/Y H:i')); ?></span>
                     </div>
-                    @endif
+                    <?php endif; ?>
                     <div class="info-row">
                         <span class="info-label">Responsable:</span>
-                        <span class="info-value">{{ $user->name }}</span>
+                        <span class="info-value"><?php echo e($user->name); ?></span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Estado:</span>
@@ -431,36 +437,36 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Ventas:</span>
-                        <span class="info-value">{{ $pettyCash->sales()->count() }} registradas</span>
+                        <span class="info-value"><?php echo e($pettyCash->sales()->count()); ?> registradas</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Gastos:</span>
-                        <span class="info-value">{{ $pettyCash->expenses()->count() }} registrados</span>
+                        <span class="info-value"><?php echo e($pettyCash->expenses()->count()); ?> registrados</span>
                     </div>
                 </div>
 
-                {{-- Resumen compacto --}}
+                
                 <div class="summary-compact">
                     <table>
                         <tr>
                             <td>Total Ventas (Caja):</td>
-                            <td class="text-right"><strong>Bs. {{ number_format($totalSalesBox, 2) }}</strong></td>
+                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalSalesBox, 2)); ?></strong></td>
                         </tr>
                         <tr>
                             <td>Total Gastos:</td>
-                            <td class="text-right"><strong>Bs. {{ number_format($totalExpenses, 2) }}</strong></td>
+                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalExpenses, 2)); ?></strong></td>
                         </tr>
                         <tr class="final-row">
                             <td>SALDO FINAL:</td>
-                            <td class="text-right"><strong>Bs. {{ number_format($totalSalesBox - $totalExpenses, 2) }}</strong></td>
+                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalSalesBox - $totalExpenses, 2)); ?></strong></td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
 
-        {{-- Tabla de Gastos (si hay) --}}
-        @if($pettyCash->expenses()->count() > 0)
+        
+        <?php if($pettyCash->expenses()->count() > 0): ?>
         <div class="section-title">DETALLE DE GASTOS</div>
         <table>
             <thead>
@@ -472,39 +478,41 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($pettyCash->expenses as $index => $expense)
+                <?php $__currentLoopData = $pettyCash->expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $expense->expense_name }}</td>
-                    <td>{{ $expense->description ?? '-' }}</td>
-                    <td class="text-right">Bs. {{ number_format($expense->amount, 2) }}</td>
+                    <td><?php echo e($index + 1); ?></td>
+                    <td><?php echo e($expense->expense_name); ?></td>
+                    <td><?php echo e($expense->description ?? '-'); ?></td>
+                    <td class="text-right">Bs. <?php echo e(number_format($expense->amount, 2)); ?></td>
                 </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <tr style="background: #f8f9fa; font-weight: bold;">
                     <td colspan="3" class="text-right">TOTAL GASTOS:</td>
                     <td class="text-right" style="color: #dc3545;">
-                        Bs. {{ number_format($totalExpenses, 2) }}
+                        Bs. <?php echo e(number_format($totalExpenses, 2)); ?>
+
                     </td>
                 </tr>
             </tbody>
         </table>
-        @endif
+        <?php endif; ?>
 
-        {{-- Firmas compactas --}}
+        
         <div class="signature-compact">
             <div class="signature-box">
                 <strong>Responsable de Caja</strong><br>
-                {{ $user->name }}
+                <?php echo e($user->name); ?>
+
             </div>
             <div class="signature-box">
                 <strong>Supervisor/Gerente</strong>
             </div>
         </div>
 
-        {{-- Footer compacto --}}
+        
         <div class="footer">
-            Reporte generado el {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} | Sistema de Gestión de Caja Chica
+            Reporte generado el <?php echo e(\Carbon\Carbon::now()->format('d/m/Y H:i:s')); ?> | Sistema de Gestión de Caja Chica
         </div>
     </div>
 </body>
-</html>
+</html><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/print.blade.php ENDPATH**/ ?>

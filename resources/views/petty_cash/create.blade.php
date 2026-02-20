@@ -64,6 +64,7 @@
         font-weight: 500;
         transition: all 0.3s ease;
         color: white;
+        border-radius: 6px;
     }
     
     .btn-primary:hover {
@@ -73,6 +74,36 @@
         color: white;
     }
     
+    /* 🔥 NUEVO: Estilos para el botón de reporte anterior */
+    .btn-print-previous {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+        border: none;
+        padding: 10px 16px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 6px;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+    }
+    
+    .btn-print-previous:hover {
+        background: linear-gradient(135deg, #4b5563, #374151);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-print-previous i {
+        font-size: 16px;
+    }
+    
     .alert-warning {
         background-color: #fff3cd;
         border-color: #ffeeba;
@@ -80,6 +111,34 @@
         padding: 12px 16px;
         border-radius: 6px;
         margin-bottom: 20px;
+    }
+    
+    .alert-danger {
+        background-color: #fee;
+        border-color: #fcc;
+        color: #c33;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+    
+    .alert-danger ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    /* 🔥 NUEVO: Grid para botones lado a lado */
+    .buttons-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    /* 🔥 Responsivo: en móviles se apilan */
+    @media (max-width: 576px) {
+        .buttons-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -95,6 +154,13 @@
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-circle mr-2"></i>
                             {{ session('warning') }}
+                        </div>
+                    @endif
+                    
+                    @if (session('error'))
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            {{ session('error') }}
                         </div>
                     @endif
                     
@@ -116,10 +182,21 @@
                                       placeholder="Puede agregar alguna observación relevante"></textarea>
                         </div>
                         
-                        <div class="d-grid">
+                        {{-- 🔥 Grid con botones lado a lado --}}
+                        <div class="buttons-grid">
+                            {{-- Botón principal para abrir caja --}}
                             <button type="submit" class="btn btn-primary py-2">
                                 <i class="fas fa-cash-register mr-2"></i> Abrir Caja
                             </button>
+                            
+                            {{-- 🔥 BOTÓN PARA IMPRIMIR REPORTE ANTERIOR --}}
+                            <a href="{{ route('petty-cash.print-previous') }}" 
+                               class="btn-print-previous py-2"
+                               target="_blank"
+                               title="Ver reporte de la última caja cerrada">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Reporte Anterior</span>
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -127,26 +204,6 @@
         </div>
     </div>
 </div>
-
-<!-- <script>
-    // Deshabilitar todos los enlaces del sidebar excepto logout
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebarLinks = document.querySelectorAll('.sidebar a');
-        sidebarLinks.forEach(link => {
-            if (!link.href.includes('logout')) {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Apertura de Caja Requerida',
-                        text: 'Debe abrir una caja chica antes de acceder a esta sección.',
-                        confirmButtonColor: '#203363'
-                    });
-                });
-            }
-        });
-    });
-</script> -->
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -160,7 +217,6 @@
         const sidebarLinks = document.querySelectorAll('.sidebar a');
         
         sidebarLinks.forEach(link => {
-           // alert('get here');
             // Verificar si el enlace coincide con alguna ruta bloqueada
             const shouldBlock = blockedRoutes.some(route => {
                 // Comprobar si la URL del enlace contiene la ruta

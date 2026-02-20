@@ -176,17 +176,17 @@
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
                             <?php if($item->manage_inventory): ?>
-        <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
-            <?php if($item->stock <= 0): ?> bg-gray-500 text-white
-            <?php elseif($item->stock < $item->min_stock): ?> bg-yellow-500 text-white
-            <?php else: ?> bg-green-500 text-white <?php endif; ?>">
-            <?php if($item->stock_type == 'discrete'): ?>
-                <?php echo e((int)$item->stock); ?> UNI
-            <?php else: ?>
-                <?php echo e((int)$item->stock); ?> <?php echo e(strtoupper($item->stock_unit)); ?>
+                            <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
+                                <?php if($item->stock <= 0): ?> bg-gray-500 text-white
+                                <?php elseif($item->stock < $item->min_stock): ?> bg-yellow-500 text-white
+                                <?php else: ?> bg-green-500 text-white <?php endif; ?>">
+                                <?php if($item->stock_type == 'discrete'): ?>
+                                <?php echo e((int)$item->stock); ?> UNI
+                                 <?php else: ?>
+                                <?php echo e((int)$item->stock); ?> <?php echo e(strtoupper($item->stock_unit)); ?>
 
-            <?php endif; ?>
-        </span>
+                                <?php endif; ?>
+                                </span>
                             <?php endif; ?>
                         </div>
 
@@ -213,15 +213,15 @@
                         <div class="w-full flex flex-col items-center mt-auto">
                             <!-- Precio del ítem -->
                             <p class="text-lg font-bold text-[#203363] mb-2">
-                                $<?php echo e(number_format($item->price, 2)); ?>
+                                Bs <?php echo e(number_format($item->price, 2)); ?>
 
                             </p>
 
                            <button type="button" 
-        onclick="addToOrder(<?php echo e(json_encode([
-            'id' => $item->id,
-            'name' => $item->name,
-            'price' => $item->price,
+                                onclick="addToOrder(<?php echo e(json_encode([
+                                        'id' => $item->id,
+                                        'name' => $item->name,
+                                        'price' => $item->price,
             'stock' => $item->stock,
             'stock_type' => $item->stock_type,
             'stock_unit' => $item->stock_unit,

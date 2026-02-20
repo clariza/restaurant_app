@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,6 +28,7 @@ class Sale extends Model
         'total',
         'transaction_number',
         'petty_cash_id',
+        'branch_id',
         'proforma_id',
         'payment_method',
         'order_notes',
@@ -40,6 +42,9 @@ class Sale extends Model
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'order_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
 
@@ -71,12 +76,6 @@ class Sale extends Model
         return 'PED-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 
-    // Relación con los ítems de venta
-    public function items()
-    {
-        return $this->hasMany(SaleItem::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -89,6 +88,20 @@ class Sale extends Model
     public function proforma()
     {
         return $this->belongsTo(Proforma::class, 'proforma_id');
+    }
+    /**
+     * Relación con la sucursal
+     */
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    /**
+     * Relación con los items de la venta
+     */
+    public function items()
+    {
+        return $this->hasMany(SaleItem::class);
     }
     public function isFromProforma(): bool
     {
@@ -109,5 +122,51 @@ class Sale extends Model
         } while (self::where('transaction_number', $number)->exists());
 
         return $number;
+    }
+    /**
+     * Scope para filtrar por sucursal
+     */
+    public function scopeForBranch($query, $branchId)
+    {
+        if ($branchId) {
+            return $query->where('branch_id', $branchId);
+        }
+        return $query;
+    }
+    /**
+     * Scope para filtrar por fecha
+     */
+    public function scopeForDate($query, $date)
+    {
+        return $query->whereDate('order_date', $date);
+    }
+    /**
+     * Scope para filtrar por rango de fechas
+     */
+    public function scopeForDateRange($query, $from, $to)
+    {
+        return $query->whereBetween('order_date', [$from, $to]);
+    }
+    /**
+     * Scope para ventas del día actual
+     */
+    public function scopeToday($query)
+    {
+        return $query->whereDate('order_date', Carbon::today());
+    }
+
+    /**
+     * Accessor para formatear el total
+     */
+    public function getFormattedTotalAttribute()
+    {
+        return number_format($this->total, 2);
+    }
+    /**
+     * Accessor para el nombre de la sucursal
+     */
+    public function getBranchNameAttribute()
+    {
+        return $this->branch ? $this->branch->name : 'Sin sucursal';
     }
 }

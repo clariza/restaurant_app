@@ -676,4 +676,37 @@ class PettyCashController extends Controller
             'totalExpenses'
         ));
     }
+
+    public function printPrevious()
+    {
+        // Obtener la última caja cerrada del usuario actual
+        $previousPettyCash = PettyCash::where('user_id', auth()->id())
+            ->where('status', 'closed')
+            ->orderBy('closed_at', 'desc')
+            ->first();
+
+        if (!$previousPettyCash) {
+            return back()->with('error', 'No se encontró ninguna caja cerrada anterior.');
+        }
+
+        $data = [
+            'pettyCash' => $previousPettyCash,
+            'date' => $previousPettyCash->closed_at
+                ? $previousPettyCash->closed_at->format('d/m/Y')
+                : now()->format('d/m/Y'),
+            'totalSales' => $previousPettyCash->total_sales_cash +
+                $previousPettyCash->total_sales_qr +
+                $previousPettyCash->total_sales_card,
+            'totalExpenses' => $previousPettyCash->total_expenses,
+            'user' => auth()->user(),
+            'salesByPaymentMethod' => [
+                'Efectivo' => $previousPettyCash->total_sales_cash,
+                'QR' => $previousPettyCash->total_sales_qr,
+                'Tarjeta' => $previousPettyCash->total_sales_card
+            ]
+        ];
+
+        $pdf = Pdf::loadView('petty_cash.print', $data);
+        return $pdf->stream('reporte-caja-anterior-' . $previousPettyCash->date . '.pdf');
+    }
 }

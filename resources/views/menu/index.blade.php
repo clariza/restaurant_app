@@ -177,16 +177,16 @@
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
                             @if($item->manage_inventory)
-        <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
-            @if($item->stock <= 0) bg-gray-500 text-white
-            @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
-            @else bg-green-500 text-white @endif">
-            @if($item->stock_type == 'discrete')
-                {{ (int)$item->stock }} UNI
-            @else
-                {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
-            @endif
-        </span>
+                            <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
+                                @if($item->stock <= 0) bg-gray-500 text-white
+                                @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
+                                @else bg-green-500 text-white @endif">
+                                @if($item->stock_type == 'discrete')
+                                {{ (int)$item->stock }} UNI
+                                 @else
+                                {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
+                                @endif
+                                </span>
                             @endif
                         </div>
 
@@ -213,14 +213,14 @@
                         <div class="w-full flex flex-col items-center mt-auto">
                             <!-- Precio del ítem -->
                             <p class="text-lg font-bold text-[#203363] mb-2">
-                                ${{ number_format($item->price, 2) }}
+                                Bs {{ number_format($item->price, 2) }}
                             </p>
 
                            <button type="button" 
-        onclick="addToOrder({{ json_encode([
-            'id' => $item->id,
-            'name' => $item->name,
-            'price' => $item->price,
+                                onclick="addToOrder({{ json_encode([
+                                        'id' => $item->id,
+                                        'name' => $item->name,
+                                        'price' => $item->price,
             'stock' => $item->stock,
             'stock_type' => $item->stock_type,
             'stock_unit' => $item->stock_unit,

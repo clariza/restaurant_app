@@ -6,6 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="branch-id" content="{{ session('branch_id') ?? '' }}">  
+    <meta name="branch-name" content="{{ session('branch_name') ?? '' }}">
+    <meta name="branch-code" content="{{ session('branch_code') ?? '' }}">
+
     <title>Miquna</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -651,23 +655,31 @@
 
         <!-- Menú de usuario -->
         <div class="relative">
-            <button 
-                id="user-menu-button" 
-                class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md 
-                       hover:bg-gray-100 transition-colors duration-200"
-            >
-                <span class="hidden md:inline text-sm font-medium text-gray-700">
-                    Hola, {{ Auth::user()->name ?? 'Usuario' }}
+             <button 
+        id="user-menu-button" 
+        class="flex items-center space-x-2 focus:outline-none py-2 px-3 rounded-md 
+               hover:bg-gray-100 transition-colors duration-200"
+    >
+        <div class="hidden md:flex flex-col items-end">
+            <span class="text-sm font-medium text-gray-700">
+                {{ Auth::user()->name ?? 'Usuario' }}
+            </span>
+            @if(session('branch_name'))
+                <span class="text-xs text-gray-500 flex items-center gap-1">
+                    <i class="fas fa-store text-xs"></i>
+                    {{ session('branch_name') }}
                 </span>
-                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center 
-                            overflow-hidden border border-gray-300">
-                    <img 
-                        src="https://www.gravatar.com/avatar/default?s=200&d=mp" 
-                        alt="User Avatar" 
-                        class="h-full w-full object-cover"
-                    >
-                </div>
-            </button>
+            @endif
+        </div>
+        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center 
+                    overflow-hidden border border-gray-300">
+            <img 
+                src="https://www.gravatar.com/avatar/default?s=200&d=mp" 
+                alt="User Avatar" 
+                class="h-full w-full object-cover"
+            >
+        </div>
+    </button>
 
             <!-- Menú desplegable -->
             <div 
@@ -890,6 +902,25 @@
     window.tablesEnabled = @json($settings->tables_enabled ?? false);
     console.log('🌍 Variables globales configuradas');
     console.log('📦 Estado caja chica:', window.pettyCashData);
+</script>
+<script>
+// 🔥 Variables globales de sucursal
+window.branchId = {{ session('branch_id') ?? 'null' }};
+window.branchName = "{{ session('branch_name') ?? 'Sin sucursal' }}";
+window.branchCode = "{{ session('branch_code') ?? '' }}";
+
+// También guardar en sessionStorage para persistencia
+if (window.branchId) {
+    sessionStorage.setItem('branch_id', window.branchId);
+    sessionStorage.setItem('branch_name', window.branchName);
+    sessionStorage.setItem('branch_code', window.branchCode);
+}
+
+console.log('🏢 Información de sucursal cargada:', {
+    branchId: window.branchId,
+    branchName: window.branchName,
+    branchCode: window.branchCode
+});
 </script>
 
 <script>

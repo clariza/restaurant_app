@@ -442,7 +442,7 @@
                             <div class="value-amount">Bs. <?php echo e(number_format($salesFromSystem, 2)); ?></div>
                         </div>
                         <div class="value-item">
-                            <div class="value-label">Caja Chica</div>
+                            <div class="value-label">Caja</div>
                             <div class="value-amount">Bs. <?php echo e(number_format($pettyCash->total_sales_cash, 2)); ?></div>
                         </div>
                         <span class="difference <?php echo e(abs($diffCash) < 0.01 ? 'neutral' : ($diffCash > 0 ? 'positive' : 'negative')); ?>">
@@ -467,7 +467,7 @@
                             <div class="value-amount">Bs. <?php echo e(number_format($totalSalesSystem, 2)); ?></div>
                         </div>
                         <div class="value-item">
-                            <div class="value-label">Caja Chica</div>
+                            <div class="value-label">Caja</div>
                             <div class="value-amount">Bs. <?php echo e(number_format($totalSalesCaja, 2)); ?></div>
                         </div>
                     </div>

@@ -62,7 +62,6 @@
                     </div>
                 </div>
 
-                <!-- Grid de Cierre (Denominaciones + Resumen) -->
                 <div class="closure-grid">
                     
                     <div class="denominations-section">
@@ -129,7 +128,7 @@
                                            tabindex="-1">
                                 </div>
 
-                                <!-- Ventas en Efectivo (se actualiza automáticamente) -->
+                                <!-- Ventas en Efectivo  -->
                                 <div class="input-group">
                                     <label for="ventas-efectivo-closure">
                                         Ventas en Efectivo
@@ -176,10 +175,10 @@
                                         <i class="fas fa-times"></i> Cancelar
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-primary btn-sm save-btn" 
-                                            onclick="guardarCierreUnificado()">
-    <i class="fas fa-save mr-1"></i> Guardar Cierre
-    </button>
+                                        class="btn btn-primary btn-sm save-btn" 
+                                        onclick="guardarCierreUnificado()">
+                                        <i class="fas fa-save mr-1"></i> Guardar Cierre
+                                    </button>
                                 </div>
                             </div>
                         </div>

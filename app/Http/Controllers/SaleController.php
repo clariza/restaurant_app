@@ -10,6 +10,7 @@ use App\Models\InventoryMovement;
 use App\Models\Table;
 use App\Models\DeliveryService;
 use App\Models\PettyCash;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -25,12 +26,24 @@ class SaleController extends Controller
      */
     public function dashboard()
     {
+        // Obtener branch_id de la sesión
+        $branchId = session('branch_id');
+
+        // Query base
+        $salesQuery = Sale::query();
+
+        // Filtrar por sucursal si existe
+        if ($branchId) {
+            $salesQuery->where('branch_id', $branchId);
+        }
+
         // Obtener las ventas agrupadas por mes
-        $salesByMonth = Sale::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('YEAR(created_at) as year'),
-            DB::raw('SUM(total) as total_sales')
-        )
+        $salesByMonth = (clone $salesQuery)
+            ->select(
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('YEAR(created_at) as year'),
+                DB::raw('SUM(total) as total_sales')
+            )
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -41,15 +54,16 @@ class SaleController extends Controller
         $data = [];
 
         foreach ($salesByMonth as $sale) {
-            $labels[] = date('F Y', mktime(0, 0, 0, $sale->month, 1, $sale->year)); // Formato: "Mes Año"
+            $labels[] = date('F Y', mktime(0, 0, 0, $sale->month, 1, $sale->year));
             $data[] = $sale->total_sales;
         }
 
         // Obtener las ventas agrupadas por tipo
-        $salesByType = Sale::select(
-            'order_type',
-            DB::raw('SUM(total) as total_sales')
-        )
+        $salesByType = (clone $salesQuery)
+            ->select(
+                'order_type',
+                DB::raw('SUM(total) as total_sales')
+            )
             ->groupBy('order_type')
             ->get();
 
@@ -58,30 +72,106 @@ class SaleController extends Controller
         $typeData = [];
 
         foreach ($salesByType as $sale) {
-            $typeLabels[] = $sale->order_type; // Tipos de venta: "Para llevar", "Para comer aquí", "Recoger"
+            $typeLabels[] = $sale->order_type;
             $typeData[] = $sale->total_sales;
         }
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+
+        // Verificar caja chica abierta para esta sucursal y usuario
+        $hasOpenPettyCashQuery = PettyCash::where('status', 'open')
+            ->where('user_id', Auth::id());
+
+        if ($branchId) {
+            $hasOpenPettyCashQuery->where('branch_id', $branchId);
+        }
+
+        $hasOpenPettyCash = $hasOpenPettyCashQuery->exists();
+
+        // Obtener información de la sucursal actual
+        $currentBranch = $branchId ? Branch::find($branchId) : null;
 
         // Pasar los datos a la vista
-        return view('admin.dashboard', compact('labels', 'data', 'typeLabels', 'typeData', 'hasOpenPettyCash'));
+        return view('admin.dashboard', compact(
+            'labels',
+            'data',
+            'typeLabels',
+            'typeData',
+            'hasOpenPettyCash',
+            'currentBranch'
+        ));
     }
+
     /**
      * Muestra una lista de todas las ventas.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Obtener todas las ventas con sus ítems y el usuario vendedor
-        // Ordenadas por fecha de creación de forma ASCENDENTE (más antiguas primero)
-        $sales = Sale::with('items', 'user')
-            ->orderBy('created_at', 'asc')  // Orden ascendente por fecha
-            ->orderBy('id', 'asc')           // Desempate por ID si tienen la misma fecha
+        // Obtener branch_id de la sesión
+        $branchId = session('branch_id');
+
+        // Query base con relaciones
+        $salesQuery = Sale::with('items', 'user', 'branch');
+
+        // Filtrar por sucursal si existe
+        if ($branchId) {
+            $salesQuery->where('branch_id', $branchId);
+        }
+
+        // Aplicar filtros adicionales si vienen en el request
+        if ($request->has('branch_filter') && $request->branch_filter) {
+            $salesQuery->where('branch_id', $request->branch_filter);
+        }
+
+        if ($request->has('date_from') && $request->date_from) {
+            $salesQuery->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && $request->date_to) {
+            $salesQuery->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->has('order_type') && $request->order_type) {
+            $salesQuery->where('order_type', $request->order_type);
+        }
+
+        if ($request->has('payment_method') && $request->payment_method) {
+            $salesQuery->where('payment_method', $request->payment_method);
+        }
+
+        // Ordenar por fecha de creación de forma ASCENDENTE
+        $sales = $salesQuery
+            ->orderBy('created_at', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+        // Verificar caja chica abierta para esta sucursal y usuario
+        $hasOpenPettyCashQuery = PettyCash::where('status', 'open')
+            ->where('user_id', Auth::id());
+
+        if ($branchId) {
+            $hasOpenPettyCashQuery->where('branch_id', $branchId);
+        }
+
+        $hasOpenPettyCash = $hasOpenPettyCashQuery->exists();
+
+        // Obtener todas las sucursales para el filtro (solo si el usuario es admin)
+        $branches = collect();
+        if (Auth::user()->role === 'admin') {
+            $branches = Branch::where('is_active', true)
+                ->orderBy('is_main', 'desc')
+                ->orderBy('name')
+                ->get();
+        }
+
+        // Información de la sucursal actual
+        $currentBranch = $branchId ? Branch::find($branchId) : null;
 
         // Pasar las ventas a la vista
-        return view('sales.index', compact('sales', 'hasOpenPettyCash'));
+        return view('sales.index', compact(
+            'sales',
+            'hasOpenPettyCash',
+            'branches',
+            'currentBranch'
+        ));
     }
 
     public function store(Request $request)
@@ -91,6 +181,7 @@ class SaleController extends Controller
             'converting_from_proforma' => $request->input('converting_from_proforma'),
             'customer_name' => $request->input('customer_name'),
             'order_type' => $request->input('order_type'),
+            'branch_id_session' => session('branch_id'),
             'all_data' => $request->all()
         ]);
 
@@ -100,6 +191,16 @@ class SaleController extends Controller
                 'success' => false,
                 'message' => 'Usuario no autenticado.',
             ], 401);
+        }
+
+        // Obtener branch_id de la sesión
+        $branchId = session('branch_id');
+
+        if (!$branchId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se ha seleccionado una sucursal. Por favor, cierre sesión e inicie sesión nuevamente.',
+            ], 400);
         }
 
         // Validación
@@ -115,7 +216,7 @@ class SaleController extends Controller
             'order_notes' => 'nullable|string|max:500',
             'delivery_service' => 'nullable|string|max:255',
             'pickup_notes' => 'nullable|string|max:500',
-            'converting_from_proforma' => 'nullable|integer|exists:proformas,id', // ✅ Validación
+            'converting_from_proforma' => 'nullable|integer|exists:proformas,id',
         ]);
 
         if ($validator->fails()) {
@@ -171,10 +272,15 @@ class SaleController extends Controller
                 }
             }
 
-            // Verificar caja chica abierta
-            $openPettyCash = PettyCash::where('status', 'open')->latest()->first();
+            // Verificar caja chica abierta para esta sucursal y usuario
+            $openPettyCash = PettyCash::where('status', 'open')
+                ->where('user_id', Auth::id())
+                ->where('branch_id', $branchId)
+                ->latest()
+                ->first();
+
             if (!$openPettyCash) {
-                throw new \Exception('No hay una caja chica abierta.');
+                throw new \Exception('No hay una caja chica abierta para esta sucursal.');
             }
 
             // Procesar el pedido
@@ -191,10 +297,11 @@ class SaleController extends Controller
             // Generar número de pedido
             $orderNumber = Sale::generateOrderNumber();
 
-            // 🔥 CREAR LA VENTA CON PROFORMA_ID SI CORRESPONDE
+            // 🔥 CREAR LA VENTA CON BRANCH_ID Y PROFORMA_ID SI CORRESPONDE
             $saleData = [
                 'user_id' => Auth::id(),
                 'petty_cash_id' => $openPettyCash->id,
+                'branch_id' => $branchId, // ✅ AGREGAR BRANCH_ID
                 'customer_name' => $request->customer_name,
                 'phone' => $request->customer_phone,
                 'email' => $request->customer_email,
@@ -223,6 +330,7 @@ class SaleController extends Controller
             Log::info('✅ Sale creada:', [
                 'sale_id' => $sale->id,
                 'transaction_number' => $sale->transaction_number,
+                'branch_id' => $sale->branch_id,
                 'proforma_id' => $sale->proforma_id ?? 'no asignado'
             ]);
 
@@ -255,7 +363,7 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'old_stock' => $menuItem->stock,
                     'new_stock' => $menuItem->stock - $item['quantity'],
-                    'notes' => "Venta #{$orderNumber}" . ($convertingFromProforma ? " (Proforma #{$convertingFromProforma})" : '')
+                    'notes' => "Venta #{$orderNumber}" . ($convertingFromProforma ? " (Proforma #{$convertingFromProforma})" : '') . " - Sucursal: " . session('branch_name', 'N/A')
                 ]);
 
                 // Actualizar stock
@@ -330,7 +438,6 @@ class SaleController extends Controller
                         'trace' => $updateError->getTraceAsString()
                     ]);
                     // No lanzar excepción para no revertir la venta
-                    // Solo registrar el error
                 }
             } else {
                 Log::info('ℹ️ No se está convirtiendo desde proforma');
@@ -342,6 +449,8 @@ class SaleController extends Controller
             Log::info('✅ TRANSACCIÓN COMPLETADA', [
                 'sale_id' => $sale->id,
                 'daily_order_number' => $sale->daily_order_number,
+                'branch_id' => $sale->branch_id,
+                'branch_name' => session('branch_name'),
                 'proforma_converted' => $proformaConverted
             ]);
 
@@ -350,8 +459,9 @@ class SaleController extends Controller
                 'order_id' => $sale->id,
                 'order_number' => $sale->transaction_number,
                 'daily_order_number' => $sale->daily_order_number,
+                'branch_name' => session('branch_name'),
                 'message' => 'Pedido procesado correctamente.',
-                'converted_from_proforma' => $proformaConverted // ✅ Informar si se convirtió
+                'converted_from_proforma' => $proformaConverted
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -370,43 +480,67 @@ class SaleController extends Controller
             ], 500);
         }
     }
+
     public function show($id)
     {
+        // Obtener branch_id de la sesión
+        $branchId = session('branch_id');
+
         // Obtener la venta actual con sus relaciones
-        $sale = Sale::with(['items', 'user'])->findOrFail($id);
+        $saleQuery = Sale::with(['items', 'user', 'branch']);
 
-        // Verificar si hay caja abierta
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+        // Filtrar por sucursal si existe
+        if ($branchId) {
+            $saleQuery->where('branch_id', $branchId);
+        }
 
-        // Obtener la venta anterior (fecha anterior más cercana)
-        $previousSale = Sale::where('created_at', '<', $sale->created_at)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        $sale = $saleQuery->findOrFail($id);
 
-        // Si hay ventas con la misma fecha/hora, usar ID como desempate
+        // Verificar si hay caja abierta para esta sucursal
+        $hasOpenPettyCashQuery = PettyCash::where('status', 'open')
+            ->where('user_id', Auth::id());
+
+        if ($branchId) {
+            $hasOpenPettyCashQuery->where('branch_id', $branchId);
+        }
+
+        $hasOpenPettyCash = $hasOpenPettyCashQuery->exists();
+
+        // Obtener la venta anterior (misma sucursal)
+        $previousSaleQuery = Sale::where('created_at', '<', $sale->created_at);
+        if ($branchId) {
+            $previousSaleQuery->where('branch_id', $branchId);
+        }
+        $previousSale = $previousSaleQuery->orderBy('created_at', 'desc')->first();
+
         if (!$previousSale) {
-            $previousSale = Sale::where('created_at', '=', $sale->created_at)
-                ->where('id', '<', $sale->id)
-                ->orderBy('id', 'desc')
-                ->first();
+            $previousSaleQuery = Sale::where('created_at', '=', $sale->created_at)
+                ->where('id', '<', $sale->id);
+            if ($branchId) {
+                $previousSaleQuery->where('branch_id', $branchId);
+            }
+            $previousSale = $previousSaleQuery->orderBy('id', 'desc')->first();
         }
 
-        // Obtener la venta siguiente (fecha posterior más cercana)
-        $nextSale = Sale::where('created_at', '>', $sale->created_at)
-            ->orderBy('created_at', 'asc')
-            ->first();
+        // Obtener la venta siguiente (misma sucursal)
+        $nextSaleQuery = Sale::where('created_at', '>', $sale->created_at);
+        if ($branchId) {
+            $nextSaleQuery->where('branch_id', $branchId);
+        }
+        $nextSale = $nextSaleQuery->orderBy('created_at', 'asc')->first();
 
-        // Si hay ventas con la misma fecha/hora, usar ID como desempate
         if (!$nextSale) {
-            $nextSale = Sale::where('created_at', '=', $sale->created_at)
-                ->where('id', '>', $sale->id)
-                ->orderBy('id', 'asc')
-                ->first();
+            $nextSaleQuery = Sale::where('created_at', '=', $sale->created_at)
+                ->where('id', '>', $sale->id);
+            if ($branchId) {
+                $nextSaleQuery->where('branch_id', $branchId);
+            }
+            $nextSale = $nextSaleQuery->orderBy('id', 'asc')->first();
         }
 
-        // Retornar la vista con todas las variables
         return view('sales.show', compact('sale', 'previousSale', 'nextSale', 'hasOpenPettyCash'));
     }
+
     public function create()
     {
         $tables = Table::all();
@@ -419,7 +553,6 @@ class SaleController extends Controller
         return view('layouts.order-details', compact('tables', 'deliveryServices'));
     }
 
-    // En SaleController
     public function checkStock(Request $request)
     {
         $items = $request->input('items', []);
@@ -436,15 +569,7 @@ class SaleController extends Controller
 
         return response()->json(['available' => true]);
     }
-    // En SalesController.php
 
-
-    /**
-     * Obtiene el siguiente número de pedido del día
-     */
-    /**
-     * Obtiene el siguiente número de pedido del día
-     */
     /**
      * Obtiene el siguiente número de pedido del día con formato PED-00001
      */
@@ -452,25 +577,27 @@ class SaleController extends Controller
     {
         try {
             $today = Carbon::today();
+            $branchId = session('branch_id');
 
-            // Buscar el último pedido del día actual
-            $lastSale = Sale::whereDate('order_date', $today)
-                ->whereNotNull('daily_order_number')
-                ->orderBy('daily_order_number', 'desc')
-                ->first();
+            // Buscar el último pedido del día actual para esta sucursal
+            $lastSaleQuery = Sale::whereDate('order_date', $today)
+                ->whereNotNull('daily_order_number');
+
+            if ($branchId) {
+                $lastSaleQuery->where('branch_id', $branchId);
+            }
+
+            $lastSale = $lastSaleQuery->orderBy('daily_order_number', 'desc')->first();
 
             // Extraer el número del último pedido
             if ($lastSale && $lastSale->daily_order_number) {
-                // Extraer solo los dígitos del formato "PED-00001"
                 if (preg_match('/PED-(\d+)/', $lastSale->daily_order_number, $matches)) {
                     $lastNumber = (int) $matches[1];
                     $nextNumber = $lastNumber + 1;
                 } else {
-                    // Si no tiene el formato esperado, empezar en 1
                     $nextNumber = 1;
                 }
             } else {
-                // Si no hay pedidos hoy, empezar en 1
                 $nextNumber = 1;
             }
 
@@ -481,7 +608,9 @@ class SaleController extends Controller
                 'success' => true,
                 'next_order_number' => $formattedOrderNumber,
                 'next_number_raw' => $nextNumber,
-                'date' => $today->toDateString()
+                'date' => $today->toDateString(),
+                'branch_id' => $branchId,
+                'branch_name' => session('branch_name')
             ]);
         } catch (\Exception $e) {
             return response()->json([
