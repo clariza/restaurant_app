@@ -583,10 +583,13 @@ function closePaymentModal() {
     // ✅ Limpiar flags
     window._orderTypeButtonsConfigured = false;
     window._tableVisibilityChecked = false;
-    const orderWasProcessed = localStorage.getItem('orderProcessed') === 'true';
-    if (!orderWasProcessed) {
-        console.log('⚠️ Modal cerrado sin confirmar pedido, limpiando banderas');
-        clearProformaConversionFlags();
+
+    const tableId = localStorage.getItem('tableNumber');
+    const orderProcessed = localStorage.getItem('orderProcessed') === 'true';
+
+    if (tableId && !orderProcessed) {
+        updateTableState(tableId, 'Disponible').catch(console.error);
+        localStorage.removeItem('tableNumber');
     }
 
     console.log('✅ Modal cerrado y paymentRows limpiado');
@@ -1253,11 +1256,11 @@ function generateTicketContent(dailyOrderNumber) {
         if (tableId) {
             if (window.paymentModalState?.selectedTable?.number) {
                 tableNumber = window.paymentModalState.selectedTable.number;
-                tableDisplayText = `Mesa ${tableNumber}`;
+                tableDisplayText = `${tableNumber}`;
                 console.log('   - Table Number (paymentModalState):', tableNumber);
             } else {
                 tableNumber = tableId;
-                tableDisplayText = `Mesa ${tableId}`;
+                tableDisplayText = `${tableId}`;
                 console.log('   - Usando Table ID como fallback:', tableId);
             }
         } else {
@@ -1477,7 +1480,7 @@ async function generateTicketContentAsync(dailyOrderNumber) {
                 tableNumber = await getTableNumberFromId(tableId);
             }
 
-            tableDisplayText = `Mesa ${tableNumber}`;
+            tableDisplayText = `${tableNumber}`;
             console.log('✅ Mesa para ticket:', tableDisplayText);
         }
     }
@@ -2076,6 +2079,7 @@ async function processOrder() {
                     if (!result.success) {
                         throw new Error(result.error || 'Error al actualizar estado de mesa');
                     }
+                    window._reservedTableId = null;
                     console.log('✅ Estado de mesa actualizado correctamente');
                 } catch (error) {
                     console.error('Error al actualizar mesa:', error);
@@ -2494,10 +2498,6 @@ function showOrderPanel() {
 function clearOrder() {
     console.log('🧹 Limpiando todo el pedido');
 
-    if (!confirm('¿Estás seguro de que deseas limpiar todo el pedido?')) {
-        return;
-    }
-
     localStorage.setItem('order', JSON.stringify([]));
 
     // Llamar a updateOrderDetails de forma segura
@@ -2508,7 +2508,6 @@ function clearOrder() {
         location.reload();
     }
 
-    alert('Pedido limpiado correctamente');
 }
 /**
  * Función para cambiar la disponibilidad de una mesa
@@ -3212,45 +3211,66 @@ function debugTableSelection() {
     console.log('   - Select principal:', document.getElementById('table-number')?.value);
 }
 
-function selectModalTable(tableElement) {
+// En order-details.js - reemplazar selectModalTable
+async function selectModalTable(tableElement) {
     console.log('✅ Mesa seleccionada en modal:', tableElement.dataset.tableNumber);
 
-    // Deseleccionar mesa anterior
+    // Guardar la mesa anteriormente seleccionada para poder revertir
+    const previousTableId = localStorage.getItem('tableNumber');
+
+    // Si había una mesa anterior diferente, liberarla
+    if (previousTableId && previousTableId !== tableElement.dataset.tableId) {
+        try {
+            await updateTableState(previousTableId, 'Disponible');
+            // Actualizar botón anterior visualmente
+            const previousBtn = document.querySelector(`.table-btn[data-table-id="${previousTableId}"]`);
+            if (previousBtn) {
+                previousBtn.classList.remove('selected', 'occupied');
+                previousBtn.disabled = false;
+            }
+        } catch (e) {
+            console.warn('No se pudo liberar mesa anterior:', e);
+        }
+    }
+
+    // Deseleccionar todas las mesas visualmente
     document.querySelectorAll('#payment-modal .table-btn.selected').forEach(btn => {
         btn.classList.remove('selected');
     });
 
-    // Seleccionar nueva mesa
+    // Seleccionar nueva mesa visualmente
     tableElement.classList.add('selected');
 
-    // CRÍTICO: Obtener el ID correcto de la mesa
     const tableId = tableElement.dataset.tableId;
     const tableNumber = tableElement.dataset.tableNumber;
 
-    console.log('🔍 Datos de la mesa:', {
-        tableId: tableId,
-        tableNumber: tableNumber
-    });
-
-    // Actualizar localStorage con el ID correcto
+    // Guardar en localStorage
     localStorage.setItem('tableNumber', tableId);
 
-    // Actualizar el select principal si existe
-    const tableSelect = document.getElementById('table-number');
-    if (tableSelect) {
-        tableSelect.value = tableId;
-        console.log('✅ Select principal actualizado a:', tableId);
-    }
-
-    // Actualizar window.paymentModalState si existe
+    // Actualizar paymentModalState
     if (window.paymentModalState) {
-        window.paymentModalState.selectedTable = {
-            id: tableId,
-            number: tableNumber
-        };
+        window.paymentModalState.selectedTable = { id: tableId, number: tableNumber };
     }
 
-    console.log('📋 Mesa guardada - ID:', tableId, 'Número:', tableNumber);
+    // ⚡ Actualizar estado en backend INMEDIATAMENTE al seleccionar
+    try {
+        tableElement.disabled = true;
+        tableElement.textContent = '⏳ ' + tableNumber;
+
+        await updateTableState(tableId, 'Reservada'); // Usar "Reservada" para indicar que está siendo usada
+
+        tableElement.disabled = false;
+        tableElement.textContent = `Mesa ${tableNumber}`;
+        tableElement.classList.add('selected');
+
+        console.log('✅ Mesa marcada como Reservada en backend');
+    } catch (error) {
+        console.error('❌ Error al reservar mesa:', error);
+        // Revertir selección si falla
+        tableElement.classList.remove('selected');
+        localStorage.removeItem('tableNumber');
+        alert('No se pudo reservar la mesa. Intente nuevamente.');
+    }
 }
 function initializeOrderSystem() {
     console.log('🚀 Inicializando sistema de pedidos...');

@@ -227,20 +227,104 @@ function closePaymentModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 
-    // ✅ LIMPIAR window.paymentRows correctamente
-    window.paymentRows = [];
+    // Liberar mesa si se cierra sin confirmar pedido
+    const orderProcessed = localStorage.getItem('orderProcessed') === 'true';
+    const reservedTableId = window._reservedTableId;
 
+    if (reservedTableId && !orderProcessed) {
+        console.log('🔓 Liberando mesa al cancelar:', reservedTableId);
+        callUpdateTableStateAPI(reservedTableId, 'Disponible')
+            .then(() => console.log('✅ Mesa liberada'))
+            .catch(e => console.warn('⚠️ Error liberando mesa:', e));
+
+        window._reservedTableId = null;
+        localStorage.removeItem('tableNumber');
+        selectedTable = null;
+        if (window.paymentModalState) {
+            window.paymentModalState.selectedTable = null;
+        }
+    }
+    if (reservedTableId && !orderProcessed) {
+        console.log('🔓 Liberando mesa al cerrar modal sin confirmar:', reservedTableId);
+        _updateTableStateAPI(reservedTableId, 'Disponible')
+            .then(() => console.log('✅ Mesa liberada correctamente'))
+            .catch(e => console.warn('⚠️ Error al liberar mesa:', e));
+
+        // Limpiar referencia
+        window._reservedTableId = null;
+        localStorage.removeItem('tableNumber');
+        selectedTable = null;
+
+        if (window.paymentModalState) {
+            window.paymentModalState.selectedTable = null;
+        }
+    }
+
+    // ── Limpiar paymentRows ──
+    window.paymentRows = [];
     selectedTable = null;
     selectedDeliveryService = null;
 
-    // Limpiar contenedor
     const container = document.getElementById('payment-rows-container');
-    if (container) {
-        container.innerHTML = '';
-    }
+    if (container) container.innerHTML = '';
+
     resetPaymentModal();
-    console.log('✅ Modal cerrado y paymentRows limpiado');
+    console.log('✅ Modal cerrado');
 }
+async function selectModalTable(tableElement) {
+    console.log('✅ Mesa seleccionada (order-details):', tableElement.dataset.tableNumber);
+
+    const tableId = tableElement.dataset.tableId;
+    const tableNumber = tableElement.dataset.tableNumber;
+    const previousTableId = window._reservedTableId || null;
+
+    // Liberar mesa anterior si es diferente
+    if (previousTableId && previousTableId !== tableId) {
+        try {
+            await callUpdateTableStateAPI(previousTableId, 'Disponible');
+            const prevBtn = document.querySelector(`#payment-modal .table-btn[data-table-id="${previousTableId}"]`);
+            if (prevBtn) {
+                prevBtn.classList.remove('selected');
+                prevBtn.disabled = false;
+            }
+        } catch (e) {
+            console.warn('⚠️ Error liberando mesa anterior:', e);
+        }
+    }
+
+    // Deseleccionar todas
+    document.querySelectorAll('#payment-modal .table-btn.selected').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+
+    // Estado de carga
+    tableElement.disabled = true;
+    tableElement.textContent = '⏳';
+
+    try {
+        await callUpdateTableStateAPI(tableId, 'Reservada');
+
+        window._reservedTableId = tableId;
+        localStorage.setItem('tableNumber', tableId);
+
+        if (window.paymentModalState) {
+            window.paymentModalState.selectedTable = { id: tableId, number: tableNumber };
+        }
+
+        tableElement.disabled = false;
+        tableElement.textContent = `Mesa ${tableNumber}`;
+        tableElement.classList.add('selected');
+
+        console.log('✅ Mesa', tableNumber, 'reservada en backend');
+
+    } catch (error) {
+        console.error('❌ Error al reservar mesa:', error);
+        tableElement.disabled = false;
+        tableElement.textContent = `Mesa ${tableNumber}`;
+        alert('No se pudo reservar la mesa: ' + error.message);
+    }
+}
+
 /**
  * Resetear el modal a su estado inicial
  */
@@ -1531,7 +1615,7 @@ function updateOrderSummary() {
                 summaryHTML += `
                     <div class="summary-item">
                         <span class="summary-item-label">Mesa:</span>
-                        <span class="summary-item-value">Mesa ${selectedTable.textContent.trim()}</span>
+                        <span class="summary-item-value">${selectedTable.textContent.trim()}</span>
                     </div>
                 `;
             }
@@ -2288,7 +2372,7 @@ function renderTables(tables) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'table-btn';
-        button.textContent = `Mesa ${table.number}`;
+        button.textContent = `${table.number}`;
         button.dataset.tableId = table.id;
         button.dataset.tableNumber = table.number;
 
@@ -2317,19 +2401,125 @@ function renderTables(tables) {
 
     console.log('✅ Mesas renderizadas correctamente');
 }
-function selectTable(tableId, tableNumber) {
-    selectedTable = { id: tableId, number: tableNumber };
+async function selectTable(tableId, tableNumber) {
+    console.log('🪑 Seleccionando mesa:', tableId, tableNumber);
 
-    document.querySelectorAll('.table-btn').forEach(btn => {
+    // Liberar mesa anteriormente reservada si es diferente
+    const previousTableId = window._reservedTableId || null;
+    if (previousTableId && previousTableId !== tableId) {
+        try {
+            await callUpdateTableStateAPI(previousTableId, 'Disponible');
+            const prevBtn = document.querySelector(`#payment-modal .table-btn[data-table-id="${previousTableId}"]`);
+            if (prevBtn) {
+                prevBtn.classList.remove('selected', 'occupied', 'reserved');
+                prevBtn.disabled = false;
+                prevBtn.textContent = prevBtn.dataset.tableNumber
+                    ? `Mesa ${prevBtn.dataset.tableNumber}`
+                    : prevBtn.textContent;
+            }
+        } catch (e) {
+            console.warn('⚠️ No se pudo liberar mesa anterior:', e);
+        }
+    }
+
+    // Deseleccionar todas visualmente
+    document.querySelectorAll('#payment-modal .table-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
 
-    const selectedBtn = document.querySelector(`[data-table-id="${tableId}"]`);
-    if (selectedBtn) {
-        selectedBtn.classList.add('selected');
+    // Mostrar loading en el botón
+    const tableBtn = document.querySelector(`#payment-modal .table-btn[data-table-id="${tableId}"]`);
+    if (tableBtn) {
+        tableBtn.disabled = true;
+        tableBtn.textContent = '⏳';
     }
 
-    console.log('Mesa seleccionada:', selectedTable);
+    try {
+        // ⚡ LLAMAR AL BACKEND /tables/{id}/state
+        await callUpdateTableStateAPI(tableId, 'Reservada');
+
+        // Guardar referencia global de mesa reservada
+        window._reservedTableId = tableId;
+
+        // Actualizar estado local
+        selectedTable = { id: tableId, number: tableNumber };
+        localStorage.setItem('tableNumber', tableId);
+
+        if (window.paymentModalState) {
+            window.paymentModalState.selectedTable = { id: tableId, number: tableNumber };
+        }
+
+        // Restaurar botón con estado seleccionado
+        if (tableBtn) {
+            tableBtn.disabled = false;
+            tableBtn.textContent = `Mesa ${tableNumber}`;
+            tableBtn.classList.add('selected');
+        }
+
+        console.log('✅ Mesa', tableNumber, 'marcada como Reservada');
+
+    } catch (error) {
+        console.error('❌ Error al reservar mesa:', error);
+        if (tableBtn) {
+            tableBtn.disabled = false;
+            tableBtn.textContent = `Mesa ${tableNumber}`;
+        }
+        alert('No se pudo reservar la mesa: ' + error.message);
+    }
+}
+async function callUpdateTableStateAPI(tableId, newState) {
+    if (!tableId) throw new Error('tableId requerido');
+
+    console.log(`📡 Llamando API: mesa ${tableId} → ${newState}`);
+
+    const csrfToken = window.csrfToken
+        || document.querySelector('meta[name="csrf-token"]')?.content
+        || '';
+
+    const response = await fetch(`/tables/${tableId}/state`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ state: newState })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || data.error || `HTTP ${response.status}`);
+    }
+
+    console.log(`✅ API OK: mesa ${tableId} → ${newState}`);
+    return data;
+}
+async function _updateTableStateAPI(tableId, newState) {
+    if (!tableId) return;
+
+    console.log(`🔄 API: Mesa ${tableId} → ${newState}`);
+
+    const response = await fetch(`/tables/${tableId}/state`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.csrfToken ||
+                document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ state: newState })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.error || data.message || `Error HTTP: ${response.status}`);
+    }
+
+    console.log(`✅ API: Mesa ${tableId} → ${newState} OK`);
+    return data;
 }
 
 async function loadDeliveryServices() {
@@ -3371,7 +3561,7 @@ function prepareOrderData() {
     const orderType = selectedOrderType ? selectedOrderType.dataset.type : 'comer-aqui';
 
     // Mapear tipo de pedido
-    let orderTypeText = 'Para comer aquí';
+    let orderTypeText = 'Comer aquí';
     if (orderType === 'para-llevar') orderTypeText = 'Para llevar';
     else if (orderType === 'recoger') orderTypeText = 'Recoger';
 
@@ -3386,7 +3576,7 @@ function prepareOrderData() {
     if (orderType === 'comer-aqui') {
         const selectedTable = document.querySelector('.table-btn.selected');
         if (selectedTable) {
-            tableNumber = selectedTable.textContent.trim();
+            tableNumber = selectedTable.dataset.tableNumber;
         }
     }
 
@@ -5177,3 +5367,5 @@ window.recopilarGastosCierre = recopilarGastosCierre;
 window.limpiarGastosCierre = limpiarGastosCierre;
 window.guardarCierreUnificado = guardarCierreUnificado;
 window.closeInternalModalClosure = closeInternalModalClosure;
+window.callUpdateTableStateAPI = callUpdateTableStateAPI;
+window.selectTable = selectTable;
