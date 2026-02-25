@@ -224,43 +224,12 @@ function closePaymentModal() {
     console.log('🔒 Cerrando modal de pago...');
 
     const modal = document.getElementById('payment-modal');
-    modal.classList.add('hidden');
+    if (modal) modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 
-    // Liberar mesa si se cierra sin confirmar pedido
-    const orderProcessed = localStorage.getItem('orderProcessed') === 'true';
-    const reservedTableId = window._reservedTableId;
+    // ✅ ELIMINAR todo el bloque de _reservedTableId
+    // La mesa solo cambia de estado en processOrder()
 
-    if (reservedTableId && !orderProcessed) {
-        console.log('🔓 Liberando mesa al cancelar:', reservedTableId);
-        callUpdateTableStateAPI(reservedTableId, 'Disponible')
-            .then(() => console.log('✅ Mesa liberada'))
-            .catch(e => console.warn('⚠️ Error liberando mesa:', e));
-
-        window._reservedTableId = null;
-        localStorage.removeItem('tableNumber');
-        selectedTable = null;
-        if (window.paymentModalState) {
-            window.paymentModalState.selectedTable = null;
-        }
-    }
-    if (reservedTableId && !orderProcessed) {
-        console.log('🔓 Liberando mesa al cerrar modal sin confirmar:', reservedTableId);
-        _updateTableStateAPI(reservedTableId, 'Disponible')
-            .then(() => console.log('✅ Mesa liberada correctamente'))
-            .catch(e => console.warn('⚠️ Error al liberar mesa:', e));
-
-        // Limpiar referencia
-        window._reservedTableId = null;
-        localStorage.removeItem('tableNumber');
-        selectedTable = null;
-
-        if (window.paymentModalState) {
-            window.paymentModalState.selectedTable = null;
-        }
-    }
-
-    // ── Limpiar paymentRows ──
     window.paymentRows = [];
     selectedTable = null;
     selectedDeliveryService = null;
@@ -2404,68 +2373,26 @@ function renderTables(tables) {
 async function selectTable(tableId, tableNumber) {
     console.log('🪑 Seleccionando mesa:', tableId, tableNumber);
 
-    // Liberar mesa anteriormente reservada si es diferente
-    const previousTableId = window._reservedTableId || null;
-    if (previousTableId && previousTableId !== tableId) {
-        try {
-            await callUpdateTableStateAPI(previousTableId, 'Disponible');
-            const prevBtn = document.querySelector(`#payment-modal .table-btn[data-table-id="${previousTableId}"]`);
-            if (prevBtn) {
-                prevBtn.classList.remove('selected', 'occupied', 'reserved');
-                prevBtn.disabled = false;
-                prevBtn.textContent = prevBtn.dataset.tableNumber
-                    ? `Mesa ${prevBtn.dataset.tableNumber}`
-                    : prevBtn.textContent;
-            }
-        } catch (e) {
-            console.warn('⚠️ No se pudo liberar mesa anterior:', e);
-        }
-    }
-
     // Deseleccionar todas visualmente
     document.querySelectorAll('#payment-modal .table-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
 
-    // Mostrar loading en el botón
+    // ✅ Solo guardar localmente, SIN tocar el backend
+    selectedTable = { id: tableId, number: tableNumber };
+    localStorage.setItem('tableNumber', tableId);
+
+    if (window.paymentModalState) {
+        window.paymentModalState.selectedTable = { id: tableId, number: tableNumber };
+    }
+
+    // Marcar botón como seleccionado
     const tableBtn = document.querySelector(`#payment-modal .table-btn[data-table-id="${tableId}"]`);
     if (tableBtn) {
-        tableBtn.disabled = true;
-        tableBtn.textContent = '⏳';
+        tableBtn.classList.add('selected');
     }
 
-    try {
-        // ⚡ LLAMAR AL BACKEND /tables/{id}/state
-        await callUpdateTableStateAPI(tableId, 'Reservada');
-
-        // Guardar referencia global de mesa reservada
-        window._reservedTableId = tableId;
-
-        // Actualizar estado local
-        selectedTable = { id: tableId, number: tableNumber };
-        localStorage.setItem('tableNumber', tableId);
-
-        if (window.paymentModalState) {
-            window.paymentModalState.selectedTable = { id: tableId, number: tableNumber };
-        }
-
-        // Restaurar botón con estado seleccionado
-        if (tableBtn) {
-            tableBtn.disabled = false;
-            tableBtn.textContent = `Mesa ${tableNumber}`;
-            tableBtn.classList.add('selected');
-        }
-
-        console.log('✅ Mesa', tableNumber, 'marcada como Reservada');
-
-    } catch (error) {
-        console.error('❌ Error al reservar mesa:', error);
-        if (tableBtn) {
-            tableBtn.disabled = false;
-            tableBtn.textContent = `Mesa ${tableNumber}`;
-        }
-        alert('No se pudo reservar la mesa: ' + error.message);
-    }
+    console.log('✅ Mesa guardada localmente:', tableId);
 }
 async function callUpdateTableStateAPI(tableId, newState) {
     if (!tableId) throw new Error('tableId requerido');
@@ -3499,12 +3426,34 @@ async function confirmAndProcessOrder() {
         return;
     }
 
-    // Preparar datos del pedido
-    const orderData = prepareOrderData();
+    // Guardar datos del cliente en localStorage para que processOrder los lea
+    const customerName = document.getElementById('modal-customer-name')?.value?.trim();
+    const customerEmail = document.getElementById('modal-customer-email')?.value?.trim() || '';
+    const customerPhone = document.getElementById('modal-customer-phone')?.value?.trim() || '';
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim() || '';
 
-    console.log('📦 Datos del pedido preparados:', orderData);
+    localStorage.setItem('customerName', customerName);
+    localStorage.setItem('customerEmail', customerEmail);
+    localStorage.setItem('customerPhone', customerPhone);
+    localStorage.setItem('customerNotes', customerNotes);
 
-    // Deshabilitar botón de confirmación
+    // Sincronizar métodos de pago
+    syncPaymentRowsFromDOM();
+
+    if (!window.paymentRows || window.paymentRows.length === 0) {
+        alert('No hay métodos de pago registrados. Regresa al Paso 2.');
+        return;
+    }
+
+    // Guardar métodos de pago en localStorage para que processOrder los lea
+    const paymentMethods = window.paymentRows.map(row => ({
+        method: row.method,
+        amount: parseFloat(row.amount),
+        transaction_number: row.reference || null
+    }));
+    localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
+
+    // Deshabilitar botón
     const confirmBtn = document.querySelector('.step-btn.confirm');
     if (confirmBtn) {
         confirmBtn.disabled = true;
@@ -3512,43 +3461,17 @@ async function confirmAndProcessOrder() {
     }
 
     try {
-        // Enviar pedido al servidor
-        const response = await fetch(window.routes.salesStore, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': window.csrfToken,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            console.log('✅ Pedido procesado exitosamente:', data);
-
-            // Limpiar pedido del localStorage
-            clearOrder();
-
-            // Cerrar modal
-            closePaymentModal();
-
-            // Mostrar mensaje de éxito
-            alert(`✅ Pedido procesado exitosamente\nNúmero de pedido: ${data.daily_order_number}`);
-
-            // Recargar página o redirigir
-            window.location.reload();
-
+        // ⚡ USAR processOrder() que maneja el estado de mesa correctamente
+        if (typeof window.processOrder === 'function') {
+            await window.processOrder();
         } else {
-            throw new Error(data.message || 'Error al procesar el pedido');
+            throw new Error('processOrder no está disponible');
         }
 
     } catch (error) {
-        console.error('❌ Error al procesar pedido:', error);
-        alert(`❌ Error al procesar el pedido: ${error.message}`);
+        console.error('❌ Error:', error);
+        alert('Error al procesar el pedido: ' + error.message);
 
-        // Rehabilitar botón
         if (confirmBtn) {
             confirmBtn.disabled = false;
             confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pedido';

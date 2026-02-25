@@ -16898,3 +16898,272 @@ Stack trace:
 [2026-02-24 00:33:26] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":30,"daily_order_number":"PED-00001","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
 [2026-02-24 00:34:25] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
 [2026-02-24 00:34:25] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 20:14:43] local.ERROR: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, SQL: select * from `sessions` where `id` = i8CF1Dx2PgTyki1DzuiHZq8HUDOcbC3dwomL9kEC limit 1) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 2002): SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, SQL: select * from `sessions` where `id` = i8CF1Dx2PgTyki1DzuiHZq8HUDOcbC3dwomL9kEC limit 1) at C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:825)
+[stacktrace]
+#0 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(979): Illuminate\\Database\\Connection->runQueryCallback()
+#1 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(958): Illuminate\\Database\\Connection->tryAgainIfCausedByLostConnection()
+#2 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(781): Illuminate\\Database\\Connection->handleQueryException()
+#3 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(398): Illuminate\\Database\\Connection->run()
+#4 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3106): Illuminate\\Database\\Connection->select()
+#5 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3091): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3676): Illuminate\\Database\\Query\\Builder->{closure:Illuminate\\Database\\Query\\Builder::get():3090}()
+#7 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3090): Illuminate\\Database\\Query\\Builder->onceWithColumns()
+#8 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(343): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3013): Illuminate\\Database\\Query\\Builder->first()
+#10 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\DatabaseSessionHandler.php(97): Illuminate\\Database\\Query\\Builder->find()
+#11 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(117): Illuminate\\Session\\DatabaseSessionHandler->read()
+#12 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(105): Illuminate\\Session\\Store->readFromHandler()
+#13 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(89): Illuminate\\Session\\Store->loadSession()
+#14 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(147): Illuminate\\Session\\Store->start()
+#15 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\helpers.php(399): Illuminate\\Session\\Middleware\\StartSession->{closure:Illuminate\\Session\\Middleware\\StartSession::startSession():144}()
+#16 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(144): tap()
+#17 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(116): Illuminate\\Session\\Middleware\\StartSession->startSession()
+#18 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest()
+#19 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Session\\Middleware\\StartSession->handle()
+#20 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#21 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle()
+#22 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(75): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#23 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle()
+#24 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#25 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then()
+#26 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack()
+#27 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute()
+#28 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute()
+#29 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(201): Illuminate\\Routing\\Router->dispatch()
+#30 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(170): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():198}()
+#31 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():168}()
+#32 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#33 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle()
+#34 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#35 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#36 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle()
+#37 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#38 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\ValidatePostSize->handle()
+#39 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(110): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#40 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle()
+#41 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#42 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\HandleCors->handle()
+#43 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#44 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\TrustProxies->handle()
+#45 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#46 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle()
+#47 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#48 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(176): Illuminate\\Pipeline\\Pipeline->then()
+#49 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(145): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter()
+#50 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1220): Illuminate\\Foundation\\Http\\Kernel->handle()
+#51 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\public\\index.php(17): Illuminate\\Foundation\\Application->handleRequest()
+#52 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('...')
+#53 {main}
+
+[previous exception] [object] (PDOException(code: 2002): SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it at C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php:67)
+[stacktrace]
+#0 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(67): PDO::connect()
+#1 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(85): Illuminate\\Database\\Connectors\\Connector->createPdoConnection()
+#2 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(48): Illuminate\\Database\\Connectors\\Connector->tryAgainIfCausedByLostConnection()
+#3 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection()
+#4 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\ConnectionFactory.php(185): Illuminate\\Database\\Connectors\\MySqlConnector->connect()
+#5 [internal function]: Illuminate\\Database\\Connectors\\ConnectionFactory->{closure:Illuminate\\Database\\Connectors\\ConnectionFactory::createPdoResolverWithHosts():180}()
+#6 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1231): call_user_func()
+#7 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(512): Illuminate\\Database\\Connection->getPdo()
+#8 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(407): Illuminate\\Database\\Connection->getPdoForSelect()
+#9 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(812): Illuminate\\Database\\Connection->{closure:Illuminate\\Database\\Connection::select():398}()
+#10 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(979): Illuminate\\Database\\Connection->runQueryCallback()
+#11 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(958): Illuminate\\Database\\Connection->tryAgainIfCausedByLostConnection()
+#12 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(781): Illuminate\\Database\\Connection->handleQueryException()
+#13 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(398): Illuminate\\Database\\Connection->run()
+#14 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3106): Illuminate\\Database\\Connection->select()
+#15 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3091): Illuminate\\Database\\Query\\Builder->runSelect()
+#16 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3676): Illuminate\\Database\\Query\\Builder->{closure:Illuminate\\Database\\Query\\Builder::get():3090}()
+#17 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3090): Illuminate\\Database\\Query\\Builder->onceWithColumns()
+#18 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(343): Illuminate\\Database\\Query\\Builder->get()
+#19 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3013): Illuminate\\Database\\Query\\Builder->first()
+#20 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\DatabaseSessionHandler.php(97): Illuminate\\Database\\Query\\Builder->find()
+#21 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(117): Illuminate\\Session\\DatabaseSessionHandler->read()
+#22 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(105): Illuminate\\Session\\Store->readFromHandler()
+#23 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Store.php(89): Illuminate\\Session\\Store->loadSession()
+#24 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(147): Illuminate\\Session\\Store->start()
+#25 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\helpers.php(399): Illuminate\\Session\\Middleware\\StartSession->{closure:Illuminate\\Session\\Middleware\\StartSession::startSession():144}()
+#26 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(144): tap()
+#27 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(116): Illuminate\\Session\\Middleware\\StartSession->startSession()
+#28 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest()
+#29 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Session\\Middleware\\StartSession->handle()
+#30 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#31 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle()
+#32 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(75): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#33 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle()
+#34 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#35 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then()
+#36 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack()
+#37 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute()
+#38 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute()
+#39 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(201): Illuminate\\Routing\\Router->dispatch()
+#40 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(170): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():198}()
+#41 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():168}()
+#42 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#43 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle()
+#44 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#45 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#46 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle()
+#47 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#48 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\ValidatePostSize->handle()
+#49 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(110): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#50 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle()
+#51 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#52 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\HandleCors->handle()
+#53 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#54 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Http\\Middleware\\TrustProxies->handle()
+#55 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#56 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle()
+#57 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}()
+#58 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(176): Illuminate\\Pipeline\\Pipeline->then()
+#59 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(145): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter()
+#60 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1220): Illuminate\\Foundation\\Http\\Kernel->handle()
+#61 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\public\\index.php(17): Illuminate\\Foundation\\Application->handleRequest()
+#62 C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('...')
+#63 {main}
+"} 
+[2026-02-24 20:21:13] local.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\Users\\HP\\Desktop\\laravel\\repo\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:596)
+[stacktrace]
+#0 {main}
+"} 
+[2026-02-24 20:25:22] local.INFO: 📋 Cargando login con sucursales: {"total_branches":1} 
+[2026-02-24 20:26:30] local.INFO: 🔐 === INICIO DE AUTENTICACIÓN ===  
+[2026-02-24 20:26:31] local.INFO: Usuario autenticado: {"user_id":1,"user_name":"admin","email":"admin@gmail.com"} 
+[2026-02-24 20:26:31] local.INFO: ✅ Sucursal encontrada: {"branch_id":1,"branch_name":"Sucursal Central","branch_code":"SC001","is_main":true} 
+[2026-02-24 20:26:31] local.INFO: 💾 Sesión guardada  
+[2026-02-24 20:26:31] local.INFO: 🔍 VERIFICACIÓN INMEDIATA: {"branch_id_en_sesion":1,"session_all":{"_token":"TMtOQGyUuaIEvW6A4EY0YQ3IU4SMnkjOMDZCZsRe","_previous":{"url":"http://127.0.0.1:8000/login"},"_flash":{"old":[],"new":[]},"url":{"intended":"http://127.0.0.1:8000/admin/dashboard"},"login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d":1,"branch_id":1,"branch_name":"Sucursal Central","branch_code":"SC001"}} 
+[2026-02-24 20:26:31] local.INFO: ✅ VERIFICACIÓN EXITOSA - branch_id está en sesión  
+[2026-02-24 20:26:31] local.INFO: ✅ Usuario actualizado con branch_id en BD: {"user_id":1,"branch_id":1} 
+[2026-02-24 20:26:31] local.INFO: ✅ Caja chica abierta encontrada: {"petty_cash_id":30,"opening_balance":null} 
+[2026-02-24 20:26:31] local.INFO: === FIN DE AUTENTICACIÓN ===  
+[2026-02-24 20:27:01] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 20:27:01] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 20:27:39] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Julieta Venegas","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Julieta Venegas","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"11.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":2,\"name\":\"Cocacola s/ Azucar\",\"price\":\"14.00\",\"stock\":\"10.00\",\"stock_type\":\"discrete\",\"stock_unit\":null,\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 20:27:39] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 20:27:39] local.INFO: ✅ Sale creada: {"sale_id":31,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 20:27:39] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 20:27:39] local.INFO: Stock actualizado para Cocacola s/ Azucar: -1  
+[2026-02-24 20:27:39] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 20:27:39] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":31,"daily_order_number":"PED-00002","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 20:27:40] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 20:27:40] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 20:38:33] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 20:38:33] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 20:38:50] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Julieta","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Julieta","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":4,\"name\":\"Lomito Completo\",\"price\":\"27.00\",\"stock\":\"8.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 20:38:50] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 20:38:50] local.INFO: ✅ Sale creada: {"sale_id":32,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 20:38:50] local.INFO: Stock actualizado para Lomito Completo: -1  
+[2026-02-24 20:38:50] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 20:38:50] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":32,"daily_order_number":"PED-00003","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 20:38:51] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 20:38:51] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 20:40:09] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 20:40:09] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 20:40:47] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Joy","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Joy","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"stock\":\"6.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":2},{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"10.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 20:40:47] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 20:40:47] local.INFO: ✅ Sale creada: {"sale_id":33,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 20:40:47] local.INFO: Stock actualizado para Hamburguesa Simple: -2  
+[2026-02-24 20:40:47] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 20:40:47] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 20:40:47] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":33,"daily_order_number":"PED-00004","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 20:41:54] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 20:41:54] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 21:29:39] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 21:29:39] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 21:30:01] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Alicia Perez","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Alicia Perez","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"9.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":2,\"name\":\"Cocacola s/ Azucar\",\"price\":\"14.00\",\"stock\":\"9.00\",\"stock_type\":\"discrete\",\"stock_unit\":null,\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 21:30:01] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 21:30:01] local.INFO: ✅ Sale creada: {"sale_id":34,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 21:30:01] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 21:30:01] local.INFO: Stock actualizado para Cocacola s/ Azucar: -1  
+[2026-02-24 21:30:01] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 21:30:01] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":34,"daily_order_number":"PED-00005","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 21:30:01] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 21:30:02] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 21:34:03] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 21:34:03] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 21:36:43] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Carolina Arancibia","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Carolina Arancibia","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":4,\"name\":\"Lomito Completo\",\"price\":\"27.00\",\"stock\":\"7.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"8.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 21:36:43] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 21:36:43] local.INFO: ✅ Sale creada: {"sale_id":35,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 21:36:43] local.INFO: Stock actualizado para Lomito Completo: -1  
+[2026-02-24 21:36:43] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 21:36:43] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 21:36:43] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":35,"daily_order_number":"PED-00006","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 21:41:34] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 21:41:34] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 21:42:41] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 21:42:41] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 21:43:53] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Laura Pau","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Laura Pau","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"7.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":3}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 21:43:53] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 21:43:53] local.INFO: ✅ Sale creada: {"sale_id":36,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 21:43:53] local.INFO: Stock actualizado para Silpancho: -3  
+[2026-02-24 21:43:53] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 21:43:53] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":36,"daily_order_number":"PED-00007","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 21:45:09] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 21:45:09] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 21:46:27] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 21:46:27] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 21:46:59] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Mariana Sanchez","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Mariana Sanchez","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"4.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":4,\"name\":\"Lomito Completo\",\"price\":\"27.00\",\"stock\":\"6.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 21:46:59] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 21:46:59] local.INFO: ✅ Sale creada: {"sale_id":37,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 21:46:59] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 21:46:59] local.INFO: Stock actualizado para Lomito Completo: -1  
+[2026-02-24 21:46:59] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 21:46:59] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":37,"daily_order_number":"PED-00008","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 21:47:13] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 21:47:13] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 21:54:39] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Reservada"},"method":"POST"} 
+[2026-02-24 21:54:39] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Reservada"} 
+[2026-02-24 21:54:51] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Mariana Sanchez","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Mariana Sanchez","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"stock\":\"4.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"3.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"1","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 21:54:51] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 21:54:51] local.INFO: ✅ Sale creada: {"sale_id":38,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 21:54:51] local.INFO: Stock actualizado para Hamburguesa Simple: -1  
+[2026-02-24 21:54:51] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 21:54:51] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 21:54:51] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":38,"daily_order_number":"PED-00009","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 22:01:51] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 22:01:51] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 22:01:52] local.INFO: 📝 updateState llamado {"table_id":"2","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:01:52] local.INFO: ✅ Mesa actualizada {"table_id":2,"new_state":"Ocupada"} 
+[2026-02-24 22:02:11] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Juan Pablo","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Juan Pablo","customer_email":null,"customer_phone":"+5917889999","customer_notes":null,"order":"[{\"id\":4,\"name\":\"Lomito Completo\",\"price\":\"27.00\",\"stock\":\"5.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":4}]","order_type":"Comer aquí","table_number":"2","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 22:02:11] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 22:02:11] local.INFO: ✅ Sale creada: {"sale_id":39,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 22:02:11] local.INFO: Stock actualizado para Lomito Completo: -4  
+[2026-02-24 22:02:11] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 22:02:11] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":39,"daily_order_number":"PED-00010","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 22:03:25] local.INFO: 📝 updateState llamado {"table_id":"2","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 22:03:25] local.INFO: ✅ Mesa actualizada {"table_id":2,"new_state":"Disponible"} 
+[2026-02-24 22:03:26] local.INFO: 📝 updateState llamado {"table_id":"3","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:03:26] local.INFO: ✅ Mesa actualizada {"table_id":3,"new_state":"Ocupada"} 
+[2026-02-24 22:03:29] local.INFO: 📝 updateState llamado {"table_id":"3","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 22:03:29] local.INFO: ✅ Mesa actualizada {"table_id":3,"new_state":"Disponible"} 
+[2026-02-24 22:03:30] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:03:30] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Ocupada"} 
+[2026-02-24 22:03:31] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 22:03:31] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Disponible"} 
+[2026-02-24 22:03:32] local.INFO: 📝 updateState llamado {"table_id":"3","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:03:32] local.INFO: ✅ Mesa actualizada {"table_id":3,"new_state":"Ocupada"} 
+[2026-02-24 22:03:45] local.INFO: 📝 updateState llamado {"table_id":"3","request_data":{"state":"Disponible"},"method":"POST"} 
+[2026-02-24 22:03:45] local.INFO: ✅ Mesa actualizada {"table_id":3,"new_state":"Disponible"} 
+[2026-02-24 22:03:45] local.INFO: 📝 updateState llamado {"table_id":"1","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:03:45] local.INFO: ✅ Mesa actualizada {"table_id":1,"new_state":"Ocupada"} 
+[2026-02-24 22:21:35] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Tadeo Cespedes","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Tadeo Cespedes","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":4,\"name\":\"Lomito Completo\",\"price\":\"27.00\",\"stock\":\"1.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1},{\"id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"stock\":\"3.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"2","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 22:21:35] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 22:21:35] local.INFO: ✅ Sale creada: {"sale_id":40,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 22:21:35] local.INFO: Stock actualizado para Lomito Completo: -1  
+[2026-02-24 22:21:35] local.INFO: Stock actualizado para Hamburguesa Simple: -1  
+[2026-02-24 22:21:35] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 22:21:35] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":40,"daily_order_number":"PED-00011","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 22:22:13] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"cristian Yamil","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"cristian Yamil","customer_email":null,"customer_phone":null,"customer_notes":null,"order":"[{\"id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"stock\":\"2.00\",\"stock_type\":\"discrete\",\"stock_unit\":\"unidades\",\"min_stock\":\"5.00\",\"manage_inventory\":1,\"quantity\":1}]","order_type":"Comer aquí","table_number":"2","payment_method":"Efectivo","transaction_number":null,"order_notes":null,"delivery_service":null,"pickup_notes":null,"payment_methods":[],"branch_id":1}} 
+[2026-02-24 22:22:13] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 22:22:13] local.INFO: ✅ Sale creada: {"sale_id":41,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 22:22:13] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 22:22:13] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 22:22:13] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":41,"daily_order_number":"PED-00012","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 22:40:18] local.INFO: 📝 updateState llamado {"table_id":"2","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 22:40:20] local.INFO: ✅ Mesa actualizada {"table_id":2,"new_state":"Ocupada"} 
+[2026-02-24 22:40:20] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"Susana Perez","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"Susana Perez","customer_email":null,"customer_phone":null,"order_type":"Comer aquí","table_number":"2","delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":3,\"name\":\"Silpancho\",\"price\":\"16.00\",\"quantity\":1}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":16,"transaction_number":null}],"converting_from_proforma":null}} 
+[2026-02-24 22:40:21] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 22:40:21] local.INFO: ✅ Sale creada: {"sale_id":42,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 22:40:21] local.INFO: Stock actualizado para Silpancho: -1  
+[2026-02-24 22:40:21] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 22:40:21] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":42,"daily_order_number":"PED-00013","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
