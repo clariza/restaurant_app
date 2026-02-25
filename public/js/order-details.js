@@ -1356,10 +1356,34 @@ function generateTicketContent(dailyOrderNumber) {
             <span>Impuesto:</span>
             <span>$${tax.toFixed(2)}</span>
         </div>
-        <div class="item-row total-row">
-            <span>TOTAL:</span>
-            <span>$${total.toFixed(2)}</span>
-        </div>
+       <div class="item-row total-row">
+    <span>TOTAL:</span>
+    <span>$${total.toFixed(2)}</span>
+</div>
+
+${(() => {
+            // Obtener métodos de pago para mostrar detalle
+            let paymentMethodsHTML = '';
+            try {
+                const methods = JSON.parse(localStorage.getItem('paymentMethods') || '[]');
+                methods.forEach(m => {
+                    paymentMethodsHTML += `
+                <div class="item-row">
+                    <span>${m.method}:</span>
+                    <span>$${parseFloat(m.amount || 0).toFixed(2)}</span>
+                </div>
+            `;
+                });
+            } catch (e) { }
+            return paymentMethodsHTML;
+        })()}
+
+${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
+    <div class="item-row" style="font-weight: bold;">
+        <span>CAMBIO:</span>
+        <span>$${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
+    </div>
+` : ''}
         
         ${allNotes ? `
             <div class="divider"></div>
@@ -1560,9 +1584,33 @@ async function generateTicketContentAsync(dailyOrderNumber) {
             <span>$${tax.toFixed(2)}</span>
         </div>
         <div class="item-row total-row">
-            <span>TOTAL:</span>
-            <span>$${total.toFixed(2)}</span>
-        </div>
+    <span>TOTAL:</span>
+    <span>$${total.toFixed(2)}</span>
+</div>
+
+${(() => {
+            // Obtener métodos de pago para mostrar detalle
+            let paymentMethodsHTML = '';
+            try {
+                const methods = JSON.parse(localStorage.getItem('paymentMethods') || '[]');
+                methods.forEach(m => {
+                    paymentMethodsHTML += `
+                <div class="item-row">
+                    <span>${m.method}:</span>
+                    <span>$${parseFloat(m.amount || 0).toFixed(2)}</span>
+                </div>
+            `;
+                });
+            } catch (e) { }
+            return paymentMethodsHTML;
+        })()}
+
+${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
+    <div class="item-row" style="font-weight: bold;">
+        <span>CAMBIO:</span>
+        <span>$${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
+    </div>
+` : ''}
         
         ${allNotes ? `
             <div class="divider"></div>
@@ -2195,6 +2243,7 @@ async function processOrder() {
             localStorage.removeItem('convertingProforma');
             localStorage.removeItem('proformaId');
             localStorage.removeItem('proformaNotes');
+            localStorage.removeItem('paymentChange');
             console.log('🧹 Datos de conversión de proforma limpiados');
             // 🔥 IMPORTANTE: Limpiar datos de conversión de proforma
             // if (convertingFromProforma) {

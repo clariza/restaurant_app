@@ -3452,7 +3452,10 @@ async function confirmAndProcessOrder() {
         transaction_number: row.reference || null
     }));
     localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
-
+    // Calcular y guardar cambio total antes de procesar
+    const totalChange = Array.from(document.querySelectorAll('.payment-row .change'))
+        .reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+    localStorage.setItem('paymentChange', totalChange.toFixed(2));
     // Deshabilitar botón
     const confirmBtn = document.querySelector('.step-btn.confirm');
     if (confirmBtn) {

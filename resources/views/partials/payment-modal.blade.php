@@ -384,29 +384,28 @@
                     </div>
 
                     <!-- Formulario de Datos del Cliente -->
-                    <!-- Formulario de Datos del Cliente -->
-<div class="customer-form-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h4>
-            <i class="fas fa-id-card"></i>
-            Datos del Cliente
-        </h4>
-        <div style="display: flex; gap: 8px;">
-            <button onclick="openClientsConfigModal()" 
-                    class="clients-config-btn" 
-                    type="button"
-                    style="background: #203363; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-                <i class="fas fa-users"></i>
-                <span>Gestionar Clientes</span>
-            </button>
-            <button onclick="saveCurrentClientToDatabase()" 
+    <div class="customer-form-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4>
+                <i class="fas fa-id-card"></i>
+                Datos del Cliente
+            </h4>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="openClientsConfigModal()" 
+                        class="clients-config-btn" 
+                        type="button"
+                        style="background: #203363; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                    <i class="fas fa-users"></i>
+                    <span>Gestionar Clientes</span>
+                </button>
+                <button onclick="saveCurrentClientToDatabase()" 
                     class="clients-config-btn" 
                     type="button"
                     id="save-current-client-btn"
                     style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-                <i class="fas fa-save"></i>
-                <span>Guardar Cliente</span>
-            </button>
+                    <i class="fas fa-save"></i>
+                    <span>Guardar Cliente</span>
+                </button>
         </div>
     </div>
     

@@ -17167,3 +17167,17 @@ Stack trace:
 [2026-02-24 22:40:21] local.INFO: Stock actualizado para Silpancho: -1  
 [2026-02-24 22:40:21] local.INFO: ℹ️ No se está convirtiendo desde proforma  
 [2026-02-24 22:40:21] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":42,"daily_order_number":"PED-00013","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 22:42:38] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"luciana Juarez","order_type":"Para llevar","branch_id_session":1,"all_data":{"customer_name":"luciana Juarez","customer_email":null,"customer_phone":null,"order_type":"Para llevar","table_number":null,"delivery_service":"Yango","order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":1,\"name\":\"Hamburguesa Simple\",\"price\":\"20.00\",\"quantity\":2}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":40,"transaction_number":null}],"converting_from_proforma":null}} 
+[2026-02-24 22:42:38] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 22:42:38] local.INFO: ✅ Sale creada: {"sale_id":43,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 22:42:38] local.INFO: Stock actualizado para Hamburguesa Simple: -2  
+[2026-02-24 22:42:38] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 22:42:38] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":43,"daily_order_number":"PED-00014","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
+[2026-02-24 23:46:03] local.INFO: 📝 updateState llamado {"table_id":"3","request_data":{"state":"Ocupada"},"method":"POST"} 
+[2026-02-24 23:46:03] local.INFO: ✅ Mesa actualizada {"table_id":3,"new_state":"Ocupada"} 
+[2026-02-24 23:46:04] local.INFO: 📥 REQUEST RECIBIDO EN STORE: {"converting_from_proforma":null,"customer_name":"josefina martinez","order_type":"Comer aquí","branch_id_session":1,"all_data":{"customer_name":"josefina martinez","customer_email":null,"customer_phone":null,"order_type":"Comer aquí","table_number":"3","delivery_service":null,"order_notes":null,"customer_notes":null,"pickup_notes":null,"order":"[{\"menu_item_id\":2,\"name\":\"Cocacola s/ Azucar\",\"price\":\"14.00\",\"quantity\":2}]","payment_method":"Efectivo","transaction_number":null,"payment_methods":[{"method":"Efectivo","amount":30,"transaction_number":null}],"converting_from_proforma":null}} 
+[2026-02-24 23:46:04] local.INFO: 🔍 DEBUGGING PROFORMA: {"converting_from_proforma_raw":null,"converting_from_proforma_parsed":null,"is_null":true,"is_numeric":false,"type":"NULL","value":null} 
+[2026-02-24 23:46:04] local.INFO: ✅ Sale creada: {"sale_id":44,"transaction_number":null,"branch_id":1,"proforma_id":"no asignado"} 
+[2026-02-24 23:46:04] local.INFO: Stock actualizado para Cocacola s/ Azucar: -2  
+[2026-02-24 23:46:04] local.INFO: ℹ️ No se está convirtiendo desde proforma  
+[2026-02-24 23:46:04] local.INFO: ✅ TRANSACCIÓN COMPLETADA {"sale_id":44,"daily_order_number":"PED-00015","branch_id":1,"branch_name":"Sucursal Central","proforma_converted":false} 
