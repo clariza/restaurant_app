@@ -200,10 +200,11 @@
                         </button>
                     @endif
                     
-                    @if(!$isProforma && $hasOpenPettyCash)
+                    <!-- Acciones (solo desktop) -->
+                    @if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin')
                         <button class="text-red-600 hover:text-red-800 p-1"
-                                onclick="deleteOrder('{{ $record->id }}', '{{ $record->transaction_number }}')"
-                                title="Eliminar orden">
+                            onclick="deleteOrder('{{ $record->id }}', '{{ $record->transaction_number }}')"
+                            title="Eliminar orden">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     @endif
@@ -228,7 +229,7 @@
                         </button>
                     @endif
                     
-                    @if(!$isProforma && $hasOpenPettyCash)
+                    @if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin')
                         <button class="text-red-600 hover:text-red-800 text-sm flex items-center"
                                 onclick="deleteOrder('{{ $record->id }}', '{{ $record->transaction_number }}')">
                             <i class="fas fa-trash-alt mr-1"></i> Eliminar

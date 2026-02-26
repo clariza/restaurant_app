@@ -209,10 +209,11 @@
                         </button>
                     <?php endif; ?>
                     
-                    <?php if(!$isProforma && $hasOpenPettyCash): ?>
+                    <!-- Acciones (solo desktop) -->
+                    <?php if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin'): ?>
                         <button class="text-red-600 hover:text-red-800 p-1"
-                                onclick="deleteOrder('<?php echo e($record->id); ?>', '<?php echo e($record->transaction_number); ?>')"
-                                title="Eliminar orden">
+                            onclick="deleteOrder('<?php echo e($record->id); ?>', '<?php echo e($record->transaction_number); ?>')"
+                            title="Eliminar orden">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     <?php endif; ?>
@@ -237,7 +238,7 @@
                         </button>
                     <?php endif; ?>
                     
-                    <?php if(!$isProforma && $hasOpenPettyCash): ?>
+                    <?php if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin'): ?>
                         <button class="text-red-600 hover:text-red-800 text-sm flex items-center"
                                 onclick="deleteOrder('<?php echo e($record->id); ?>', '<?php echo e($record->transaction_number); ?>')">
                             <i class="fas fa-trash-alt mr-1"></i> Eliminar

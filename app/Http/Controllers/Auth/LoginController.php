@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    protected string $redirectTo = '/dashboard';
+    protected string $redirectTo = '/admin/dashboard';
 
     /**
      * Mostrar el formulario de login con las sucursales disponibles
