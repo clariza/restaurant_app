@@ -177,6 +177,8 @@ class ProformaController extends Controller
                 'tax' => $validated['tax'],
                 'total' => $validated['total'],
                 'status' => 'reservado',
+                'user_id'  => auth()->id(),
+                'branch_id' => session('branch_id'),
             ]);
 
             // Crear items de la proforma

@@ -1291,10 +1291,19 @@ function generateTicketContent(dailyOrderNumber) {
 
     // Combinar TODAS las notas según el tipo de pedido
     let allNotes = '';
-    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+    const isConvertingProforma = localStorage.getItem('convertingProforma') === 'true';
+
+    if (isConvertingProforma) {
+    // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
     if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+    } else {
+    // Pedido normal: solo notas del pedido
+    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+    }
+
+    // Las notas de recoger son independientes y siempre aplican si corresponde
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas: ${pickupNotes}`;
+        allNotes += `Notas de recojo: ${pickupNotes}`;
     }
 
     console.log('✅ Ticket generado con:', {
@@ -1527,12 +1536,20 @@ async function generateTicketContentAsync(dailyOrderNumber) {
 
     // Incluir notas de Recoger
     let allNotes = '';
-    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+    const isConvertingProforma = localStorage.getItem('convertingProforma') === 'true';
+
+    if (isConvertingProforma) {
+    // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
     if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
-    if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de Recoger: ${pickupNotes}`;
+    } else {
+        // Pedido normal: solo notas del pedido
+        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
     }
 
+    // Las notas de recoger son independientes y siempre aplican si corresponde
+    if (pickupNotes && orderType === 'Recoger') {
+        allNotes += `Notas de recojo: ${pickupNotes}`;
+    }
     return `
         <div class="header">
             <div class="title">RESTAURANTE MIQUNA</div>

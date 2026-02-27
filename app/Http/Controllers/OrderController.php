@@ -17,108 +17,117 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        // Filtros
-        $type = $request->get('type', 'all');
-        $search = $request->get('search');
+        
+        $type     = $request->get('type', 'all');
+        $search   = $request->get('search');
         $dateFrom = $request->get('date_from');
-        $dateTo = $request->get('date_to');
+        $dateTo   = $request->get('date_to');
         $sellerId = $request->get('seller_id', 'all');
+        $branchId = $request->get('branch_id', 'all'); // ← NUEVO
 
-        // Query base para órdenes (orden ASCENDENTE)
-        $ordersQuery = Sale::with(['items.menuItem', 'user'])
-            ->orderBy('created_at', 'asc')  // Orden ascendente por fecha
-            ->orderBy('id', 'asc');          // Desempate por ID
+        // ─── Query de órdenes ───────────────────────────────────────
+        $ordersQuery = Sale::with(['items.menuItem', 'user', 'branch'])
+            ->orderBy('created_at', 'asc')
+            ->orderBy('id', 'asc');
 
-        // Query base para proformas (orden ASCENDENTE)
-        // ✅ EXCLUIR proformas ya convertidas
+        // ─── Query de proformas ──────────────────────────────────────
         $proformasQuery = Proforma::with(['items', 'user'])
-            ->where(function ($query) {
-                // Excluir si converted_to_order = 1
-                $query->where('converted_to_order', '!=', 1)
-                    ->orWhereNull('converted_to_order');
+            ->where(function ($q) {
+                $q->where('converted_to_order', '!=', 1)
+                  ->orWhereNull('converted_to_order');
             })
-            ->where(function ($query) {
-                // Excluir si is_converted = 1 (por compatibilidad)
-                $query->where('is_converted', '!=', 1)
-                    ->orWhereNull('is_converted');
+            ->where(function ($q) {
+                $q->where('is_converted', '!=', 1)
+                  ->orWhereNull('is_converted');
             })
-            ->orderBy('created_at', 'asc')  // Orden ascendente por fecha
-            ->orderBy('id', 'asc');          // Desempate por ID
+        ->orderBy('created_at', 'asc')
+        ->orderBy('id', 'asc');
 
-        // Aplicar filtro de tipo
-        if ($type !== 'all') {
-            if ($type === 'proforma') {
-                // Solo mostrar proformas
-                $ordersQuery->whereRaw('1 = 0'); // No mostrar órdenes
-            } else {
-                // Filtrar por tipo de orden específico
-                $ordersQuery->where('order_type', $type);
-                $proformasQuery->whereRaw('1 = 0'); // No mostrar proformas
-            }
+    // ─── Filtro: sucursal (solo para órdenes) ───────────────────
+    // ─── Filtro: sucursal ────────────────────────────────────────
+$sessionBranchId = session('branch_id');
+
+if ($sessionBranchId) {
+    $ordersQuery->where('branch_id', $sessionBranchId);
+    $proformasQuery->where('branch_id', $sessionBranchId); // ← AGREGAR
+} elseif ($branchId !== 'all') {
+    $ordersQuery->where('branch_id', $branchId);
+    $proformasQuery->where('branch_id', $branchId); // ← AGREGAR
+}
+   
+
+    // ─── Filtro: tipo ────────────────────────────────────────────
+    if ($type !== 'all') {
+        if ($type === 'proforma') {
+            $ordersQuery->whereRaw('1 = 0');
+        } else {
+            $ordersQuery->where('order_type', $type);
+            $proformasQuery->whereRaw('1 = 0');
         }
-
-        // Aplicar filtro de fecha desde
-        if ($dateFrom) {
-            try {
-                $dateFromCarbon = Carbon::parse($dateFrom)->startOfDay();
-                $ordersQuery->where('created_at', '>=', $dateFromCarbon);
-                $proformasQuery->where('created_at', '>=', $dateFromCarbon);
-            } catch (\Exception $e) {
-                // Si hay error en el parsing de fecha, ignorar el filtro
-            }
-        }
-
-        // Aplicar filtro de fecha hasta
-        if ($dateTo) {
-            try {
-                $dateToCarbon = Carbon::parse($dateTo)->endOfDay();
-                $ordersQuery->where('created_at', '<=', $dateToCarbon);
-                $proformasQuery->where('created_at', '<=', $dateToCarbon);
-            } catch (\Exception $e) {
-                // Si hay error en el parsing de fecha, ignorar el filtro
-            }
-        }
-
-        // Aplicar filtro de vendedor
-        if ($sellerId !== 'all') {
-            $ordersQuery->where('user_id', $sellerId);
-            $proformasQuery->where('user_id', $sellerId);
-        }
-
-        // Aplicar búsqueda
-        if ($search) {
-            $ordersQuery->where(function ($query) use ($search) {
-                $query->where('customer_name', 'like', "%{$search}%")
-                    ->orWhere('transaction_number', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('daily_order_number', 'like', "%{$search}%");
-            });
-
-            $proformasQuery->where(function ($query) use ($search) {
-                $query->where('customer_name', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%");
-            });
-        }
-
-        // Verificar caja abierta
-        $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-
-        // Obtener lista de vendedores (usuarios que han realizado ventas)
-        $sellers = User::whereIn('id', function ($query) {
-            $query->select('user_id')
-                ->from('sales')
-                ->whereNotNull('user_id')
-                ->distinct();
-        })
-            ->orderBy('name', 'asc')
-            ->get(['id', 'name']);
-
-        // Obtener resultados paginados
-        $orders = $ordersQuery->paginate(15)->appends($request->all());
-        $proformas = $proformasQuery->paginate(15)->appends($request->all());
-
-        return view('orders.index', compact('orders', 'proformas', 'hasOpenPettyCash', 'sellers'));
     }
+
+    // ─── Filtro: fechas ──────────────────────────────────────────
+    if ($dateFrom) {
+        try {
+            $from = Carbon::parse($dateFrom)->startOfDay();
+            $ordersQuery->where('created_at', '>=', $from);
+            $proformasQuery->where('created_at', '>=', $from);
+        } catch (\Exception $e) {}
+    }
+    if ($dateTo) {
+        try {
+            $to = Carbon::parse($dateTo)->endOfDay();
+            $ordersQuery->where('created_at', '<=', $to);
+            $proformasQuery->where('created_at', '<=', $to);
+        } catch (\Exception $e) {}
+    }
+
+    // ─── Filtro: vendedor ────────────────────────────────────────
+    if ($sellerId !== 'all') {
+        $ordersQuery->where('user_id', $sellerId);
+        $proformasQuery->where('user_id', $sellerId);
+    }
+
+    // ─── Filtro: búsqueda ────────────────────────────────────────
+    if ($search) {
+        $ordersQuery->where(function ($q) use ($search) {
+            $q->where('customer_name', 'like', "%{$search}%")
+              ->orWhere('transaction_number', 'like', "%{$search}%")
+              ->orWhere('phone', 'like', "%{$search}%")
+              ->orWhere('daily_order_number', 'like', "%{$search}%");
+        });
+        $proformasQuery->where(function ($q) use ($search) {
+            $q->where('customer_name', 'like', "%{$search}%")
+              ->orWhere('id', 'like', "%{$search}%");
+        });
+    }
+
+    // ─── Datos auxiliares ────────────────────────────────────────
+    $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
+
+    $sellers = User::whereIn('id', function ($q) {
+        $q->select('user_id')->from('sales')
+          ->whereNotNull('user_id')->distinct();
+    })->orderBy('name')->get(['id', 'name']);
+
+    // Solo admin ve el filtro de sucursales
+    $branches = collect();
+    $branches = \App\Models\Branch::where('is_active', true)
+    ->orderBy('is_main', 'desc')
+    ->orderBy('name')
+    ->get();
+    $currentBranch = $sessionBranchId
+        ? \App\Models\Branch::find($sessionBranchId)
+        : null;
+
+    $orders    = $ordersQuery->paginate(15)->appends($request->all());
+    $proformas = $proformasQuery->paginate(15)->appends($request->all());
+
+    return view('orders.index', compact(
+        'orders', 'proformas', 'hasOpenPettyCash',
+        'sellers', 'branches', 'currentBranch'
+    ));
+}
 
     public function print($id)
     {

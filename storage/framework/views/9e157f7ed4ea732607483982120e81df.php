@@ -5,10 +5,10 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="branch-id" content="{{ session('branch_id') ?? '' }}">  
-    <meta name="branch-name" content="{{ session('branch_name') ?? '' }}">
-    <meta name="branch-code" content="{{ session('branch_code') ?? '' }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <meta name="branch-id" content="<?php echo e(session('branch_id') ?? ''); ?>">  
+    <meta name="branch-name" content="<?php echo e(session('branch_name') ?? ''); ?>">
+    <meta name="branch-code" content="<?php echo e(session('branch_code') ?? ''); ?>">
 
     <title>Miquna</title>
     <!-- Tailwind CSS -->
@@ -537,11 +537,11 @@
     }
 }
 </style>
- @php
+ <?php
     $hasOpenPettyCash = \App\Models\PettyCash::where('status', 'open')
         ->where('user_id', auth()->id())
         ->exists();
-@endphp
+?>
 </head>
 
 <body class="bg-[#fafafa]">
@@ -563,7 +563,7 @@
     </div>
 
     <!-- Barra de búsqueda minimalista alineada a la izquierda -->
-    @if(isset($showOrderDetails) && $showOrderDetails)
+    <?php if(isset($showOrderDetails) && $showOrderDetails): ?>
     <div class="flex-1 flex items-center justify-between px-4 search-container-animated">
         <!-- Contenedor de búsqueda -->
         <div class="relative w-full max-w-xs">
@@ -611,7 +611,7 @@
             
             <!-- Botón Historial - Azul -->
             <a 
-                href="{{ route('orders.index') }}" 
+                href="<?php echo e(route('orders.index')); ?>" 
                 class="action-btn-minimal action-btn-history
                        w-10 h-10 rounded-full flex items-center justify-center 
                        transition-all duration-200 hover:shadow-lg group"
@@ -631,10 +631,10 @@
 </button>
         </div>
     </div>
-    @else
+    <?php else: ?>
     <!-- Espacio vacío cuando no hay búsqueda -->
     <div class="flex-1"></div>
-    @endif
+    <?php endif; ?>
 
     <!-- Área de usuario y notificaciones -->
     <div class="flex items-center space-x-3 pr-4 flex-shrink-0">
@@ -653,14 +653,16 @@
     >
         <div class="hidden md:flex flex-col items-end">
             <span class="text-sm font-medium text-gray-700">
-                {{ Auth::user()->name ?? 'Usuario' }}
+                <?php echo e(Auth::user()->name ?? 'Usuario'); ?>
+
             </span>
-            @if(session('branch_name'))
+            <?php if(session('branch_name')): ?>
                 <span class="text-xs text-gray-500 flex items-center gap-1">
                     <i class="fas fa-store text-xs"></i>
-                    {{ session('branch_name') }}
+                    <?php echo e(session('branch_name')); ?>
+
                 </span>
-            @endif
+            <?php endif; ?>
         </div>
         <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center 
                     overflow-hidden border border-gray-300">
@@ -679,8 +681,8 @@
                        border border-gray-200" 
                 style="z-index: 1000;"
             >
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="w-full">
-                    @csrf
+                <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="w-full">
+                    <?php echo csrf_field(); ?>
                     <button 
                         type="submit" 
                         class="block w-full text-left px-4 py-2 text-sm text-gray-700 
@@ -704,7 +706,7 @@
             <div class="sidebar-content">                
                 <nav class="mt-4 space-y-1">
                     <!-- Dashboard -->
-                    <a class="flex items-center text-[#ffffff] bg-[#47517c] p-2 rounded-md" href="{{ route('admin.dashboard') }}">
+                    <a class="flex items-center text-[#ffffff] bg-[#47517c] p-2 rounded-md" href="<?php echo e(route('admin.dashboard')); ?>">
                         <i class="fas fa-home mr-3"></i>
                         Dashboard
                     </a>
@@ -717,22 +719,22 @@
                             <i class="fas fa-chevron-down ml-auto transition-transform duration-300 arrow"></i>
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="ventas-submenu">
-                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('menu.index') }}">
+                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('menu.index')); ?>">
                                 <i class="fas fa-bars mr-3"></i>
                                 <span>Menu</span>
                             </a>
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('orders.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('orders.index')); ?>">
                                 <i class="fas fa-list mr-3"></i>
                                 <span>Lista de Ventas</span>
                             </a>
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('tables.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('tables.index')); ?>">
                                 <i class="fas fa-table mr-3"></i>
                                 <span>Mesas</span>
                             </a>
                         </div>
                     </div>
 
-                    @unless(auth()->user()->role === 'vendedor')
+                    <?php if (! (auth()->user()->role === 'vendedor')): ?>
                     <!-- Gastos (Menú con submenús) - Solo visible para no vendedores -->
                     <div class="relative">
                         <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md cursor-pointer menu-toggle" data-menu="gastos">
@@ -741,33 +743,33 @@
                             <i class="fas fa-chevron-down ml-auto transition-transform duration-300 arrow"></i>
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="gastos-submenu">
-                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('purchases.index') }}">
+                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('purchases.index')); ?>">
                                 <i class="fas fa-chart-line mr-3"></i>
                                 <span>Lista de Compras</span>
                             </a>
-                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('purchases.create') }}">
+                            <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('purchases.create')); ?>">
                                 <i class="fas fa-chart-line mr-3"></i>
                                 <span>Realizar Compra</span>
                             </a>
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('suppliers.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('suppliers.index')); ?>">
                                 <i class="fas fa-file-invoice-dollar mr-3"></i>
                                 <span>Proveedores</span>
                             </a>
                         </div>
                     </div>
-                    @endunless
+                    <?php endif; ?>
 
                     <!-- Proveedor -->
-                    <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('expenses.index') }}">
+                    <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('expenses.index')); ?>">
                         <i class="fas fa-table mr-3"></i>
                         <span>Gastos</span>
                     </a>
-                    <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('petty-cash.index') }}">
+                    <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('petty-cash.index')); ?>">
                         <i class="fas fa-cash-register mr-3"></i>
                         <span>Cierre de Caja</span>
                     </a>
 
-                    @unless(auth()->user()->role === 'vendedor')
+                    <?php if (! (auth()->user()->role === 'vendedor')): ?>
                     <!-- Configuración - Solo visible para no vendedores -->
                     <div class="relative">
                         <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md cursor-pointer menu-toggle" data-menu="configuracion">
@@ -777,42 +779,42 @@
                         </a>
                         <div class="submenu ml-4 mt-2 hidden" id="configuracion-submenu">
                              <a class="flex items-center p-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
-               href="{{ route('branches.index') }}">
+               href="<?php echo e(route('branches.index')); ?>">
                 <i class="fas fa-store mr-3"></i>
                 <span>Sucursales</span>
             </a>
                 <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
-           href="{{ route('clients.index') }}">
+           href="<?php echo e(route('clients.index')); ?>">
             <i class="fas fa-users mr-3"></i>
             <span>Clientes</span>
         </a>
                             <!-- Nuevo ítem para Inventario -->
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('inventory.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('inventory.index')); ?>">
                                 <i class="fas fa-boxes mr-3"></i>
                                 <span>Inventario</span>
                             </a>
 
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('items.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('items.index')); ?>">
                                 <i class="fas fa-cube mr-3"></i>
                                 <span>Productos</span>
                             </a>
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('categories.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('categories.index')); ?>">
                                 <i class="fas fa-list mr-3"></i>
                                 <span>Categorías</span>
                             </a>
                             <!-- Usuarios -->
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('users.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('users.index')); ?>">
                                 <i class="fas fa-edit mr-3"></i>
                                 <span>Usuarios</span>
                             </a>
                             <!-- Nuevo submenú para Delivery -->
-                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('deliveries.index') }}">
+                            <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('deliveries.index')); ?>">
                                 <i class="fas fa-truck mr-3"></i>
                                 <span>Delivery</span>
                             </a>
                         </div>
                     </div>
-                    @endunless
+                    <?php endif; ?>
                 </nav>
             
             </div>
@@ -837,12 +839,12 @@
                                 
                                 <img alt="User Avatar" class="w-10 h-10 rounded-full mr-2" height="40" src="https://www.gravatar.com/avatar/default?s=200&d=mp" width="40"/>
                                
-                                <span class="text-gray-700">Hola, {{ Auth::user()->name }}</span>
+                                <span class="text-gray-700">Hola, <?php echo e(Auth::user()->name); ?></span>
                             </button>
                            
                             <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden">
                              
-                                <form action="{{ route('logout') }}" method="POST" class="w-full">
+                                <form action="<?php echo e(route('logout')); ?>" method="POST" class="w-full">
                                
                                     <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none">
                                         <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
@@ -853,15 +855,15 @@
                     </div>
                 </div>
             </header> -->
-            <div class="flex-1 p-6 pb-24 sm:pb-6 @if(isset($showOrderDetails) && $showOrderDetails) mr-0 md:mr-[25%] @endif" id="main-content">
-                @yield('content')
+            <div class="flex-1 p-6 pb-24 sm:pb-6 <?php if(isset($showOrderDetails) && $showOrderDetails): ?> mr-0 md:mr-[25%] <?php endif; ?>" id="main-content">
+                <?php echo $__env->yieldContent('content'); ?>
             </div>
         </div>
 
         <!-- Order Details -->
-        @if(isset($showOrderDetails) && $showOrderDetails)
-        @include('layouts.order-details')
-        @endif
+        <?php if(isset($showOrderDetails) && $showOrderDetails): ?>
+        <?php echo $__env->make('layouts.order-details', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php endif; ?>
     </div>
 
     <!-- Mobile Sidebar -->
@@ -882,23 +884,23 @@
 <!-- ✅ Variables globales PRIMERO -->
 <script>
    window.routes = {
-        tablesAvailable: "{{ route('tables.available') }}",
-        salesStore: "{{ route('sales.store') }}",
-        customerDetails: "{{ route('customer.details') }}",
-        menuIndex: "{{ route('menu.index') }}",
-        pettyCashCreate: "{{ route('petty-cash.create') }}"
+        tablesAvailable: "<?php echo e(route('tables.available')); ?>",
+        salesStore: "<?php echo e(route('sales.store')); ?>",
+        customerDetails: "<?php echo e(route('customer.details')); ?>",
+        menuIndex: "<?php echo e(route('menu.index')); ?>",
+        pettyCashCreate: "<?php echo e(route('petty-cash.create')); ?>"
     };
-    window.csrfToken = "{{ csrf_token() }}";
-    window.authUserName = "{{ Auth::user()->name ?? '' }}";
-    window.tablesEnabled = @json($settings->tables_enabled ?? false);
+    window.csrfToken = "<?php echo e(csrf_token()); ?>";
+    window.authUserName = "<?php echo e(Auth::user()->name ?? ''); ?>";
+    window.tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false, 15, 512) ?>;
     console.log('🌍 Variables globales configuradas');
     console.log('📦 Estado caja chica:', window.pettyCashData);
 </script>
 <script>
 // 🔥 Variables globales de sucursal
-window.branchId = {{ session('branch_id') ?? 'null' }};
-window.branchName = "{{ session('branch_name') ?? 'Sin sucursal' }}";
-window.branchCode = "{{ session('branch_code') ?? '' }}";
+window.branchId = <?php echo e(session('branch_id') ?? 'null'); ?>;
+window.branchName = "<?php echo e(session('branch_name') ?? 'Sin sucursal'); ?>";
+window.branchCode = "<?php echo e(session('branch_code') ?? ''); ?>";
 
 // También guardar en sessionStorage para persistencia
 if (window.branchId) {
@@ -925,7 +927,7 @@ console.log('🏢 Información de sucursal cargada:', {
         if (!modal || !content) {
             console.error('❌ Modal de caja chica no encontrado en app.blade.php');
             // Si el modal no existe, redirigir a la página de caja chica
-            window.location.href = '{{ route("petty-cash.index") }}';
+            window.location.href = '<?php echo e(route("petty-cash.index")); ?>';
             return;
         }
 
@@ -949,7 +951,7 @@ console.log('🏢 Información de sucursal cargada:', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 }
             });
 
@@ -990,7 +992,7 @@ console.log('🏢 Información de sucursal cargada:', {
                 headers: {
                     'Accept': 'text/html',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 }
             });
 
@@ -1045,7 +1047,7 @@ console.log('🏢 Información de sucursal cargada:', {
                 </div>
                 
                 <div class="mt-6">
-                    <a href="{{ route('petty-cash.index') }}" 
+                    <a href="<?php echo e(route('petty-cash.index')); ?>" 
                        class="text-blue-500 hover:text-blue-700 underline">
                         <i class="fas fa-list"></i>
                         Ver lista de cajas chicas
@@ -1073,7 +1075,7 @@ console.log('🏢 Información de sucursal cargada:', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
@@ -1150,7 +1152,7 @@ console.log('🏢 Información de sucursal cargada:', {
                         <span>Reintentar</span>
                     </button>
                     
-                    <a href="{{ route('petty-cash.index') }}" 
+                    <a href="<?php echo e(route('petty-cash.index')); ?>" 
                        class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 
                               transition-colors duration-200 flex items-center gap-2">
                         <i class="fas fa-external-link-alt"></i>
@@ -1174,17 +1176,17 @@ console.log('🏢 Información de sucursal cargada:', {
     // ========================================
     window.pettyCashData = {
         // 🔐 Datos de control de acceso (para app.js)
-        hasOpenPettyCash: @json($hasOpenPettyCash ?? false),
-        currentRoute: "{{ Route::currentRouteName() }}",
+        hasOpenPettyCash: <?php echo json_encode($hasOpenPettyCash ?? false, 15, 512) ?>,
+        currentRoute: "<?php echo e(Route::currentRouteName()); ?>",
         
         // 💰 Datos de cierre (para petty-cash-index.js)
-        totalExpenses: @json($totalExpenses ?? 0),
-        totalSalesQR: @json($totalSalesQR ?? 0),
-        totalSalesCard: @json($totalSalesCard ?? 0),
+        totalExpenses: <?php echo json_encode($totalExpenses ?? 0, 15, 512) ?>,
+        totalSalesQR: <?php echo json_encode($totalSalesQR ?? 0, 15, 512) ?>,
+        totalSalesCard: <?php echo json_encode($totalSalesCard ?? 0, 15, 512) ?>,
         
         // 🌐 URLs y tokens
-        saveClosureUrl: "{{ route('petty-cash.save-closure') }}",
-        csrfToken: "{{ csrf_token() }}",
+        saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
+        csrfToken: "<?php echo e(csrf_token()); ?>",
         
         // 🛠️ Metadatos
         initialized: true,
@@ -1210,14 +1212,14 @@ console.log('🏢 Información de sucursal cargada:', {
     window.dispatchEvent(new Event('pettyCashDataReady'));
 </script>
 <!-- ✅ Cargar scripts en orden correcto -->
-<script src="{{ asset('js/order-details.js') }}" defer></script>
-<script src="{{ asset('js/payment-modal.js') }}" defer></script>
-<script src="{{ asset('js/app.js') }}" defer></script>
-<script src="{{ asset('js/init.js') }}" defer></script>
-<script src="{{ asset('js/petty-cash-modal.js') }}" defer></script>
- @if(Request::is('petty-cash*'))
-        <script src="{{ asset('js/petty-cash-index.js') }}" defer></script>
-    @endif
+<script src="<?php echo e(asset('js/order-details.js')); ?>" defer></script>
+<script src="<?php echo e(asset('js/payment-modal.js')); ?>" defer></script>
+<script src="<?php echo e(asset('js/app.js')); ?>" defer></script>
+<script src="<?php echo e(asset('js/init.js')); ?>" defer></script>
+<script src="<?php echo e(asset('js/petty-cash-modal.js')); ?>" defer></script>
+ <?php if(Request::is('petty-cash*')): ?>
+        <script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
+    <?php endif; ?>
 
 <script>
 (function() {
@@ -1326,7 +1328,7 @@ console.log('🏢 Información de sucursal cargada:', {
     </div>
 </div>
 
-@stack('scripts')
+<?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 
-</html>
+</html><?php /**PATH C:\Users\User\Documents\laravel_clary\restaurant_app\resources\views/layouts/app.blade.php ENDPATH**/ ?>

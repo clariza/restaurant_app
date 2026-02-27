@@ -19,6 +19,7 @@ class Proforma extends Model
         'total',
         'status',
         'user_id',
+        'branch_id',
         'is_converted',
         'converted_to_order',
         'converted_order_id',
@@ -152,5 +153,9 @@ class Proforma extends Model
     public function scopeActive($query)
     {
         return $query->where('status', '!=', 'cancelled');
+    }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

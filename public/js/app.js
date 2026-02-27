@@ -254,109 +254,39 @@ function setupLogoutHandlers() {
 // Configurar control de caja chica
 function setupPettyCashControl() {
     console.log('🔍 Verificando control de caja chica...');
-    console.log('   - pettyCashData completo:', window.pettyCashData);
 
-    // ✅ VERIFICACIÓN CORRECTA - Si no existe pettyCashData, asumir que NO hay restricciones
-    if (typeof window.pettyCashData === 'undefined' || window.pettyCashData === null) {
-        console.warn('⚠️ pettyCashData no definido - Permitiendo acceso por defecto');
+    // Si no hay datos, no hacer nada
+    if (typeof window.pettyCashData === 'undefined' || !window.pettyCashData?.initialized) {
+        console.warn('⚠️ pettyCashData no disponible - sin restricciones');
         return;
     }
 
-    // ✅ Verificar que la variable esté inicializada correctamente
-    if (!window.pettyCashData.initialized) {
-        console.warn('⚠️ pettyCashData no inicializado correctamente');
+    const hasOpenCash = window.pettyCashData.hasOpenPettyCash;
+    const currentRoute = window.pettyCashData.currentRoute;
+
+    console.log('   - hasOpenPettyCash:', hasOpenCash);
+    console.log('   - currentRoute:', currentRoute);
+
+    // ✅ Si HAY caja abierta, no hacer NADA
+    if (hasOpenCash === true) {
+        console.log('✅ Caja abierta - acceso permitido');
         return;
     }
 
-    // ✅ VERIFICACIÓN EXPLÍCITA - Log detallado del estado
-    console.log('   - hasOpenPettyCash:', window.pettyCashData.hasOpenPettyCash);
-    console.log('   - currentRoute:', window.pettyCashData.currentRoute);
-    console.log('   - Datos de cierre disponibles:', {
-        totalExpenses: window.pettyCashData.totalExpenses,
-        totalSalesQR: window.pettyCashData.totalSalesQR,
-        totalSalesCard: window.pettyCashData.totalSalesCard
-    });
-
-    // ✅ Si HAY caja abierta (true), NO bloquear NADA
-    if (window.pettyCashData.hasOpenPettyCash === true) {
-        console.log('✅ Caja chica ABIERTA - Enlaces de venta HABILITADOS');
-        return; // SALIR INMEDIATAMENTE
-    }
-
-    // ✅ Si NO hay caja abierta (false o undefined), verificar ruta
-    console.log('⚠️ NO hay caja chica abierta - Verificando si debemos bloquear...');
-
-    // Si estamos en la página de crear caja, NO bloquear
-    if (window.pettyCashData.currentRoute === 'petty-cash.create') {
-        console.log('ℹ️ En página de crear caja - No bloqueando enlaces');
+    // ✅ Si estamos en rutas permitidas sin caja, no hacer NADA
+    const allowedRoutes = [
+        'petty-cash.create', 'petty-cash.store', 'petty-cash.index',
+        'petty-cash.show', 'login', 'logout'
+    ];
+    if (allowedRoutes.includes(currentRoute)) {
+        console.log('ℹ️ Ruta permitida sin caja');
         return;
     }
 
-    // ✅ BLOQUEAR SOLO SI: NO hay caja abierta Y NO estamos en crear caja
-    console.log('🔒 Procediendo a bloquear enlaces de venta...');
-
-    const blockedRoutes = ['menu', 'sales', 'orders'];
-    const allLinks = document.querySelectorAll('a');
-    let blockedCount = 0;
-
-    allLinks.forEach(link => {
-        const href = link.getAttribute('href') || '';
-
-        const shouldBlock = blockedRoutes.some(route => {
-            return href.includes(`/${route}`);
-        });
-
-        if (shouldBlock) {
-            // Remover listeners previos clonando el elemento
-            const newLink = link.cloneNode(true);
-            link.parentNode.replaceChild(newLink, link);
-
-            newLink.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                console.log('🚫 Acceso bloqueado a:', href);
-
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Apertura de Caja Requerida',
-                        html: `
-                            <p class="mb-2">Debe abrir una caja chica para acceder a las funciones de ventas.</p>
-                            <p class="text-sm text-gray-600">Ruta bloqueada: ${href}</p>
-                        `,
-                        confirmButtonText: 'Abrir Caja',
-                        confirmButtonColor: '#203363',
-                        showCancelButton: true,
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = window.routes.pettyCashCreate;
-                        }
-                    });
-                } else {
-                    alert('Debe abrir una caja chica para acceder a las funciones de ventas');
-                }
-            });
-
-            // Estilos visuales para enlaces bloqueados
-            newLink.style.opacity = '0.6';
-            newLink.style.cursor = 'not-allowed';
-            newLink.classList.add('pointer-events-auto');
-
-            // Agregar indicador visual
-            if (!newLink.querySelector('.blocked-indicator')) {
-                const indicator = document.createElement('i');
-                indicator.className = 'fas fa-lock text-xs ml-1 blocked-indicator';
-                indicator.style.color = '#EF4444';
-                newLink.appendChild(indicator);
-            }
-
-            blockedCount++;
-        }
-    });
-
-    console.log(`🔒 Total de enlaces bloqueados: ${blockedCount}`);
+    // ✅ NO hay caja - el servidor ya maneja el redirect via middleware
+    // Solo loguear, NO hacer nada más para evitar bucles
+    console.log('⚠️ Sin caja abierta - el servidor manejará la redirección');
+    // NO bloquear enlaces, NO redirigir - el middleware PHP lo hace
 }
 
 // Función para configurar interceptor de fetch

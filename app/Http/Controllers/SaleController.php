@@ -115,33 +115,37 @@ class SaleController extends Controller
         if ($branchId) {
             $salesQuery->where('branch_id', $branchId);
         }
+        // REEMPLAZAR desde los filtros hasta el ->get()
 
-        // Aplicar filtros adicionales si vienen en el request
-        if ($request->has('branch_filter') && $request->branch_filter) {
-            $salesQuery->where('branch_id', $request->branch_filter);
-        }
+if ($request->filled('branch_filter') && Auth::user()->role === 'admin') {
+    $salesQuery->where('branch_id', $request->branch_filter);
+}
+if ($request->filled('date_from')) {
+    $salesQuery->whereDate('order_date', '>=', $request->date_from);
+}
+if ($request->filled('date_to')) {
+    $salesQuery->whereDate('order_date', '<=', $request->date_to);
+}
+if ($request->filled('order_type')) {
+    $salesQuery->where('order_type', $request->order_type);
+}
+if ($request->filled('payment_method')) {
+    $salesQuery->where('payment_method', $request->payment_method);
+}
+if ($request->filled('search')) {
+    $search = $request->search;
+    $salesQuery->where(function ($q) use ($search) {
+        $q->where('customer_name', 'like', "%{$search}%")
+          ->orWhere('daily_order_number', 'like', "%{$search}%")
+          ->orWhere('transaction_number', 'like', "%{$search}%");
+    });
+}
 
-        if ($request->has('date_from') && $request->date_from) {
-            $salesQuery->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->has('date_to') && $request->date_to) {
-            $salesQuery->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        if ($request->has('order_type') && $request->order_type) {
-            $salesQuery->where('order_type', $request->order_type);
-        }
-
-        if ($request->has('payment_method') && $request->payment_method) {
-            $salesQuery->where('payment_method', $request->payment_method);
-        }
-
-        // Ordenar por fecha de creación de forma ASCENDENTE
-        $sales = $salesQuery
-            ->orderBy('created_at', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+$sales = $salesQuery
+    ->orderBy('order_date', 'desc')
+    ->orderBy('id', 'desc')
+    ->paginate(20)
+    ->withQueryString();
 
         // Verificar caja chica abierta para esta sucursal y usuario
         $hasOpenPettyCashQuery = PettyCash::where('status', 'open')
