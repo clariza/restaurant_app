@@ -37,7 +37,7 @@
     
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form id="filter-form">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-<?php echo e(($isAdmin ?? false) && !empty($branches) ? '5' : '4'); ?> gap-4">
 
                 
                 <div>
@@ -85,14 +85,17 @@
                 </div>
 
                 
+                <?php if(($isAdmin ?? false) && !empty($branches)): ?>
                 <div>
-                    <label class="block text-sm font-medium text-[#203363] mb-1">Sucursal:</label>
+                    <label class="block text-sm font-medium text-[#203363] mb-1">
+                        <i class="fas fa-store mr-1"></i> Sucursal:
+                    </label>
                     <select name="branch_id"
                             class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]">
                         <option value="all" <?php echo e(request('branch_id', 'all') === 'all' ? 'selected' : ''); ?>>
-                            Todas
+                            Todas las Sucursales
                         </option>
-                        <?php $__currentLoopData = $branches ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($branch->id); ?>"
                                 <?php echo e(request('branch_id') == $branch->id ? 'selected' : ''); ?>>
                                 <?php echo e($branch->name); ?><?php echo e($branch->is_main ? ' ⭐' : ''); ?>
@@ -101,6 +104,7 @@
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
+                <?php endif; ?>
             </div>
 
             
@@ -127,8 +131,10 @@
             <div class="hidden md:block md:col-span-2">Cliente</div>
             <div class="col-span-3  md:col-span-2">Tipo</div>
             <div class="hidden md:block md:col-span-1 text-center">Items</div>
-            <div class="col-span-3  md:col-span-1">Total</div>
+            <div class="col-span-3  md:col-span-<?php echo e(($isAdmin ?? false) ? '1' : '2'); ?>">Total</div>
+            <?php if($isAdmin ?? false): ?>
             <div class="hidden md:block md:col-span-1">Sucursal</div>
+            <?php endif; ?>
             <div class="hidden md:block md:col-span-2">Acciones</div>
         </div>
 
@@ -200,23 +206,24 @@
                 </div>
 
                 
-                <div class="col-span-3 md:col-span-1 font-bold">
+                <div class="col-span-3 md:col-span-<?php echo e(($isAdmin ?? false) ? '1' : '2'); ?> font-bold">
                     $<?php echo e(number_format($record->total, 2)); ?>
 
                 </div>
 
                 
+                <?php if($isAdmin ?? false): ?>
                 <div class="hidden md:block md:col-span-1 text-xs text-gray-600">
-                    <?php if(!$isProforma && $record->branch): ?>
-                        <span title="<?php echo e($record->branch->name); ?>">
+                    <?php if($record->branch): ?>
+                        <span title="<?php echo e($record->branch->name); ?>" class="flex items-center">
                             <i class="fas fa-building text-gray-400 mr-1"></i>
-                            <?php echo e(Str::limit($record->branch->name, 12)); ?>
-
+                            <span class="truncate"><?php echo e(Str::limit($record->branch->name, 12)); ?></span>
                         </span>
-                    <?php elseif(!$isProforma): ?>
+                    <?php else: ?>
                         <span class="text-gray-400 italic">—</span>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
                 
                 <div class="hidden md:flex md:col-span-2 items-center space-x-2">
@@ -231,12 +238,24 @@
                         <i class="fas fa-print"></i>
                     </button>
 
-                    <?php if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
-                        <button class="text-green-600 hover:text-green-800 p-1"
-                                onclick="convertToOrder('<?php echo e($record->id); ?>')"
-                                title="Convertir a orden">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
+                    <?php if($isProforma): ?>
+                        
+                        <?php if(method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
+                            <button class="text-green-600 hover:text-green-800 p-1"
+                                    onclick="convertToOrder('<?php echo e($record->id); ?>')"
+                                    title="Convertir a orden">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        <?php endif; ?>
+                        
+                        
+                        
+                            <button class="text-red-600 hover:text-red-800 p-1"
+                                    onclick="deleteProforma('<?php echo e($record->id); ?>')"
+                                    title="Cancelar proforma (restaura stock)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        
                     <?php endif; ?>
 
                     <?php if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin'): ?>
@@ -260,11 +279,21 @@
                         <i class="fas fa-print mr-1"></i> Imprimir
                     </button>
 
-                    <?php if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
-                        <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
-                                onclick="convertToOrder('<?php echo e($record->id); ?>')">
-                            <i class="fas fa-exchange-alt mr-1"></i> Convertir
-                        </button>
+                    <?php if($isProforma): ?>
+                        <?php if(method_exists($record, 'canBeConverted') && $record->canBeConverted()): ?>
+                            <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
+                                    onclick="convertToOrder('<?php echo e($record->id); ?>')">
+                                <i class="fas fa-exchange-alt mr-1"></i> Convertir
+                            </button>
+                        <?php endif; ?>
+                        
+                        
+                        <?php if(method_exists($record, 'canBeCancelled') && $record->canBeCancelled()): ?>
+                            <button class="text-red-600 hover:text-red-800 text-sm flex items-center"
+                                    onclick="deleteProforma('<?php echo e($record->id); ?>')">
+                                <i class="fas fa-trash-alt mr-1"></i> Cancelar
+                            </button>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <?php if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin'): ?>
@@ -497,6 +526,102 @@
                 confirmButtonColor: '#dc2626'
             });
         }
+    }
+
+    // 🔥🔥🔥 NUEVA FUNCIÓN: Eliminar/Cancelar Proforma 🔥🔥🔥
+    function deleteProforma(proformaId) {
+        Swal.fire({
+            title: '¿Cancelar proforma?',
+            html: `
+                <div class="text-center">
+                    <p class="mb-3">¿Estás seguro de cancelar la proforma <strong>PROF-${proformaId}</strong>?</p>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-yellow-600 mt-1 mr-3"></i>
+                            <div class="text-left text-sm text-yellow-800">
+                                <p class="font-semibold mb-1">El stock reservado será restaurado automáticamente</p>
+                                <p class="text-xs">Los items volverán a estar disponibles en el menú</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Sí, cancelar proforma',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i> No, mantener',
+            showLoaderOnConfirm: true,
+            customClass: {
+                confirmButton: 'px-6 py-3',
+                cancelButton: 'px-6 py-3'
+            },
+            preConfirm: () => {
+                return fetch(`/proformas/${proformaId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(
+                        `Error: ${error.message || 'Error al cancelar la proforma'}`
+                    );
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value.success) {
+                    Swal.fire({
+                        title: '¡Proforma Cancelada!',
+                        html: `
+                            <div class="text-center">
+                                <div class="mb-4">
+                                    <i class="fas fa-check-circle text-green-500 text-5xl"></i>
+                                </div>
+                                <p class="mb-3 text-lg">${result.value.message}</p>
+                                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-box-open text-green-600 text-2xl mr-3"></i>
+                                        <div class="text-left">
+                                            <p class="text-sm font-semibold text-green-800">
+                                                Stock restaurado correctamente
+                                            </p>
+                                            <p class="text-xs text-green-700">
+                                                Los items están nuevamente disponibles
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'success',
+                        confirmButtonText: '<i class="fas fa-check mr-2"></i> Aceptar',
+                        confirmButtonColor: '#203363',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: result.value.message || 'Error desconocido',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            }
+        });
     }
 </script>
 

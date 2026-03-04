@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Proforma;
 use App\Models\ProformaItem;
 use App\Models\Order;
+use App\Models\MenuItem;
+use App\Models\InventoryMovement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Models\PettyCash;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -38,7 +41,6 @@ class ProformaController extends Controller
                 'can_convert' => $canConvert,
                 'message' => 'Proforma obtenida exitosamente'
             ];
-
 
             if ($isConverted) {
                 $responseData['reason'] = 'already_converted';
@@ -81,8 +83,6 @@ class ProformaController extends Controller
                 'error' => 'NOT_FOUND'
             ], 404);
         } catch (\Exception $e) {
-
-
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener la proforma',
@@ -90,7 +90,6 @@ class ProformaController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * Marcar proforma como convertida
@@ -117,7 +116,7 @@ class ProformaController extends Controller
             $proforma->update([
                 'converted_to_order' => true,
                 'converted_order_id' => $request->order_id,
-                'status' => 'completed' // Cambiar status para referencia visual
+                'status' => 'completed'
             ]);
 
             return response()->json([
@@ -138,8 +137,6 @@ class ProformaController extends Controller
                 'message' => 'Proforma no encontrada'
             ], 404);
         } catch (\Exception $e) {
-
-
             return response()->json([
                 'success' => false,
                 'message' => 'Error al marcar la proforma como convertida'
@@ -147,6 +144,9 @@ class ProformaController extends Controller
         }
     }
 
+    /**
+     * 🔥 NUEVO: Crear proforma con descuento de stock
+     */
     public function store(Request $request)
     {
         DB::beginTransaction();
@@ -167,6 +167,33 @@ class ProformaController extends Controller
                 'items.*.quantity' => 'required|integer|min:1'
             ]);
 
+            // ✅ VERIFICAR STOCK ANTES DE CREAR LA PROFORMA
+            $stockIssues = [];
+            foreach ($validated['items'] as $item) {
+                $menuItem = MenuItem::where('name', $item['name'])->first();
+                
+                if (!$menuItem) {
+                    throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
+                }
+
+                // Verificar stock disponible si el item tiene gestión de inventario
+                if ($menuItem->manage_inventory && $menuItem->stock < $item['quantity']) {
+                    $stockIssues[] = [
+                        'item' => $menuItem->name,
+                        'available' => $menuItem->stock,
+                        'required' => $item['quantity']
+                    ];
+                }
+            }
+
+            if (!empty($stockIssues)) {
+                $errorMessage = "Stock insuficiente para los siguientes items:\n";
+                foreach ($stockIssues as $issue) {
+                    $errorMessage .= "• {$issue['item']}: Disponible {$issue['available']}, Requerido {$issue['required']}\n";
+                }
+                throw new \Exception($errorMessage);
+            }
+
             // Crear la proforma
             $proforma = Proforma::create([
                 'customer_name' => $validated['customer_name'],
@@ -177,18 +204,48 @@ class ProformaController extends Controller
                 'tax' => $validated['tax'],
                 'total' => $validated['total'],
                 'status' => 'reservado',
-                'user_id'  => auth()->id(),
+                'user_id' => auth()->id(),
                 'branch_id' => session('branch_id'),
             ]);
 
-            // Crear items de la proforma
+            // ✅ CREAR ITEMS Y DESCONTAR STOCK
             foreach ($validated['items'] as $item) {
+                $menuItem = MenuItem::where('name', $item['name'])->first();
+
+                // Crear item de la proforma
                 ProformaItem::create([
                     'proforma_id' => $proforma->id,
+                    'menu_item_id' => $menuItem->id,
                     'name' => $item['name'],
                     'price' => $item['price'],
                     'quantity' => $item['quantity']
                 ]);
+
+                // ✅ DESCONTAR STOCK si el item gestiona inventario
+                if ($menuItem->manage_inventory) {
+                    // Crear movimiento de inventario
+                    InventoryMovement::create([
+                        'menu_item_id' => $menuItem->id,
+                        'user_id' => Auth::id(),
+                        'movement_type' => 'subtraction',
+                        'quantity' => $item['quantity'],
+                        'old_stock' => $menuItem->stock,
+                        'new_stock' => $menuItem->stock - $item['quantity'],
+                        'notes' => "Proforma PROF-{$proforma->id} - Reserva para {$validated['customer_name']}" . 
+                                   (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
+                    ]);
+
+                    // Actualizar stock
+                    $menuItem->decrement('stock', $item['quantity']);
+                    
+                    \Log::info("Stock descontado para proforma", [
+                        'menu_item' => $menuItem->name,
+                        'quantity' => $item['quantity'],
+                        'old_stock' => $menuItem->stock + $item['quantity'],
+                        'new_stock' => $menuItem->stock,
+                        'proforma_id' => $proforma->id
+                    ]);
+                }
             }
 
             DB::commit();
@@ -196,13 +253,96 @@ class ProformaController extends Controller
             return response()->json([
                 'success' => true,
                 'id' => $proforma->id,
-                'message' => 'Proforma creada correctamente'
+                'message' => 'Proforma creada correctamente y stock reservado'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error al crear proforma:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear la proforma: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * 🔥 NUEVO: Eliminar/Cancelar proforma y restaurar stock
+     */
+    public function destroy($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $proforma = Proforma::with('items.menuItem')->findOrFail($id);
+
+            // Verificar que no esté convertida
+            if ($proforma->converted_to_order) {
+                throw new \Exception('No se puede eliminar una proforma que ya fue convertida a orden');
+            }
+
+            // ✅ RESTAURAR STOCK de todos los items
+            foreach ($proforma->items as $item) {
+                $menuItem = $item->menuItem;
+
+                if ($menuItem && $menuItem->manage_inventory) {
+                    // Crear movimiento de inventario (devolución)
+                    InventoryMovement::create([
+                        'menu_item_id' => $menuItem->id,
+                        'user_id' => Auth::id(),
+                        'movement_type' => 'addition',
+                        'quantity' => $item->quantity,
+                        'old_stock' => $menuItem->stock,
+                        'new_stock' => $menuItem->stock + $item->quantity,
+                        'notes' => "Cancelación de Proforma PROF-{$proforma->id} - Stock restaurado" .
+                                   (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
+                    ]);
+
+                    // Restaurar stock
+                    $menuItem->increment('stock', $item->quantity);
+
+                    \Log::info("Stock restaurado por cancelación de proforma", [
+                        'menu_item' => $menuItem->name,
+                        'quantity' => $item->quantity,
+                        'old_stock' => $menuItem->stock - $item->quantity,
+                        'new_stock' => $menuItem->stock,
+                        'proforma_id' => $proforma->id
+                    ]);
+                }
+            }
+
+            // Marcar como cancelada en lugar de eliminar físicamente
+            $proforma->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancelled_by' => Auth::id()
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proforma cancelada exitosamente y stock restaurado'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Proforma no encontrada'
+            ], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al cancelar proforma:', [
+                'error' => $e->getMessage(),
+                'proforma_id' => $id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -211,7 +351,6 @@ class ProformaController extends Controller
     {
         // Verificar si la proforma puede ser convertida
         if (!$proforma->canBeConverted()) {
-
             return response()->json([
                 'success' => false,
                 'message' => $proforma->converted_to_order
@@ -282,6 +421,7 @@ class ProformaController extends Controller
             ], 500);
         }
     }
+
     /**
      * Verificar si una proforma puede ser convertida
      * Ruta: GET /proformas/{id}/can-convert
@@ -347,8 +487,6 @@ class ProformaController extends Controller
                 'message' => 'La proforma puede ser convertida'
             ]);
         } catch (\Exception $e) {
-
-
             return response()->json([
                 'success' => false,
                 'can_convert' => false,
@@ -357,6 +495,7 @@ class ProformaController extends Controller
             ], 500);
         }
     }
+
     /**
      * Listar proformas con filtros
      * Ruta: GET /proformas
@@ -425,8 +564,6 @@ class ProformaController extends Controller
                 'proformas' => $proformas
             ]);
         } catch (\Exception $e) {
-
-
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,

@@ -217,17 +217,18 @@
 
                             </p>
 
-                           <button type="button" 
-                                onclick="addToOrder(<?php echo e(json_encode([
-                                        'id' => $item->id,
-                                        'name' => $item->name,
-                                        'price' => $item->price,
+                            
+                            <button type="button" 
+                                onclick="event.preventDefault(); event.stopPropagation(); addToOrder(<?php echo e(json_encode([
+                                'id' => $item->id,
+                                'name' => $item->name,
+            'price' => $item->price,
             'stock' => $item->stock,
             'stock_type' => $item->stock_type,
             'stock_unit' => $item->stock_unit,
             'min_stock' => $item->min_stock,
             'manage_inventory' => $item->manage_inventory
-        ])); ?>, event)" 
+        ])); ?>, event); return false;" 
         class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
                <?php if($item->manage_inventory && $item->stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
         <?php if($item->manage_inventory && $item->stock <= 0): ?> disabled <?php endif; ?>>
@@ -997,36 +998,8 @@ function openOrderDetails(type, id) {
     }
 }
 
-// Función para convertir proforma a orden
-// function convertProformaToOrder(proformaId) {
-//     if (confirm('¿Estás seguro de convertir esta proforma en una orden?')) {
-//         fetch(`/proformas/${proformaId}/convert`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
-//             }
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 alert('Proforma convertida a orden exitosamente');
-//                 window.location.reload();
-//             } else {
-//                 alert('Error al convertir la proforma: ' + data.message);
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error:', error);
-//             alert('Ocurrió un error al procesar la solicitud');
-//         });
-//     }
-// }
-
-// Función para convertir proforma a orden con modal de pago
 async function convertProformaToOrder(proformaId) {
     try {
-        // 1. Obtener los datos de la proforma
         const response = await fetch(`/proformas/${proformaId}`, {
             method: 'GET',
             headers: {
@@ -1047,7 +1020,6 @@ async function convertProformaToOrder(proformaId) {
 
         const proforma = data.proforma;
 
-        // 2. Validar que puede ser convertida
         if (!data.can_convert) {
             let errorMsg = 'Esta proforma no puede ser convertida';
             if (data.is_converted) {
@@ -1057,33 +1029,35 @@ async function convertProformaToOrder(proformaId) {
             return;
         }
 
-        // 3. Cargar los items de la proforma en el pedido actual
         const orderItems = proforma.items.map(item => ({
             id: item.menu_item_id,
             name: item.name,
             price: parseFloat(item.price),
             quantity: item.quantity,
-            menu_item_id: item.menu_item_id
+            menu_item_id: item.menu_item_id,
+            // 🔥 AGREGAR DATOS DE STOCK PARA LA INTERFAZ
+            stock: item.menuItem ? item.menuItem.stock : 0,
+            stock_type: item.menuItem ? item.menuItem.stock_type : 'discrete',
+            stock_unit: item.menuItem ? item.menuItem.stock_unit : 'uni',
+            min_stock: item.menuItem ? item.menuItem.min_stock : 0,
+            manage_inventory: item.menuItem ? item.menuItem.manage_inventory : false
         }));
 
-        // Guardar en localStorage
         localStorage.setItem('order', JSON.stringify(orderItems));
         localStorage.setItem('orderType', proforma.order_type || 'Comer aquí');
         localStorage.setItem('orderNotes', proforma.notes || '');
         localStorage.setItem('customerName', proforma.customer_name || '');
         localStorage.setItem('customerPhone', proforma.customer_phone || '');
         
-        // Guardar información de conversión de proforma
+        // 🔥 MARCAR QUE SE ESTÁ CONVIRTIENDO PROFORMA
         localStorage.setItem('convertingProforma', 'true');
         localStorage.setItem('proformaId', proformaId);
         localStorage.setItem('proformaNotes', proforma.notes || '');
 
-        // 4. Actualizar la interfaz del pedido
         if (typeof window.updateOrderDetails === 'function') {
             window.updateOrderDetails();
         }
 
-        // 5. Mostrar notificación
         Swal.fire({
             title: '¡Proforma Cargada!',
             html: `
@@ -1093,6 +1067,12 @@ async function convertProformaToOrder(proformaId) {
                     Items: <strong>${orderItems.length}</strong><br>
                     Total: <strong>$${parseFloat(proforma.total).toFixed(2)}</strong>
                 </p>
+                <div class="bg-yellow-50 p-3 rounded-lg mt-3">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        El stock YA fue descontado al crear la proforma
+                    </p>
+                </div>
             `,
             icon: 'success',
             confirmButtonText: 'Proceder al Pago',
@@ -1102,10 +1082,8 @@ async function convertProformaToOrder(proformaId) {
             cancelButtonColor: '#6c757d'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Abrir el modal de pago
                 showPaymentModal();
             } else {
-                // Redirigir al menú para ver el pedido
                 window.location.href = '<?php echo e(route("menu.index")); ?>';
             }
         });
@@ -1222,77 +1200,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-        // Función para agregar ítems al pedido
+// 🔥 FUNCIÓN MEJORADA: Agregar item al pedido (SIN DUPLICADOS)
 function addToOrder(item, event) {
-    // PREVENIR COMPORTAMIENTO POR DEFECTO Y REFRESCO
+    // 🔥 CRÍTICO: PREVENIR COMPORTAMIENTO POR DEFECTO
     if (event) {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
     }
     
-    console.log('➕ AGREGANDO ITEM:', item);
+    console.log('➕ AGREGANDO ITEM (inicio):', item.name);
     
-    // Verificar stock
+    // Verificar stock ANTES de agregar
     if (item.manage_inventory) {
         const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-        if (!menuItem) return false;
+        if (!menuItem) {
+            console.error('❌ No se encontró el elemento del menú');
+            return false;
+        }
         
         const currentStock = parseInt(menuItem.dataset.stock) || 0;
+        console.log(`📊 Stock actual de ${item.name}: ${currentStock}`);
+        
         if (currentStock <= 0) {
             alert('No hay suficiente stock disponible');
             return false;
         }
     }
 
+    // Obtener pedido actual
     let order = JSON.parse(localStorage.getItem('order')) || [];
+    console.log('📦 Pedido actual:', order);
    
     // Buscar si el ítem ya existe
-    const existingItem = order.find(i => i.id === item.id);
-    if (existingItem) {
-        existingItem.quantity += 1;
+    const existingItemIndex = order.findIndex(i => i.id === item.id);
+    
+    if (existingItemIndex !== -1) {
+        // Item existe - incrementar cantidad
+        order[existingItemIndex].quantity += 1;
+        console.log(`✅ Cantidad incrementada: ${order[existingItemIndex].name} x${order[existingItemIndex].quantity}`);
     } else {
-        item.quantity = 1;
-        order.push(item);
+        // Item nuevo - agregar con cantidad 1
+        const newItem = { ...item, quantity: 1 };
+        order.push(newItem);
+        console.log(`✅ Item nuevo agregado: ${newItem.name} x1`);
     }
 
     // Guardar en localStorage
     localStorage.setItem('order', JSON.stringify(order));
-    console.log('💾 Order guardado:', order);
+    console.log('💾 Pedido guardado en localStorage');
 
-    // MÚLTIPLES ESTRATEGIAS para llamar updateOrderDetails
+    // Actualizar interfaz
     let updateCalled = false;
     
-    // Estrategia 1: Función directa
-    if (typeof updateOrderDetails === 'function') {
-        console.log('✅ Estrategia 1 - Llamando updateOrderDetails directamente');
-        updateOrderDetails();
-        updateCalled = true;
-    }
-    
-    // Estrategia 2: Window function
-    if (!updateCalled && typeof window.updateOrderDetails === 'function') {
-        console.log('✅ Estrategia 2 - Llamando window.updateOrderDetails');
+    if (typeof window.updateOrderDetails === 'function') {
+        console.log('🔄 Actualizando interfaz del pedido...');
         window.updateOrderDetails();
         updateCalled = true;
+    } else {
+        console.error('❌ window.updateOrderDetails no está disponible');
     }
     
-    // Estrategia 3: Timeout para esperar carga
+    // Fallback si no se actualizó
     if (!updateCalled) {
-        console.log('🕒 Estrategia 3 - Esperando carga de función...');
         setTimeout(() => {
             if (typeof window.updateOrderDetails === 'function') {
-                console.log('✅ Función disponible después de timeout');
                 window.updateOrderDetails();
-            } else {
-                console.error('❌ updateOrderDetails nunca estuvo disponible');
-                // Último recurso: mostrar datos en consola
-                console.log('📊 Estado actual del pedido:', order);
             }
-        }, 500);
+        }, 100);
     }
     
-    // IMPORTANTE: Retornar false para prevenir comportamiento por defecto
+    console.log('✅ ITEM AGREGADO COMPLETAMENTE');
+    
+    // IMPORTANTE: Retornar false para prevenir cualquier acción adicional
     return false;
 }
 function goBack() {
@@ -1586,6 +1566,97 @@ function updateStockBadge(itemId, newStock, minStock, stockType, stockUnit, mana
         stockBadge.classList.remove('animate-pulse');
     }, 500);
 }
+
+async function updateStockAfterProformaCancellation(proformaId) {
+    try {
+        // Obtener los datos de la proforma cancelada
+        const response = await fetch(`/proformas/${proformaId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.proforma) {
+                // Actualizar el stock en la interfaz
+                data.proforma.items.forEach(item => {
+                    if (item.menuItem && item.menuItem.manage_inventory) {
+                        const restoredStock = item.menuItem.stock; // El stock ya fue restaurado en el backend
+                        
+                        window.updateStockBadge(
+                            item.menu_item_id,
+                            restoredStock,
+                            item.menuItem.min_stock,
+                            item.menuItem.stock_type,
+                            item.menuItem.stock_unit,
+                            item.menuItem.manage_inventory
+                        );
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error actualizando stock en interfaz:', error);
+    }
+}
+
+window.updateStockBadge = function(itemId, newStock, minStock, stockType, stockUnit, manageInventory = true) {
+    if (!manageInventory) return;
+
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!itemElement) {
+        console.warn(`⚠️ No se encontró elemento con ID: ${itemId}`);
+        return;
+    }
+
+    const stockBadge = itemElement.querySelector('.stock-badge');
+    const addButton = itemElement.querySelector('button');
+    
+    if (!stockBadge || !addButton) {
+        console.warn(`⚠️ No se encontró badge o botón para item ${itemId}`);
+        return;
+    }
+
+    // 🔥 ACTUALIZAR DATA ATTRIBUTE
+    itemElement.dataset.stock = newStock;
+
+    // 🔥 ACTUALIZAR TEXTO DEL BADGE
+    if (stockType === 'discrete') {
+        stockBadge.textContent = `${Math.floor(newStock)} UNI`;
+    } else {
+        stockBadge.textContent = `${Math.floor(newStock)} ${stockUnit.toUpperCase()}`;
+    }
+
+    // 🔥 LIMPIAR TODAS LAS CLASES DE COLOR
+    stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
+
+    // 🔥 APLICAR NUEVAS CLASES SEGÚN STOCK
+    if (newStock <= 0) {
+        stockBadge.classList.add('bg-gray-500', 'text-white');
+        stockBadge.textContent = 'SIN STOCK';
+        addButton.disabled = true;
+        addButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else if (newStock < minStock) {
+        stockBadge.classList.add('bg-yellow-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        stockBadge.classList.add('bg-green-500', 'text-white');
+        addButton.disabled = false;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    // 🔥 ANIMACIÓN DE FEEDBACK
+    stockBadge.classList.add('animate-pulse');
+    setTimeout(() => {
+        stockBadge.classList.remove('animate-pulse');
+    }, 500);
+
+    console.log(`✅ Stock actualizado para ${itemId}: ${newStock}`);
+};
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {

@@ -117,18 +117,18 @@ class SaleController extends Controller
         }
         // REEMPLAZAR desde los filtros hasta el ->get()
 
-if ($request->filled('branch_filter') && Auth::user()->role === 'admin') {
-    $salesQuery->where('branch_id', $request->branch_filter);
-}
-if ($request->filled('date_from')) {
-    $salesQuery->whereDate('order_date', '>=', $request->date_from);
-}
-if ($request->filled('date_to')) {
-    $salesQuery->whereDate('order_date', '<=', $request->date_to);
-}
-if ($request->filled('order_type')) {
-    $salesQuery->where('order_type', $request->order_type);
-}
+        if ($request->filled('branch_filter') && Auth::user()->role === 'admin') {
+            $salesQuery->where('branch_id', $request->branch_filter);
+        }
+        if ($request->filled('date_from')) {
+            $salesQuery->whereDate('order_date', '>=', $request->date_from);
+        }
+    if ($request->filled('date_to')) {
+        $salesQuery->whereDate('order_date', '<=', $request->date_to);
+    }
+    if ($request->filled('order_type')) {
+        $salesQuery->where('order_type', $request->order_type); 
+    }
 if ($request->filled('payment_method')) {
     $salesQuery->where('payment_method', $request->payment_method);
 }
@@ -338,44 +338,55 @@ $sales = $salesQuery
                 'proforma_id' => $sale->proforma_id ?? 'no asignado'
             ]);
 
-            // ✅ Procesar items y stock
-            foreach ($order as $item) {
-                $menuItem = MenuItem::where('name', $item['name'])->first();
+        
+            // Busca este foreach en tu código actual:
 
-                if (!$menuItem) {
-                    throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
-                }
+foreach ($order as $item) {
+    $menuItem = MenuItem::where('name', $item['name'])->first();
 
-                // Verificar stock disponible
-                if ($menuItem->manage_inventory && $menuItem->stock < $item['quantity']) {
-                    throw new \Exception("Stock insuficiente para {$menuItem->name}. Disponible: {$menuItem->stock}, Requerido: {$item['quantity']}");
-                }
+    if (!$menuItem) {
+        throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
+    }
 
-                $sale->items()->create([
-                    'menu_item_id' => $menuItem->id,
-                    'name' => $item['name'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
-                ]);
+    // 🔥 SOLO VERIFICAR STOCK SI NO VIENE DE PROFORMA
+    if (!$convertingFromProforma) {
+        if ($menuItem->manage_inventory && $menuItem->stock < $item['quantity']) {
+            throw new \Exception("Stock insuficiente para {$menuItem->name}. Disponible: {$menuItem->stock}, Requerido: {$item['quantity']}");
+        }
+    }
 
-                // Crear movimiento de inventario
-                InventoryMovement::create([
-                    'menu_item_id' => $menuItem->id,
-                    'user_id' => Auth::id(),
-                    'movement_type' => 'subtraction',
-                    'quantity' => $item['quantity'],
-                    'old_stock' => $menuItem->stock,
-                    'new_stock' => $menuItem->stock - $item['quantity'],
-                    'notes' => "Venta #{$orderNumber}" . ($convertingFromProforma ? " (Proforma #{$convertingFromProforma})" : '') . " - Sucursal: " . session('branch_name', 'N/A')
-                ]);
+    $sale->items()->create([
+        'menu_item_id' => $menuItem->id,
+        'name' => $item['name'],
+        'quantity' => $item['quantity'],
+        'price' => $item['price'],
+        'total' => $item['price'] * $item['quantity'],
+    ]);
 
-                // Actualizar stock
-                if ($menuItem->manage_inventory) {
-                    $menuItem->decrement('stock', $item['quantity']);
-                    Log::info("Stock actualizado para {$menuItem->name}: -{$item['quantity']}");
-                }
-            }
+    // 🔥 SOLO DESCONTAR STOCK SI NO VIENE DE PROFORMA
+    if (!$convertingFromProforma) {
+        InventoryMovement::create([
+            'menu_item_id' => $menuItem->id,
+            'user_id' => Auth::id(),
+            'movement_type' => 'subtraction',
+            'quantity' => $item['quantity'],
+            'old_stock' => $menuItem->stock,
+            'new_stock' => $menuItem->stock - $item['quantity'],
+            'notes' => "Venta #{$orderNumber} - Sucursal: " . session('branch_name', 'N/A')
+        ]);
+
+        if ($menuItem->manage_inventory) {
+            $menuItem->decrement('stock', $item['quantity']);
+            Log::info("Stock actualizado para {$menuItem->name}: -{$item['quantity']}");
+        }
+    } else {
+        Log::info("✅ Venta de proforma - Stock ya descontado", [
+            'menu_item' => $menuItem->name,
+            'quantity' => $item['quantity'],
+            'proforma_id' => $convertingFromProforma
+        ]);
+    }
+}
 
             // ✅ MARCAR PROFORMA COMO CONVERTIDA
             $proformaConverted = false;

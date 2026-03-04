@@ -74,7 +74,10 @@ window.updateStockBadge = function (itemId, newStock, minStock, stockType, stock
     if (!manageInventory) return;
 
     const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
-    if (!itemElement) return;
+    if (!itemElement) {
+        console.warn(`⚠️ No se encontró elemento con ID: ${itemId}`);
+        return;
+    }
 
     const stockBadge = itemElement.querySelector('.stock-badge');
     const addButton = itemElement.querySelector('button');
@@ -2355,7 +2358,7 @@ async function saveProforma(event) {
 
         const proformaData = {
             customer_name: formData.get('customer_name'),
-            customer_phone: formData.get('customer_phone') || null, // ✅ Usar null si no existe
+            customer_phone: formData.get('customer_phone') || null,
             notes: formData.get('notes'),
             order_type: orderType,
             items: order,
@@ -2365,7 +2368,7 @@ async function saveProforma(event) {
             status: 'reservado'
         };
 
-        console.log('Enviando datos:', proformaData);
+        console.log('📤 Enviando proforma:', proformaData);
 
         const response = await fetch('/proformas', {
             method: 'POST',
@@ -2383,21 +2386,97 @@ async function saveProforma(event) {
         }
 
         const data = await response.json();
+        console.log('✅ Proforma creada exitosamente:', data);
 
-        // alert('Reserva guardada correctamente con ID: ' + data.id);
+        // 🔥 CRÍTICO: ACTUALIZAR BADGES DE STOCK EN LA VISTA DEL MENÚ
+        order.forEach(item => {
+            if (item.manage_inventory) {
+                const newStock = item.stock - item.quantity;
+                
+                // Usar la función global updateStockBadge
+                if (typeof window.updateStockBadge === 'function') {
+                    window.updateStockBadge(
+                        item.id,
+                        newStock,
+                        item.min_stock,
+                        item.stock_type,
+                        item.stock_unit,
+                        item.manage_inventory
+                    );
+                    
+                    console.log(`✅ Badge actualizado para ${item.name}: ${item.stock} → ${newStock}`);
+                }
+            }
+        });
+
+        // Limpiar el pedido
+        localStorage.removeItem('order');
+        localStorage.removeItem('orderType');
+        localStorage.removeItem('orderNotes');
+        localStorage.removeItem('tableNumber');
+        localStorage.removeItem('deliveryService');
+        localStorage.removeItem('pickupNotes');
+
+        console.log('🧹 Pedido limpiado');
+
         closeProformaModal();
-
-        // Opcional: Limpiar el formulario
         document.getElementById('proforma-form').reset();
 
+        // Actualizar interfaz
+        if (typeof window.updateOrderDetails === 'function') {
+            window.updateOrderDetails();
+        }
+
+        // Mostrar notificación
+        await Swal.fire({
+            title: '¡Proforma Creada!',
+            html: `
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-green-500 text-5xl"></i>
+                    </div>
+                    <p class="mb-3">La proforma <strong>PROF-${data.id}</strong> se ha creado exitosamente.</p>
+                    <div class="bg-blue-50 p-4 rounded-lg mb-3">
+                        <p class="text-sm text-blue-800"><strong>Cliente:</strong> ${proformaData.customer_name}</p>
+                        <p class="text-sm text-blue-800"><strong>Items:</strong> ${order.length}</p>
+                        <p class="text-sm text-blue-800"><strong>Total:</strong> $${proformaData.total.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-3">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-box-open mr-2"></i>
+                            El stock ha sido reservado
+                        </p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-sm text-green-800">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            El pedido ha sido limpiado
+                        </p>
+                    </div>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#203363',
+            timer: 6000,
+            timerProgressBar: true
+        });
+
     } catch (error) {
-        console.error('Error al guardar proforma:', error);
-        alert('Error al guardar la reserva: ' + error.message);
+        console.error('❌ Error:', error);
+        Swal.fire({
+            title: 'Error al crear proforma',
+            html: `<p>${error.message}</p>`,
+            icon: 'error',
+            confirmButtonColor: '#dc2626'
+        });
     } finally {
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
     }
 }
+
+window.saveProforma = saveProforma;
 function clearOrderOnLogout() {
     // Limpiar los items del pedido
     localStorage.removeItem('order');

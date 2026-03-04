@@ -36,7 +36,7 @@
     {{-- Filtros --}}
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form id="filter-form">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-{{ ($isAdmin ?? false) && !empty($branches) ? '5' : '4' }} gap-4">
 
                 {{-- Tipo --}}
                 <div>
@@ -83,14 +83,17 @@
                 </div>
 
                 {{-- Sucursal --}}
+                @if(($isAdmin ?? false) && !empty($branches))
                 <div>
-                    <label class="block text-sm font-medium text-[#203363] mb-1">Sucursal:</label>
+                    <label class="block text-sm font-medium text-[#203363] mb-1">
+                        <i class="fas fa-store mr-1"></i> Sucursal:
+                    </label>
                     <select name="branch_id"
                             class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]">
                         <option value="all" {{ request('branch_id', 'all') === 'all' ? 'selected' : '' }}>
-                            Todas
+                            Todas las Sucursales
                         </option>
-                        @foreach($branches ?? [] as $branch)
+                        @foreach($branches as $branch)
                             <option value="{{ $branch->id }}"
                                 {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
                                 {{ $branch->name }}{{ $branch->is_main ? ' ⭐' : '' }}
@@ -98,6 +101,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
             </div>
 
             {{-- Botones filtro --}}
@@ -117,18 +121,17 @@
     {{-- Tabla --}}
     <div class="bg-white rounded-lg shadow overflow-hidden">
 
-        {{-- Header de tabla
-             Distribución desktop (12 cols):
-             ID(1) | Fecha(2) | Cliente(2) | Tipo(2) | Items(1) | Total(1) | Sucursal(1) | Acciones(2)
-        --}}
+        {{-- Header --}}
         <div class="grid grid-cols-12 bg-[#203363] text-white p-4 font-bold text-sm">
             <div class="col-span-2  md:col-span-1">ID</div>
             <div class="col-span-4  md:col-span-2">Fecha/Hora</div>
             <div class="hidden md:block md:col-span-2">Cliente</div>
             <div class="col-span-3  md:col-span-2">Tipo</div>
             <div class="hidden md:block md:col-span-1 text-center">Items</div>
-            <div class="col-span-3  md:col-span-1">Total</div>
+            <div class="col-span-3  md:col-span-{{ ($isAdmin ?? false) ? '1' : '2' }}">Total</div>
+            @if($isAdmin ?? false)
             <div class="hidden md:block md:col-span-1">Sucursal</div>
+            @endif
             <div class="hidden md:block md:col-span-2">Acciones</div>
         </div>
 
@@ -195,23 +198,25 @@
                 </div>
 
                 {{-- Total --}}
-                <div class="col-span-3 md:col-span-1 font-bold">
+                <div class="col-span-3 md:col-span-{{ ($isAdmin ?? false) ? '1' : '2' }} font-bold">
                     ${{ number_format($record->total, 2) }}
                 </div>
 
                 {{-- Sucursal --}}
+                @if($isAdmin ?? false)
                 <div class="hidden md:block md:col-span-1 text-xs text-gray-600">
-                    @if(!$isProforma && $record->branch)
-                        <span title="{{ $record->branch->name }}">
+                    @if($record->branch)
+                        <span title="{{ $record->branch->name }}" class="flex items-center">
                             <i class="fas fa-building text-gray-400 mr-1"></i>
-                            {{ Str::limit($record->branch->name, 12) }}
+                            <span class="truncate">{{ Str::limit($record->branch->name, 12) }}</span>
                         </span>
-                    @elseif(!$isProforma)
+                    @else
                         <span class="text-gray-400 italic">—</span>
                     @endif
                 </div>
+                @endif
 
-                {{-- Acciones desktop --}}
+                {{-- 🔥 Acciones desktop - MODIFICADO --}}
                 <div class="hidden md:flex md:col-span-2 items-center space-x-2">
                     <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}"
                        class="text-[#203363] hover:text-[#47517c] p-1" title="Ver detalles">
@@ -224,12 +229,24 @@
                         <i class="fas fa-print"></i>
                     </button>
 
-                    @if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted())
-                        <button class="text-green-600 hover:text-green-800 p-1"
-                                onclick="convertToOrder('{{ $record->id }}')"
-                                title="Convertir a orden">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
+                    @if($isProforma)
+                        {{-- Botón Convertir --}}
+                        @if(method_exists($record, 'canBeConverted') && $record->canBeConverted())
+                            <button class="text-green-600 hover:text-green-800 p-1"
+                                    onclick="convertToOrder('{{ $record->id }}')"
+                                    title="Convertir a orden">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        @endif
+                        
+                        {{-- 🔥 NUEVO: Botón Eliminar Proforma --}}
+                        
+                            <button class="text-red-600 hover:text-red-800 p-1"
+                                    onclick="deleteProforma('{{ $record->id }}')"
+                                    title="Cancelar proforma (restaura stock)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        
                     @endif
 
                     @if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin')
@@ -241,7 +258,7 @@
                     @endif
                 </div>
 
-                {{-- Acciones móvil --}}
+                {{-- 🔥 Acciones móvil - MODIFICADO --}}
                 <div class="md:hidden col-span-12 mt-2 pt-2 border-t flex justify-end space-x-3">
                     <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}"
                        class="text-[#203363] hover:text-[#47517c] text-sm flex items-center">
@@ -253,11 +270,21 @@
                         <i class="fas fa-print mr-1"></i> Imprimir
                     </button>
 
-                    @if($isProforma && method_exists($record, 'canBeConverted') && $record->canBeConverted())
-                        <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
-                                onclick="convertToOrder('{{ $record->id }}')">
-                            <i class="fas fa-exchange-alt mr-1"></i> Convertir
-                        </button>
+                    @if($isProforma)
+                        @if(method_exists($record, 'canBeConverted') && $record->canBeConverted())
+                            <button class="text-green-600 hover:text-green-800 text-sm flex items-center"
+                                    onclick="convertToOrder('{{ $record->id }}')">
+                                <i class="fas fa-exchange-alt mr-1"></i> Convertir
+                            </button>
+                        @endif
+                        
+                        {{-- 🔥 NUEVO: Botón Eliminar móvil --}}
+                        @if(method_exists($record, 'canBeCancelled') && $record->canBeCancelled())
+                            <button class="text-red-600 hover:text-red-800 text-sm flex items-center"
+                                    onclick="deleteProforma('{{ $record->id }}')">
+                                <i class="fas fa-trash-alt mr-1"></i> Cancelar
+                            </button>
+                        @endif
                     @endif
 
                     @if(!$isProforma && $hasOpenPettyCash && auth()->user()->role === 'admin')
@@ -487,6 +514,102 @@
                 confirmButtonColor: '#dc2626'
             });
         }
+    }
+
+    // 🔥🔥🔥 NUEVA FUNCIÓN: Eliminar/Cancelar Proforma 🔥🔥🔥
+    function deleteProforma(proformaId) {
+        Swal.fire({
+            title: '¿Cancelar proforma?',
+            html: `
+                <div class="text-center">
+                    <p class="mb-3">¿Estás seguro de cancelar la proforma <strong>PROF-${proformaId}</strong>?</p>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-yellow-600 mt-1 mr-3"></i>
+                            <div class="text-left text-sm text-yellow-800">
+                                <p class="font-semibold mb-1">El stock reservado será restaurado automáticamente</p>
+                                <p class="text-xs">Los items volverán a estar disponibles en el menú</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Sí, cancelar proforma',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i> No, mantener',
+            showLoaderOnConfirm: true,
+            customClass: {
+                confirmButton: 'px-6 py-3',
+                cancelButton: 'px-6 py-3'
+            },
+            preConfirm: () => {
+                return fetch(`/proformas/${proformaId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(
+                        `Error: ${error.message || 'Error al cancelar la proforma'}`
+                    );
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value.success) {
+                    Swal.fire({
+                        title: '¡Proforma Cancelada!',
+                        html: `
+                            <div class="text-center">
+                                <div class="mb-4">
+                                    <i class="fas fa-check-circle text-green-500 text-5xl"></i>
+                                </div>
+                                <p class="mb-3 text-lg">${result.value.message}</p>
+                                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-box-open text-green-600 text-2xl mr-3"></i>
+                                        <div class="text-left">
+                                            <p class="text-sm font-semibold text-green-800">
+                                                Stock restaurado correctamente
+                                            </p>
+                                            <p class="text-xs text-green-700">
+                                                Los items están nuevamente disponibles
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'success',
+                        confirmButtonText: '<i class="fas fa-check mr-2"></i> Aceptar',
+                        confirmButtonColor: '#203363',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: result.value.message || 'Error desconocido',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            }
+        });
     }
 </script>
 

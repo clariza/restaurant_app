@@ -121,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
     // ─── PROFORMAS ── ESTÁTICAS PRIMERO ──────────────────────────
     Route::get('/proformas/{proforma}/print', [ProformaController::class, 'print'])->name('proformas.print');
     Route::get('/proformas/{proforma}', [ProformaController::class, 'show'])->name('proformas.show');
+    Route::delete('/proformas/{proforma}', [ProformaController::class, 'destroy'])->name('proformas.destroy'); // 🔥 NUEVA RUTA
 
     // ─── TABLES ── ESTÁTICAS PRIMERO ─────────────────────────────
     Route::get('/tables/available', [TableController::class, 'available'])->name('tables.available');
