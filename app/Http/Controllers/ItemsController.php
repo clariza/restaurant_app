@@ -30,9 +30,8 @@ class ItemsController extends Controller
     public function create()
     {
         $categorias = Category::all();
-        $branches = Branch::where('is_active', true)->orderBy('is_main', 'desc')->orderBy('name')->get();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('items.create', compact('categorias', 'branches', 'hasOpenPettyCash'));
+        return view('items.create', compact('categorias', 'hasOpenPettyCash'));
     }
 
     /**
@@ -42,31 +41,25 @@ class ItemsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_url' => 'nullable|url|max:500',
-            'category_id' => 'required|exists:categories,id',
-            'branch_id' => 'required|exists:branches,id',
-            // Validaciones de inventario
-            'stock' => 'nullable|numeric|min:0',
-            'min_stock' => 'nullable|numeric|min:0',
-            'stock_type' => 'nullable|in:discrete,continuous',
-            'stock_unit' => 'nullable|string|max:50',
+        'name' => 'required|string',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric',
+        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image_url' => 'nullable|url|max:500',
+        'category_id' => 'required|exists:categories,id',
+        'stock' => 'nullable|numeric|min:0',
+        'min_stock' => 'nullable|numeric|min:0',
+        'stock_type' => 'nullable|in:discrete,continuous',
+        'stock_unit' => 'nullable|string|max:50',
         ]);
 
         $data = $request->only([
-            'name',
-            'description',
-            'price',
-            'category_id',
-            'branch_id',
-            'stock',
-            'min_stock',
-            'stock_type',
-            'stock_unit',
+        'name', 'description', 'price', 'category_id',
+        'stock', 'min_stock', 'stock_type', 'stock_unit',
         ]);
+        // Asignar automáticamente la sucursal principal
+        $mainBranch = Branch::where('is_main', true)->first();
+        $data['branch_id'] = $mainBranch ? $mainBranch->id : Branch::first()->id;
 
         $imagePath = null;
 
@@ -107,35 +100,31 @@ class ItemsController extends Controller
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         $categorias = Category::all();
-        $branches = Branch::where('is_active', true)->orderBy('is_main', 'desc')->orderBy('name')->get();
-        return view('items.edit', compact('item', 'categorias', 'branches', 'hasOpenPettyCash'));
+        return view('items.edit', compact('item', 'categorias', 'hasOpenPettyCash'));
     }
-
     // Actualizar un producto
     public function update(Request $request, MenuItem $item)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'image' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-            'branch_id' => 'required|exists:branches,id',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_url' => 'nullable|url|max:500',
-            // Validaciones de inventario
-            'stock' => 'nullable|numeric|min:0',
-            'min_stock' => 'nullable|numeric|min:0',
-            'stock_type' => 'nullable|in:discrete,continuous',
-            'stock_unit' => 'nullable|string|max:50',
-        ]);
+       $request->validate([
+        'name' => 'required|string',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric',
+        'image' => 'nullable|string',
+        'category_id' => 'required|exists:categories,id',
+        
+        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image_url' => 'nullable|url|max:500',
+        'stock' => 'nullable|numeric|min:0',
+        'min_stock' => 'nullable|numeric|min:0',
+        'stock_type' => 'nullable|in:discrete,continuous',
+        'stock_unit' => 'nullable|string|max:50',
+    ]);
 
         $data = $request->only([
             'name',
             'description',
             'price',
             'category_id',
-            'branch_id',
             'stock',
             'min_stock',
             'stock_type',

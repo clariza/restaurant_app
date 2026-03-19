@@ -222,13 +222,13 @@
                                 onclick="event.preventDefault(); event.stopPropagation(); addToOrder(<?php echo e(json_encode([
                                 'id' => $item->id,
                                 'name' => $item->name,
-            'price' => $item->price,
-            'stock' => $item->stock,
-            'stock_type' => $item->stock_type,
-            'stock_unit' => $item->stock_unit,
-            'min_stock' => $item->min_stock,
-            'manage_inventory' => $item->manage_inventory
-        ])); ?>, event); return false;" 
+                                'price' => $item->price,
+                                'stock' => $item->stock,
+                                'stock_type' => $item->stock_type,
+                                'stock_unit' => $item->stock_unit,
+                                'min_stock' => $item->min_stock,
+                                'manage_inventory' => $item->manage_inventory
+                                ])); ?>, event); return false;" 
         class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
                <?php if($item->manage_inventory && $item->stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
         <?php if($item->manage_inventory && $item->stock <= 0): ?> disabled <?php endif; ?>>

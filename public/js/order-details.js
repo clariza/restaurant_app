@@ -202,43 +202,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }, 500);
 });
-// Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function () {
-    initializeOrderSystem();
-    setupEventListeners();
-    setupLogoutHandlers();
-
-    // Mostrar el pedido actual al cargar
-    updateOrderDetails();
-
-    // Verificar si ya se procesó un pago anteriormente
-    if (localStorage.getItem('paymentProcessed') === 'true') {
-        paymentProcessed = true;
-        //lockOrderInterface();
-    }
-});
-
-// Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function () {
-    initializeOrderSystem();
-    setupEventListeners();
-    setupLogoutHandlers();
-    setupTableSelectStyles();
-
-    // Configurar listeners para botones de tipo de pedido
-    document.getElementById('btn-comer-aqui').addEventListener('click', () => setOrderType('Comer aquí'));
-    document.getElementById('btn-para-llevar').addEventListener('click', () => setOrderType('Para llevar'));
-    document.getElementById('btn-recoger').addEventListener('click', () => setOrderType('Recoger'));
-
-    // Mostrar el pedido actual al cargar
-    updateOrderDetails();
-
-    // Verificar si ya se procesó un pago anteriormente
-    if (localStorage.getItem('paymentProcessed') === 'true') {
-        paymentProcessed = true;
-        lockOrderInterface();
-    }
-});
 
 /**
  * Inicializa el sistema de pedidos
@@ -398,6 +361,8 @@ function setOrderType(type) {
 
     console.log('✅ Tipo de pedido establecido:', type);
 }
+
+
 async function showPaymentModal() {
     const order = JSON.parse(localStorage.getItem('order')) || [];
     if (order.length === 0) {
@@ -405,22 +370,52 @@ async function showPaymentModal() {
         return;
     }
 
-    console.log('🔧 Abriendo modal de pago...');
+    // ✅ NUEVA VALIDACIÓN: verificar caja chica ANTES de abrir el modal
+    console.log('🔍 Verificando caja chica antes de abrir modal de pago...');
+    const hasPettyCashOpen = await checkPettyCashOpen();
+
+    if (!hasPettyCashOpen) {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: '⚠️ Caja Chica Cerrada',
+            html: `
+                <div style="text-align: center;">
+                    <p style="font-size: 16px; margin: 15px 0;">
+                        No hay una caja chica abierta para procesar ventas.
+                    </p>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+                        Debes abrir una caja chica antes de continuar con el pedido.
+                    </p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#203363',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-cash-register mr-2"></i> Abrir Caja Chica',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancelar',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        });
+
+        if (result.isConfirmed) {
+            window.location.href = '/petty-cash/create';
+        }
+        // Si cancela, simplemente no abre el modal — el pedido queda intacto
+        return;
+    }
+
+    // ✅ Caja abierta — continuar con el flujo normal
+    console.log('✅ Caja chica abierta — abriendo modal de pago');
+
     const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
     const proformaId = localStorage.getItem('proformaId');
 
-    console.log('🔍 Estado al abrir modal:', {
-        convertingFromProforma: convertingFromProforma,
-        proformaId: proformaId
-    });
     if (convertingFromProforma && !proformaId) {
-        console.warn('⚠️ Limpiando banderas inconsistentes');
         clearProformaConversionFlags();
     }
-    // 🔥 PRIMERO: Sincronizar estado de mesas ANTES de abrir el modal
+
     await syncInitialTablesState();
 
-    // Abrir el modal
     if (typeof window.openPaymentModal === 'function') {
         window.openPaymentModal();
     } else if (typeof openPaymentModal === 'function') {
@@ -435,18 +430,12 @@ async function showPaymentModal() {
         }
     }
 
-    // Esperar un momento para que el modal se renderice
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Verificar y actualizar estado de mesas si "Comer aquí" está seleccionado
     const selectedButton = document.querySelector('.order-type-btn.selected');
     if (selectedButton && selectedButton.dataset.type === 'comer-aqui') {
-        console.log('🔄 Modal abierto con tipo "Comer aquí", verificando estado de mesas...');
-
-        // 🔥 Resetear locks antes de actualizar
         _handlingTableVisibility = false;
         _lastHandlingTime = 0;
-
         await handleTableSelectionVisibility(true);
     }
 }
@@ -1895,49 +1884,6 @@ async function processOrder() {
     // ============================================
 
     console.log('🔍 Verificando si hay caja chica abierta...');
-
-    const hasPettyCashOpen = await checkPettyCashOpen();
-
-    if (!hasPettyCashOpen) {
-        console.log('❌ No hay caja chica abierta');
-
-        // Mostrar modal de confirmación
-        const shouldOpenCash = await Swal.fire({
-            icon: 'warning',
-            title: '⚠️ Caja Chica Cerrada',
-            html: `
-                <div style="text-align: center;">
-                    <p style="font-size: 16px; margin: 15px 0;">
-                        No hay una caja chica abierta para procesar ventas.
-                    </p>
-                    <p style="font-size: 14px; color: #6b7280; margin-top: 10px;">
-                        Debes abrir una caja chica antes de continuar con el pedido.
-                    </p>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonColor: '#203363',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-cash-register mr-2"></i> Abrir Caja Chica',
-            cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancelar',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            customClass: {
-                popup: 'animated fadeInDown faster'
-            }
-        });
-
-        if (shouldOpenCash.isConfirmed) {
-            // Redirigir a la vista de apertura de caja
-            console.log('🔄 Redirigiendo a apertura de caja...');
-            window.location.href = '/petty-cash/create';
-            return; // Detener ejecución
-        } else {
-            // Usuario canceló - mantener en la página
-            console.log('ℹ️ Usuario canceló apertura de caja');
-            return; // Detener ejecución
-        }
-    }
 
     console.log('✅ Caja chica abierta - continuando con el pedido...');
     const convertingFromProforma = localStorage.getItem('convertingProforma') === 'true';
