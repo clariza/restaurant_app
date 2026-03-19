@@ -19500,3 +19500,15 @@ Stack trace:
 #58 C:\\Users\\User\\Documents\\laravel_clary\\restaurant_app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\User\\\\D...')
 #59 {main}
 "} 
+[2026-03-19 15:17:33] production.INFO: 🚪 Cerrando sesión: {"user_id":1,"branch_id":1} 
+[2026-03-19 15:17:33] production.INFO: 📋 Cargando login con sucursales: {"total_branches":2} 
+[2026-03-19 15:17:34] production.INFO: 📋 Cargando login con sucursales: {"total_branches":2} 
+[2026-03-19 15:17:37] production.INFO: 🔐 === INICIO DE AUTENTICACIÓN ===  
+[2026-03-19 15:17:37] production.INFO: Usuario autenticado: {"user_id":1,"user_name":"admin","email":"admin@gmail.com"} 
+[2026-03-19 15:17:37] production.INFO: ✅ Sucursal encontrada: {"branch_id":2,"branch_name":"Sucursal Cochabamba","branch_code":"SUC-CBBA","is_main":false} 
+[2026-03-19 15:17:37] production.INFO: 💾 Sesión guardada  
+[2026-03-19 15:17:37] production.INFO: 🔍 VERIFICACIÓN INMEDIATA: {"branch_id_en_sesion":2,"session_all":{"_token":"rUGayleySM3IJqROVzruPLHsdzhoSqwhnWo9MATk","_flash":{"old":[],"new":[]},"_previous":{"url":"http://127.0.0.1:8000/login"},"login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d":1,"branch_id":2,"branch_name":"Sucursal Cochabamba","branch_code":"SUC-CBBA"}} 
+[2026-03-19 15:17:37] production.INFO: ✅ VERIFICACIÓN EXITOSA - branch_id está en sesión  
+[2026-03-19 15:17:37] production.INFO: ✅ Usuario actualizado con branch_id en BD: {"user_id":1,"branch_id":2} 
+[2026-03-19 15:17:37] production.WARNING: ⚠️ No hay caja chica abierta para esta sucursal  
+[2026-03-19 15:17:37] production.INFO: === FIN DE AUTENTICACIÓN ===  
