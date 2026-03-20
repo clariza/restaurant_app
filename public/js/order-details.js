@@ -164,15 +164,15 @@ function updateOrderDetails() {
         totalsElement.innerHTML = `
             <div class="flex justify-between items-center mb-1">
                 <p class="text-gray-600">Subtotal:</p>
-                <p class="text-gray-800">$${subtotal.toFixed(2)}</p>
+                <p class="text-gray-800">Bs${subtotal.toFixed(2)}</p>
             </div>
             <div class="flex justify-between items-center mb-1">
                 <p class="text-gray-600">Impuesto:</p>
-                <p class="text-gray-800">$${tax.toFixed(2)}</p>
+                <p class="text-gray-800">Bs${tax.toFixed(2)}</p>
             </div>
             <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-300">
                 <p class="font-bold text-[#203363] text-base">Total:</p>
-                <p class="font-bold text-[#203363] text-base">$${total.toFixed(2)}</p>
+                <p class="font-bold text-[#203363] text-base">Bs${total.toFixed(2)}</p>
             </div>
         `;
         orderDetails.appendChild(totalsElement);
@@ -1351,15 +1351,15 @@ function generateTicketContent(dailyOrderNumber) {
         
         <div class="item-row">
             <span>Subtotal:</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>Bs${subtotal.toFixed(2)}</span>
         </div>
         <div class="item-row">
             <span>Impuesto:</span>
-            <span>$${tax.toFixed(2)}</span>
+            <span>Bs${tax.toFixed(2)}</span>
         </div>
        <div class="item-row total-row">
     <span>TOTAL:</span>
-    <span>$${total.toFixed(2)}</span>
+    <span>Bs${total.toFixed(2)}</span>
 </div>
 
 ${(() => {
@@ -1371,7 +1371,7 @@ ${(() => {
                     paymentMethodsHTML += `
                 <div class="item-row">
                     <span>${m.method}:</span>
-                    <span>$${parseFloat(m.amount || 0).toFixed(2)}</span>
+                    <span>Bs${parseFloat(m.amount || 0).toFixed(2)}</span>
                 </div>
             `;
                 });
@@ -1382,7 +1382,7 @@ ${(() => {
 ${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
     <div class="item-row" style="font-weight: bold;">
         <span>CAMBIO:</span>
-        <span>$${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
+        <span>Bs${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
     </div>
 ` : ''}
         
@@ -1586,15 +1586,15 @@ async function generateTicketContentAsync(dailyOrderNumber) {
         
         <div class="item-row">
             <span>Subtotal:</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>Bs${subtotal.toFixed(2)}</span>
         </div>
         <div class="item-row">
             <span>Impuesto:</span>
-            <span>$${tax.toFixed(2)}</span>
+            <span>Bs${tax.toFixed(2)}</span>
         </div>
         <div class="item-row total-row">
     <span>TOTAL:</span>
-    <span>$${total.toFixed(2)}</span>
+    <span>Bs${total.toFixed(2)}</span>
 </div>
 
 ${(() => {
@@ -1606,7 +1606,7 @@ ${(() => {
                     paymentMethodsHTML += `
                 <div class="item-row">
                     <span>${m.method}:</span>
-                    <span>$${parseFloat(m.amount || 0).toFixed(2)}</span>
+                    <span>Bs${parseFloat(m.amount || 0).toFixed(2)}</span>
                 </div>
             `;
                 });
@@ -1617,7 +1617,7 @@ ${(() => {
 ${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
     <div class="item-row" style="font-weight: bold;">
         <span>CAMBIO:</span>
-        <span>$${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
+        <span>Bs${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
     </div>
 ` : ''}
         
