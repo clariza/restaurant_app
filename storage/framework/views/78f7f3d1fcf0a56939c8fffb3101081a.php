@@ -202,7 +202,7 @@
 <body>
 <div class="login-container">
 
-    {{-- Logo --}}
+    
     <div class="logo-section">
         <img src="https://static.vecteezy.com/system/resources/previews/000/656/554/original/restaurant-badge-and-logo-good-for-print-vector.jpg"
              alt="Logo Miquna">
@@ -210,63 +210,80 @@
         <p>Sistema de Punto de Venta</p>
     </div>
 
-    {{-- Errores generales --}}
-    @if ($errors->any())
+    
+    <?php if($errors->any()): ?>
         <div class="alert alert-danger">
             <div class="d-flex align-items-center mb-2">
                 <i class="fas fa-exclamation-circle me-2"></i>
                 <strong>Error de Validación</strong>
             </div>
             <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
+                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
         </div>
-    @endif
+    <?php endif; ?>
 
-    @if (session('status'))
+    <?php if(session('status')): ?>
         <div class="alert alert-success">
             <i class="fas fa-check-circle me-2"></i>
-            {{ session('status') }}
-        </div>
-    @endif
+            <?php echo e(session('status')); ?>
 
-    @if (session('warning'))
+        </div>
+    <?php endif; ?>
+
+    <?php if(session('warning')): ?>
         <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            {{ session('warning') }}
+            <?php echo e(session('warning')); ?>
+
         </div>
-    @endif
+    <?php endif; ?>
 
-    <form action="{{ route('login') }}" method="POST" id="loginForm" novalidate>
-        @csrf
+    <form action="<?php echo e(route('login')); ?>" method="POST" id="loginForm" novalidate>
+        <?php echo csrf_field(); ?>
 
-        {{-- Sucursal --}}
+        
         <div class="form-group">
             <label for="branch_id">
                 <i class="fas fa-store"></i> Sucursal
             </label>
             <select name="branch_id"
                     id="branch_id"
-                    class="form-select @error('branch_id') is-invalid @enderror"
+                    class="form-select <?php $__errorArgs = ['branch_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                     required>
                 <option value="" disabled selected>Seleccione una sucursal</option>
-                @foreach($branches as $branch)
-                    <option value="{{ $branch->id }}"
-                        {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
-                        {{ $branch->name }}
-                        @if($branch->city) - {{ $branch->city }} @endif
-                        @if($branch->is_main) ⭐ Principal @endif
+                <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($branch->id); ?>"
+                        <?php echo e(old('branch_id') == $branch->id ? 'selected' : ''); ?>>
+                        <?php echo e($branch->name); ?>
+
+                        <?php if($branch->city): ?> - <?php echo e($branch->city); ?> <?php endif; ?>
+                        <?php if($branch->is_main): ?> ⭐ Principal <?php endif; ?>
                     </option>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
-            @error('branch_id')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
+            <?php $__errorArgs = ['branch_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                <div class="invalid-feedback d-block"><?php echo e($message); ?></div>
+            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
-        {{-- Email --}}
+        
         <div class="form-group">
             <label for="email">
                 <i class="fas fa-envelope"></i> Correo Electrónico
@@ -274,18 +291,32 @@
             <input type="email"
                    name="email"
                    id="email"
-                   class="form-control @error('email') is-invalid @enderror"
+                   class="form-control <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                    placeholder="correo@ejemplo.com"
-                   value="{{ old('email') }}"
+                   value="<?php echo e(old('email')); ?>"
                    required
                    autocomplete="email"
                    autofocus>
-            @error('email')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
+            <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                <div class="invalid-feedback d-block"><?php echo e($message); ?></div>
+            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
-        {{-- Contraseña --}}
+        
         <div class="form-group">
             <label for="password">
                 <i class="fas fa-lock"></i> Contraseña
@@ -294,7 +325,14 @@
                 <input type="password"
                        name="password"
                        id="password"
-                       class="form-control @error('password') is-invalid @enderror"
+                       class="form-control <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                        placeholder="Ingrese su contraseña"
                        required
                        autocomplete="current-password">
@@ -302,9 +340,16 @@
                    id="togglePassword"
                    title="Mostrar/Ocultar contraseña"></i>
             </div>
-            @error('password')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
+            <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                <div class="invalid-feedback d-block"><?php echo e($message); ?></div>
+            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
         <button type="submit" class="btn-login" id="submitBtn">
@@ -368,4 +413,4 @@
     });
 </script>
 </body>
-</html>
+</html><?php /**PATH D:\Proyecto Clarisa\restaurant_app\resources\views/auth/login.blade.php ENDPATH**/ ?>

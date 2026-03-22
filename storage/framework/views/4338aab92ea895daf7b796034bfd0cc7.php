@@ -40,22 +40,7 @@
             onclick="showPaymentModal()">
             Realizar Pago
         </button>
-{{--     
-        <div class="flex space-x-2">
-            <a onclick="event.preventDefault(); openExpensesModal();"class="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center"
-                title="Gastos">
-                <i class="fas fa-receipt"></i>
-            </a>
-            <a href="{{ route('orders.index') }}" class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center justify-center"
-                title="Historial">
-                <i class="fas fa-history"></i>
-            </a>
-            <!-- ✅ CAMBIO: Botón que abre el modal -->
-            <button onclick="openPettyCashModal()" class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-accent-dark transition-colors text-sm flex items-center justify-center"
-                title="Caja Chica">
-                <i class="fas fa-cash-register"></i>
-            </button>
-        </div> --}}
+
     </div>
 
     <!-- Input oculto para el tipo de pedido -->
@@ -192,13 +177,13 @@
 </div>
 
 <!-- Modal de Pago -->
-@include('partials.payment-modal')
+<?php echo $__env->make('partials.payment-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Modal de Proforma -->
-@include('partials.proforma-modal')
+<?php echo $__env->make('partials.proforma-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Modal de Vista Previa de Impresión -->
-@include('partials.print-preview-modal')
+<?php echo $__env->make('partials.print-preview-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <style>
 /* Estilos adicionales para el modal de gastos */
@@ -261,26 +246,26 @@
     <!-- El contenido del modal de cierre se cargará aquí dinámicamente -->
 </div>
 <script>
-    const tablesEnabled = @json($settings->tables_enabled ?? false);
-    @if(!auth()->check())
+    const tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false, 15, 512) ?>;
+    <?php if(!auth()->check()): ?>
         clearOrderOnLogout();
-    @endif
+    <?php endif; ?>
 </script>
 
 <!-- Variables globales PRIMERO -->
 <script>
 window.routes = {
-    tablesAvailable: "{{ route('tables.available') }}",
-    salesStore: "{{ route('sales.store') }}",
-    customerDetails: "{{ route('customer.details') }}",
-    menuIndex: "{{ route('menu.index') }}",
-    pettyCashIndex: "{{ route('petty-cash.index') }}",
-    pettyCashModalContent: "{{ route('petty-cash.modal-content') }}",
-    deliveryServicesApi: "{{ route('deliveries.api.active') }}"
+    tablesAvailable: "<?php echo e(route('tables.available')); ?>",
+    salesStore: "<?php echo e(route('sales.store')); ?>",
+    customerDetails: "<?php echo e(route('customer.details')); ?>",
+    menuIndex: "<?php echo e(route('menu.index')); ?>",
+    pettyCashIndex: "<?php echo e(route('petty-cash.index')); ?>",
+    pettyCashModalContent: "<?php echo e(route('petty-cash.modal-content')); ?>",
+    deliveryServicesApi: "<?php echo e(route('deliveries.api.active')); ?>"
 };
-window.csrfToken = "{{ csrf_token() }}";
-window.authUserName = "{{ Auth::user()->name ?? '' }}";
-window.tablesEnabled = @json($settings->tables_enabled ?? false);
+window.csrfToken = "<?php echo e(csrf_token()); ?>";
+window.authUserName = "<?php echo e(Auth::user()->name ?? ''); ?>";
+window.tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false, 15, 512) ?>;
 
 
 </script>
@@ -618,6 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <!-- Scripts DESPUÉS de las variables -->
-<script src="{{ asset('js/payment-modal.js') }}"></script>
-<script src="{{ asset('js/order-details.js') }}"></script>
-<script src="{{ asset('js/petty-cash-modal.js') }}"></script> 
+<script src="<?php echo e(asset('js/payment-modal.js')); ?>"></script>
+<script src="<?php echo e(asset('js/order-details.js')); ?>"></script>
+<script src="<?php echo e(asset('js/petty-cash-modal.js')); ?>"></script> <?php /**PATH D:\Proyecto Clarisa\restaurant_app\resources\views/layouts/order-details.blade.php ENDPATH**/ ?>

@@ -89,11 +89,11 @@
             <tr>
                 <td>{{ $pettyCash->date }}</td>
                 <td>{{ $pettyCash->user->name ?? 'N/A' }}</td>
-                <td class="text-right">${{ number_format($pettyCash->total_sales_cash, 2) }}</td>
-                <td class="text-right">${{ number_format($pettyCash->total_sales_qr, 2) }}</td>
-                <td class="text-right">${{ number_format($pettyCash->total_sales_card, 2) }}</td>
-                <td class="text-right">${{ number_format($pettyCash->total_expenses, 2) }}</td>
-                <td class="text-right">${{ number_format($saldo, 2) }}</td>
+                <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_cash, 2) }}</td>
+                <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_qr, 2) }}</td>
+                <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_card, 2) }}</td>
+                <td class="text-right">Bs. {{ number_format($pettyCash->total_expenses, 2) }}</td>
+                <td class="text-right">Bs. {{ number_format($saldo, 2) }}</td>
                 <td>{{ $pettyCash->status === 'open' ? 'Abierta' : 'Cerrada' }}</td>
             </tr>
             @endforeach
@@ -103,9 +103,9 @@
     <div class="summary">
         <strong>Resumen:</strong><br>
         Total registros: {{ $pettyCashes->count() }}<br>
-        Total ventas: ${{ number_format($totalSales, 2) }}<br>
-        Total gastos: ${{ number_format($totalExpenses, 2) }}<br>
-        Saldo neto: ${{ number_format($totalSales - $totalExpenses, 2) }}
+        Total ventas: Bs. {{ number_format($totalSales, 2) }}<br>
+        Total gastos: Bs. {{ number_format($totalExpenses, 2) }}<br>
+        Saldo neto: Bs. {{ number_format($totalSales - $totalExpenses, 2) }}
     </div>
 
     <div class="footer">

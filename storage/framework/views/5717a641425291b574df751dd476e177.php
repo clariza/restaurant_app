@@ -1,5 +1,4 @@
-@extends('layouts.app')
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
     .section-title {
         font-size: 1.125rem;
@@ -1083,13 +1082,13 @@
             Genere reportes completos de caja chica en formato Excel o PDF. Los filtros aplicados se incluirán en los reportes.
         </p>
         <div class="reports-buttons">
-            <a href="{{ route('petty-cash.export.excel', request()->query()) }}"
+            <a href="<?php echo e(route('petty-cash.export.excel', request()->query())); ?>"
                 class="btn-report btn-report-excel"
                 title="Descargar reporte en Excel">
                 <i class="fas fa-file-excel"></i>
                 <span>Exportar a Excel</span>
             </a>
-            <a href="{{ route('petty-cash.export.pdf', request()->query()) }}"
+            <a href="<?php echo e(route('petty-cash.export.pdf', request()->query())); ?>"
                 class="btn-report btn-report-pdf"
                 target="_blank"
                 title="Descargar reporte en PDF">
@@ -1101,18 +1100,19 @@
 
     <!-- Panel de Filtros -->
     <div class="filters-panel">
-        <form method="GET" action="{{ route('petty-cash.index') }}" id="filtersForm">
+        <form method="GET" action="<?php echo e(route('petty-cash.index')); ?>" id="filtersForm">
             <div class="filters-grid">
                 <div class="filter-group">
                     <label for="user_id">Cajero</label>
                     <select id="user_id" name="user_id">
                         <option value="">Todos los cajeros</option>
-                        @foreach($users as $user)
-                        <option value="{{ $user->id }}"
-                            {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                            {{ $user->name }}
+                        <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($user->id); ?>"
+                            <?php echo e(request('user_id') == $user->id ? 'selected' : ''); ?>>
+                            <?php echo e($user->name); ?>
+
                         </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
@@ -1120,10 +1120,10 @@
                     <label for="status">Estado</label>
                     <select id="status" name="status">
                         <option value="">Todos los estados</option>
-                        <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>
+                        <option value="open" <?php echo e(request('status') == 'open' ? 'selected' : ''); ?>>
                             Abierta
                         </option>
-                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>
+                        <option value="closed" <?php echo e(request('status') == 'closed' ? 'selected' : ''); ?>>
                             Cerrada
                         </option>
                     </select>
@@ -1134,8 +1134,8 @@
                     <input type="date"
                         id="date_from"
                         name="date_from"
-                        value="{{ request('date_from') }}"
-                        max="{{ date('Y-m-d') }}">
+                        value="<?php echo e(request('date_from')); ?>"
+                        max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
 
                 <div class="filter-group">
@@ -1143,8 +1143,8 @@
                     <input type="date"
                         id="date_to"
                         name="date_to"
-                        value="{{ request('date_to') }}"
-                        max="{{ date('Y-m-d') }}">
+                        value="<?php echo e(request('date_to')); ?>"
+                        max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
 
                 <div class="filters-actions">
@@ -1152,7 +1152,7 @@
                         <i class="fas fa-filter"></i>
                         <span>Filtrar</span>
                     </button>
-                    <a href="{{ route('petty-cash.index') }}" class="btn-clear">
+                    <a href="<?php echo e(route('petty-cash.index')); ?>" class="btn-clear">
                         <i class="fas fa-times"></i>
                         <span>Limpiar</span>
                     </a>
@@ -1162,26 +1162,26 @@
     </div>
 
     <!-- Mensajes de alerta -->
-    @if (session('warning'))
+    <?php if(session('warning')): ?>
     <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('warning') }}</span>
+        <span class="block sm:inline"><?php echo e(session('warning')); ?></span>
         <button onclick="closeOpenPettyCash()" class="ml-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
             Cerrar caja abierta
         </button>
     </div>
-    @endif
+    <?php endif; ?>
 
-    @if (session('error'))
+    <?php if(session('error')): ?>
     <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
+        <span class="block sm:inline"><?php echo e(session('error')); ?></span>
     </div>
-    @endif
+    <?php endif; ?>
 
-    @if (session('success'))
+    <?php if(session('success')): ?>
     <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
+        <span class="block sm:inline"><?php echo e(session('success')); ?></span>
     </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Tabla de cierres -->
     <div class="mt-4 overflow-x-auto">
@@ -1197,69 +1197,71 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($pettyCashes as $pettyCash)
+                <?php $__empty_1 = true; $__currentLoopData = $pettyCashes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pettyCash): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 text-left">{{ $pettyCash->date }}</td>
-                    <td class="p-2 text-left">{{ $pettyCash->user->name ?? 'N/A' }}</td>
-                    <td class="p-2 text-right">Bs. {{ number_format($totalSales - $totalExpenses, 2) }}</td>
+                    <td class="p-2 text-left"><?php echo e($pettyCash->date); ?></td>
+                    <td class="p-2 text-left"><?php echo e($pettyCash->user->name ?? 'N/A'); ?></td>
+                    <td class="p-2 text-right">Bs. <?php echo e(number_format($totalSales - $totalExpenses, 2)); ?></td>
                     <td class="p-2 text-left">
                         <span class="px-2 py-1 rounded-full text-xs 
-                            {{ $pettyCash->status === 'open' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                            {{ $pettyCash->status === 'open' ? 'Abierta' : 'Cerrada' }}
+                            <?php echo e($pettyCash->status === 'open' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'); ?>">
+                            <?php echo e($pettyCash->status === 'open' ? 'Abierta' : 'Cerrada'); ?>
+
                         </span>
                     </td>
                     <td class="p-2 text-left space-x-1">
-                        <a href="{{ route('petty-cash.show', $pettyCash) }}"
+                        <a href="<?php echo e(route('petty-cash.show', $pettyCash)); ?>"
                             class="btn-action btn-view">
                             <i class="fas fa-eye"></i> Ver
                         </a>
-                        <a href="{{ route('petty-cash.edit', $pettyCash) }}"
+                        <a href="<?php echo e(route('petty-cash.edit', $pettyCash)); ?>"
                             class="btn-action btn-edit">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <form action="{{ route('petty-cash.destroy', $pettyCash) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
+                        <form action="<?php echo e(route('petty-cash.destroy', $pettyCash)); ?>" method="POST" class="inline">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('DELETE'); ?>
                             <button type="submit"
                                 class="btn-action btn-delete"
                                 onclick="return confirm('¿Estás seguro de eliminar esta caja chica?')">
                                 <i class="fas fa-trash"></i> Eliminar
                             </button>
                         </form>
-                        @if ($pettyCash->status === 'open')
-                        <button onclick="openModal('{{ $pettyCash->id }}')"
+                        <?php if($pettyCash->status === 'open'): ?>
+                        <button onclick="openModal('<?php echo e($pettyCash->id); ?>')"
                             class="btn-action btn-close">
                             <i class="fas fa-lock"></i> Cerrar
                         </button>
-                        @endif
+                        <?php endif; ?>
                     </td>
                     <td class="p-2 text-left">
-                        @if ($pettyCash->status === 'closed')
-                        <a href="{{ route('petty-cash.print', $pettyCash) }}"
+                        <?php if($pettyCash->status === 'closed'): ?>
+                        <a href="<?php echo e(route('petty-cash.print', $pettyCash)); ?>"
                             target="_blank"
                             class="btn-action btn-print">
                             <i class="fas fa-print"></i> PDF
                         </a>
-                        @endif
+                        <?php endif; ?>
                     </td>
                 </tr>
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
                     <td colspan="6" class="p-4 text-center text-gray-500">
                         No se encontraron registros de caja chica
                     </td>
                 </tr>
-                @endforelse
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
 
     <!-- Paginación -->
-    @if($pettyCashes->hasPages())
+    <?php if($pettyCashes->hasPages()): ?>
     <div class="mt-4">
-        {{ $pettyCashes->appends(request()->query())->links() }}
+        <?php echo e($pettyCashes->appends(request()->query())->links()); ?>
+
     </div>
-    @endif
+    <?php endif; ?>
 </div>
 
 <!-- Modal de cierre -->
@@ -1302,18 +1304,18 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach([0.5, 1, 2, 5, 10, 20, 50, 100, 200] as $denominacion)
+                                    <?php $__currentLoopData = [0.5, 1, 2, 5, 10, 20, 50, 100, 200]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $denominacion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr>
-                                        <td class="text-left">Bs. {{ number_format($denominacion, 2) }}</td>
+                                        <td class="text-left">Bs. <?php echo e(number_format($denominacion, 2)); ?></td>
                                         <td>
                                             <input type="number" min="0" class="form-control form-control-sm denomination-input"
-                                                data-denominacion="{{ $denominacion }}" placeholder="0">
+                                                data-denominacion="<?php echo e($denominacion); ?>" placeholder="0">
                                         </td>
                                         <td class="text-right">
                                             <span class="subtotal">$0.00</span>
                                         </td>
                                     </tr>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     <tr class="total-row">
                                         <td colspan="2" class="text-right">Total Efectivo:</td>
                                         <td class="text-right">
@@ -1334,8 +1336,8 @@
                             <div class="input-group mb-2">
                                 <label for="total-gastos" class="small">Total Gastos</label>
                                 <input type="number" id="total-gastos" class="form-control form-control-sm"
-                                    value="{{ $totalExpenses }}" step="0.01" readonly 
-                                    data-gastos-bd="{{ $totalExpenses }}">
+                                    value="<?php echo e($totalExpenses); ?>" step="0.01" readonly 
+                                    data-gastos-bd="<?php echo e($totalExpenses); ?>">
                             </div>
                             <div class="input-group mb-2">
                                 <label for="total-efectivo" class="small">Total Efectivo</label>
@@ -1345,12 +1347,12 @@
                             <div class="input-group mb-2">
                                 <label for="ventas-qr" class="small">Ventas QR</label>
                                 <input type="number" id="ventas-qr" class="form-control form-control-sm"
-                                    value="{{ $totalSalesQR }}" step="0.01">
+                                    value="<?php echo e($totalSalesQR); ?>" step="0.01">
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
                                 <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
-                                    value="{{ $totalSalesCard }}" step="0.01">
+                                    value="<?php echo e($totalSalesCard); ?>" step="0.01">
                             </div>
                             <div class="form-actions">
                                <button type="button" 
@@ -1369,33 +1371,20 @@
 </div>
 
 <!-- Formulario oculto para cierre -->
-<form id="closureForm" action="{{ route('petty-cash.save-closure') }}" method="POST" class="hidden">
-    @csrf
+<form id="closureForm" action="<?php echo e(route('petty-cash.save-closure')); ?>" method="POST" class="hidden">
+    <?php echo csrf_field(); ?>
     <input type="hidden" name="petty_cash_id" id="petty_cash_id">
     <input type="hidden" name="total_sales_cash" id="total_sales_cash" value="0">
-    <input type="hidden" name="total_sales_qr" id="total_sales_qr" value="{{ $totalSalesQR }}">
-    <input type="hidden" name="total_sales_card" id="total_sales_card" value="{{ $totalSalesCard }}">
-    <input type="hidden" name="total_expenses" id="total_expenses" value="{{ $totalExpenses }}">
+    <input type="hidden" name="total_sales_qr" id="total_sales_qr" value="<?php echo e($totalSalesQR); ?>">
+    <input type="hidden" name="total_sales_card" id="total_sales_card" value="<?php echo e($totalSalesCard); ?>">
+    <input type="hidden" name="total_expenses" id="total_expenses" value="<?php echo e($totalExpenses); ?>">
 </form>
 
 <!-- ========================================
      SCRIPTS - IMPORTANTE: Solo configuración
      ======================================== -->
-<script src="{{ asset('js/petty-cash-index.js') }}"></script>
-{{-- <script>
-    // Inicializar datos de PHP a JavaScript
-    window.pettyCashData = {
-        totalExpenses: {{ $totalExpenses ?? 0 }},
-        totalSalesQR: {{ $totalSalesQR ?? 0 }},
-        totalSalesCard: {{ $totalSalesCard ?? 0 }},
-        saveClosureUrl: "{{ route('petty-cash.save-closure') }}",
-        csrfToken: "{{ csrf_token() }}"
-    };
+<script src="<?php echo e(asset('js/petty-cash-index.js')); ?>"></script>
 
-    console.log('✅ Configuración de caja chica cargada:', window.pettyCashData);
-    
-    // Disparar evento personalizado para notificar que los datos están listos
-    window.dispatchEvent(new Event('pettyCashDataReady'));
-</script> --}}
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Proyecto Clarisa\restaurant_app\resources\views/petty_cash/index.blade.php ENDPATH**/ ?>

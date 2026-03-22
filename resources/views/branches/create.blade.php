@@ -70,26 +70,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Ciudad -->
                         <div>
-                            <label for="city" class="block text-sm font-medium text-[var(--primary-color)]">
+                            <label for="ciudad" class="block text-sm font-medium text-[var(--primary-color)]">
                                 Ciudad
                             </label>
-                            <input type="text" name="city" id="city" value="{{ old('city') }}"
-                                class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('city') border-red-500 @enderror"
+                            <input type="text" name="ciudad" id="ciudad" value="{{ old('ciudad') }}"
+                                class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('ciudad') border-red-500 @enderror"
                                 placeholder="Ej: La Paz">
-                            @error('city')
+                            @error('ciudad')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Departamento -->
                         <div>
-                            <label for="state" class="block text-sm font-medium text-[var(--primary-color)]">
+                            <label for="departamento" class="block text-sm font-medium text-[var(--primary-color)]">
                                 Departamento
                             </label>
-                            <input type="text" name="state" id="state" value="{{ old('state') }}"
-                                class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('state') border-red-500 @enderror"
+                            <input type="text" name="departamento" id="departamento" value="{{ old('departamento') }}"
+                                class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('departamento') border-red-500 @enderror"
                                 placeholder="Ej: La Paz">
-                            @error('state')
+                            @error('departamento')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

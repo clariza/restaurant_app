@@ -16,8 +16,8 @@ class Branch extends Model
         'address',
         'phone',
         'email',
-        'city',
-        'state',
+        'ciudad',
+        'departamento',
         'is_active',
         'is_main',
     ];

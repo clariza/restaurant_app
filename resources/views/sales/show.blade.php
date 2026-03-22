@@ -48,7 +48,7 @@
         <p><strong>Nombre:</strong> {{ $sale->customer_name }}</p>
         <p><strong>Teléfono:</strong> {{ $sale->phone ?? 'No proporcionado' }}</p>
         <p><strong>Tipo de Pedido:</strong> {{ $sale->order_type }}</p>
-        <p><strong>Total:</strong> ${{ number_format($sale->total, 2) }}</p>
+        <p><strong>Total:</strong> Bs. {{ number_format($sale->total, 2) }}</p>
         <p><strong>Fecha:</strong> {{ $sale->created_at->format('d/m/Y H:i') }}</p>
         <p><strong>Vendedor:</strong> {{ $sale->user ? $sale->user->name : 'No asignado' }}</p>
         
@@ -68,8 +68,8 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 border border-gray-200">{{ $item->name }}</td>
                             <td class="px-6 py-4 border border-gray-200">{{ $item->quantity }}</td>
-                            <td class="px-6 py-4 border border-gray-200">${{ number_format($item->price, 2) }}</td>
-                            <td class="px-6 py-4 border border-gray-200">${{ number_format($item->total, 2) }}</td>
+                            <td class="px-6 py-4 border border-gray-200">Bs. {{ number_format($item->price, 2) }}</td>
+                            <td class="px-6 py-4 border border-gray-200">Bs. {{ number_format($item->total, 2) }}</td>
                         </tr>
                     @empty
                         <tr>

@@ -74,19 +74,19 @@
                         </div>
                     @endif
 
-                    @if($branch->city || $branch->state)
+                    @if($branch->ciudad || $branch->departamento)
                         <div class="flex items-start">
                             <i class="fas fa-city text-gray-400 mr-3 mt-1 w-5"></i>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Ciudad / Departamento</label>
                                 <p class="text-gray-900">
-                                    {{ $branch->city }}@if($branch->city && $branch->state), @endif{{ $branch->state }}
+                                    {{ $branch->ciudad }}@if($branch->ciudad && $branch->departamento), @endif{{ $branch->departamento }}
                                 </p>
                             </div>
                         </div>
                     @endif
 
-                    @if(!$branch->address && !$branch->city && !$branch->state)
+                    @if(!$branch->address && !$branch->ciudad && !$branch->departamento)
                         <p class="text-gray-400 italic text-center py-4">No hay información de ubicación registrada</p>
                     @endif
                 </div>

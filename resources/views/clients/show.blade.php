@@ -99,8 +99,8 @@
                 </h3>
                 <div class="space-y-3">
                     <div>
-                        <label class="text-sm font-medium text-gray-500">Dirección</label>
-                        <p class="text-gray-900">{{ $client->address ?: 'No especificada' }}</p>
+                        <label class="text-sm font-medium text-gray-500">Fecha de Cumpleaños</label>
+                        <p class="text-gray-900">{{ $client->birthdays ? $client->birthdays->format('d/m/Y') : 'No especificada' }}</p>
                     </div>
                     <div>
                         <label class="text-sm font-medium text-gray-500">Ciudad</label>

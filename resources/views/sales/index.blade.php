@@ -33,7 +33,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $sale->phone }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $sale->order_type }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $sale->user?->name ?? 'No asignado' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${{ number_format($sale->total, 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">Bs. {{ number_format($sale->total, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <a href="{{ route('sales.show', $sale->id) }}" 

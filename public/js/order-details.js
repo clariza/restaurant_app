@@ -150,7 +150,7 @@ function updateOrderDetails() {
                     <button type="button" onclick="increaseItemQuantity(${index})" class="text-green-600 font-bold text-sm hover:text-green-800 mr-2 transition-colors">+</button>
                     <p class="text-[#203363]">${item.name} (x${item.quantity})</p>
                 </div>
-                <p class="text-[#203363]">$${(item.price * item.quantity).toFixed(2)}</p>
+                <p class="text-[#203363]">Bs${(item.price * item.quantity).toFixed(2)}</p>
             `;
             orderDetails.appendChild(itemElement);
         });

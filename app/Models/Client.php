@@ -16,7 +16,7 @@ class Client extends Model
         'email',
         'document_type',
         'document_number',
-        'address',
+        'birthdays',
         'city',
         'notes',
         'is_active'
@@ -24,6 +24,7 @@ class Client extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'birthdays' => 'date',
     ];
 
     // Accessor para nombre completo

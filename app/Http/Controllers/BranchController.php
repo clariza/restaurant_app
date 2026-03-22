@@ -42,8 +42,8 @@ class BranchController extends Controller
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
+            'ciudad' => 'nullable|string|max:100',
+            'departamento' => 'nullable|string|max:100',
             'is_active' => 'boolean',
             'is_main' => 'boolean',
         ]);
@@ -99,8 +99,8 @@ class BranchController extends Controller
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
+            'ciudad' => 'nullable|string|max:100',
+            'departamento' => 'nullable|string|max:100',
             'is_active' => 'boolean',
             'is_main' => 'boolean',
         ]);

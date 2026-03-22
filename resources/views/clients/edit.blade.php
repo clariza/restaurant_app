@@ -126,15 +126,15 @@
                     Ubicación
                 </h3>
                 <div class="grid grid-cols-1 gap-4">
-                    <!-- Dirección -->
+                    <!-- Cumpleaños -->
                     <div>
-                        <label for="address" class="block text-sm font-medium text-[var(--primary-color)]">
-                            Dirección
+                        <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
+                            Fecha de Cumpleaños
                         </label>
-                        <input type="text" name="address" id="address" value="{{ old('address', $client->address) }}"
-                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('address') border-red-500 @enderror"
-                            placeholder="Ej: Calle 123, Zona Centro">
-                        @error('address')
+                        <input type="date" name="birthdays" id="birthdays" value="{{ old('birthdays', $client->birthdays) }}"
+                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('birthdays') border-red-500 @enderror"
+                            placeholder="Ej: 1990-01-01">
+                        @error('birthdays')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

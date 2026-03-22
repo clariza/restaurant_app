@@ -42,7 +42,7 @@ class ClientController extends Controller
             'email' => 'nullable|email|unique:clients,email',
             'document_type' => 'required|in:CI,NIT,Pasaporte',
             'document_number' => 'nullable|string|max:50|unique:clients,document_number',
-            'address' => 'nullable|string',
+            'birthdays' => 'nullable|date',
             'city' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
             'is_active' => 'boolean'
@@ -75,7 +75,7 @@ class ClientController extends Controller
             'email' => 'nullable|email|unique:clients,email,' . $client->id,
             'document_type' => 'required|in:CI,NIT,Pasaporte',
             'document_number' => 'nullable|string|max:50|unique:clients,document_number,' . $client->id,
-            'address' => 'nullable|string',
+            'birthdays' => 'nullable|date',
             'city' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
             'is_active' => 'boolean'

@@ -456,8 +456,8 @@
                     <tr>
                         <td class="item-name">{{ $item->menuItem->name ?? 'Producto eliminado' }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>${{ number_format($item->price, 2) }}</td>
-                        <td>${{ number_format($item->quantity * $item->price, 2) }}</td>
+                        <td>Bs. {{ number_format($item->price, 2) }}</td>
+                        <td>Bs. {{ number_format($item->quantity * $item->price, 2) }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -469,26 +469,26 @@
             <div class="totals">
                 <div class="total-row subtotal">
                     <span>Subtotal</span>
-                    <span>${{ number_format($order->subtotal, 2) }}</span>
+                    <span>Bs. {{ number_format($order->subtotal, 2) }}</span>
                 </div>
                 
                 @if($order->tax > 0)
                 <div class="total-row">
                     <span>Impuesto ({{ config('restaurant.tax_rate', 13) }}%)</span>
-                    <span>${{ number_format($order->tax, 2) }}</span>
+                    <span>Bs. {{ number_format($order->tax, 2) }}</span>
                 </div>
                 @endif
                 
                 @if($order->discount > 0)
                 <div class="total-row">
                     <span>Descuento</span>
-                    <span>-${{ number_format($order->discount, 2) }}</span>
+                    <span>-Bs. {{ number_format($order->discount, 2) }}</span>
                 </div>
                 @endif
                 
                 <div class="total-row grand-total">
                     <span>Total</span>
-                    <span>${{ number_format($order->total, 2) }}</span>
+                    <span>Bs. {{ number_format($order->total, 2) }}</span>
                 </div>
             </div>
         </div>
