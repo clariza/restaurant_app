@@ -41,21 +41,27 @@ class ItemsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'name' => 'required|string',
-        'description' => 'nullable|string',
-        'price' => 'required|numeric',
-        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'image_url' => 'nullable|url|max:500',
-        'category_id' => 'required|exists:categories,id',
-        'stock' => 'nullable|numeric|min:0',
-        'min_stock' => 'nullable|numeric|min:0',
-        'stock_type' => 'nullable|in:discrete,continuous',
-        'stock_unit' => 'nullable|string|max:50',
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|url|max:500',
+            'category_id' => 'required|exists:categories,id',
+            'stock' => 'nullable|numeric|min:0',
+            'min_stock' => 'nullable|numeric|min:0',
+            'stock_type' => 'nullable|in:discrete,continuous',
+            'stock_unit' => 'nullable|string|max:50',
         ]);
 
         $data = $request->only([
-        'name', 'description', 'price', 'category_id',
-        'stock', 'min_stock', 'stock_type', 'stock_unit',
+            'name',
+            'description',
+            'price',
+            'category_id',
+            'stock',
+            'min_stock',
+            'stock_type',
+            'stock_unit',
         ]);
         // Asignar automáticamente la sucursal principal
         $mainBranch = Branch::where('is_main', true)->first();
@@ -105,20 +111,19 @@ class ItemsController extends Controller
     // Actualizar un producto
     public function update(Request $request, MenuItem $item)
     {
-       $request->validate([
-        'name' => 'required|string',
-        'description' => 'nullable|string',
-        'price' => 'required|numeric',
-        'image' => 'nullable|string',
-        'category_id' => 'required|exists:categories,id',
-        
-        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'image_url' => 'nullable|url|max:500',
-        'stock' => 'nullable|numeric|min:0',
-        'min_stock' => 'nullable|numeric|min:0',
-        'stock_type' => 'nullable|in:discrete,continuous',
-        'stock_unit' => 'nullable|string|max:50',
-    ]);
+        $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'image' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|url|max:500',
+            'stock' => 'nullable|numeric|min:0',
+            'min_stock' => 'nullable|numeric|min:0',
+            'stock_type' => 'nullable|in:discrete,continuous',
+            'stock_unit' => 'nullable|string|max:50',
+        ]);
 
         $data = $request->only([
             'name',

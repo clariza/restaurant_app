@@ -2,113 +2,123 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MenuItem;
+use App\Models\Branch;
+use App\Models\BranchMenuItemStock;
 use App\Models\InventoryMovement;
-use Illuminate\Http\Request;
+use App\Models\MenuItem;
 use App\Models\PettyCash;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class InventoryController extends Controller
 {
-    public function index()
+    // En el controlador index():
+    public function index(Request $request)
     {
-        // Solo cargar productos con gestión de inventario habilitada
+        $branchId = $request->get(
+            'branch_id',
+            Branch::where('is_main', true)->first()?->id
+        );
+
+        $branches = Branch::where('is_active', true)->get();
+
         $items = MenuItem::where('manage_inventory', true)
-            ->with('category')
+            ->with(['category', 'branchStocks' => function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            }])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($item) use ($branchId) {
+                // Adjuntar el stock de la sucursal como atributo virtual
+                $item->branch_stock = $item->branchStocks->first()?->stock ?? 0;
+                $item->branch_min_stock = $item->branchStocks->first()?->min_stock
+                    ?? $item->min_stock;
+                return $item;
+            });
+
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('inventory.index', compact('items', 'hasOpenPettyCash'));
+
+        return view('inventory.index', compact(
+            'items',
+            'branches',
+            'branchId',
+            'hasOpenPettyCash'
+        ));
     }
 
     public function updateStock(Request $request)
     {
-        Log::info('updateStock llamado', ['request' => $request->all()]);
-        // Validación de entrada
         $request->validate([
-            'item_id' => 'required|exists:menu_items,id',
-            'quantity' => 'required|numeric|min:0.01',
+            'item_id'       => 'required|exists:menu_items,id',
+            'branch_id'     => 'required|exists:branches,id',
+            'quantity'      => 'required|numeric|min:0.01',
             'movement_type' => 'required|in:addition,subtraction',
-            'notes' => 'nullable|string|max:255'
+            'notes'         => 'nullable|string|max:255',
         ]);
+
+        // Fallback por si no llega branch_id
+        $branchId = $request->branch_id
+            ?? Branch::where('is_main', true)->first()?->id
+            ?? Branch::first()?->id;
 
         try {
             DB::beginTransaction();
 
             $item = MenuItem::findOrFail($request->item_id);
 
-            // Verificar que el producto tenga gestión de inventario habilitada
             if (!$item->manage_inventory) {
                 DB::rollBack();
-                return back()->withErrors(['error' => 'Este producto no tiene la gestión de inventario habilitada.']);
+                return back()->withErrors(['error' => 'Producto sin gestión de inventario.']);
             }
 
-            // Obtener usuario autenticado - CORRECCIÓN PRINCIPAL
             $user = auth()->user();
-
-            // Verificar que hay un usuario autenticado
             if (!$user) {
                 DB::rollBack();
-                Log::error('No hay usuario autenticado al intentar actualizar stock');
-                return back()->withErrors(['error' => 'Debe estar autenticado para realizar esta acción.']);
+                return back()->withErrors(['error' => 'Debe estar autenticado.']);
             }
 
-            $oldStock = $item->stock;
+            $branchStock = BranchMenuItemStock::firstOrCreate(
+                ['branch_id' => $branchId, 'menu_item_id' => $item->id],
+                ['stock' => $item->stock, 'min_stock' => $item->min_stock]
+            );
 
-            // Validar stock suficiente para sustracciones
-            if ($request->movement_type === 'subtraction' && $request->quantity > $item->stock) {
+            if (
+                $request->movement_type === 'subtraction'
+                && $request->quantity > $branchStock->stock
+            ) {
                 DB::rollBack();
-                Log::warning('Validación fallida: stock insuficiente', [
-                    'item_id' => $item->id,
-                    'stock_actual' => $item->stock,
-                    'cantidad_solicitada' => $request->quantity
-                ]);
                 return back()->withErrors([
-                    'quantity' => 'No hay suficiente stock disponible. Stock actual: ' . $item->stock
+                    'quantity' => 'Stock insuficiente en esta sucursal. Stock actual: '
+                        . $branchStock->stock
                 ]);
             }
 
-            // Calcular nuevo stock
-            $newStock = $request->movement_type === 'addition'
-                ? $item->stock + $request->quantity
-                : $item->stock - $request->quantity;
+            $oldStock  = $branchStock->stock;
+            $newStock  = $request->movement_type === 'addition'
+                ? $branchStock->stock + $request->quantity
+                : $branchStock->stock - $request->quantity;
 
-            // Actualizar el item
-            $item->stock = $newStock;
-            $item->save();
+            $branchStock->stock = $newStock;
+            $branchStock->save();
 
-            // Registrar el movimiento
-            $movement = InventoryMovement::create([
-                'menu_item_id' => $item->id,
-                'user_id' => $user->id,
+            InventoryMovement::create([
+                'menu_item_id'  => $item->id,
+                'branch_id'     => $branchId,
+                'user_id'       => $user->id,
                 'movement_type' => $request->movement_type,
-                'quantity' => $request->quantity,
-                'old_stock' => $oldStock,
-                'new_stock' => $newStock,
-                'notes' => $request->notes
+                'quantity'      => $request->quantity,
+                'old_stock'     => $oldStock,
+                'new_stock'     => $newStock,
+                'notes'         => $request->notes,
             ]);
 
             DB::commit();
-
-            Log::info('Stock actualizado correctamente', [
-                'item_id' => $item->id,
-                'movement_id' => $movement->id,
-                'old_stock' => $oldStock,
-                'new_stock' => $newStock,
-                'user_id' => $user->id
-            ]);
-
-            return back()->with('success', 'Stock actualizado correctamente');
+            return back()->with('success', 'Stock actualizado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error en updateStock', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
-            return back()->withErrors(['error' => 'Error al actualizar el stock: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error: ' . $e->getMessage()]);
         }
     }
 
@@ -145,49 +155,30 @@ class InventoryController extends Controller
         return view('inventory.movements', compact('movements', 'hasOpenPettyCash'));
     }
 
+    // Mantener solo itemMovements y eliminar getMovements, o viceversa.
+    // El que uses debe incluir branch_id en la respuesta:
+
     public function itemMovements($id)
     {
         try {
-            Log::info('itemMovements llamado', ['item_id' => $id]);
-
-            // Buscar el item
             $item = MenuItem::find($id);
 
             if (!$item) {
-                Log::warning('Item no encontrado', ['item_id' => $id]);
-                return response()->json([
-                    'error' => 'Producto no encontrado'
-                ], 404);
+                return response()->json(['error' => 'Producto no encontrado'], 404);
             }
 
-            // Verificar que el producto tenga gestión de inventario
             if (!$item->manage_inventory) {
-                Log::warning('Item sin gestión de inventario', ['item_id' => $id]);
-                return response()->json([
-                    'error' => 'Este producto no tiene gestión de inventario'
-                ], 403);
+                return response()->json(['error' => 'Sin gestión de inventario'], 403);
             }
 
-            // Obtener movimientos
             $movements = InventoryMovement::where('menu_item_id', $id)
-                ->with(['user', 'menuItem'])
+                ->with(['user', 'menuItem', 'branch']) // ← agregar branch
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
 
-            Log::info('Movimientos encontrados', [
-                'item_id' => $id,
-                'count' => $movements->count()
-            ]);
-
             return response()->json($movements);
         } catch (\Exception $e) {
-            Log::error('Error en itemMovements', [
-                'item_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
             return response()->json([
                 'error' => 'Error al cargar movimientos: ' . $e->getMessage()
             ], 500);

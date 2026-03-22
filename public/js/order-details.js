@@ -1286,11 +1286,11 @@ function generateTicketContent(dailyOrderNumber) {
     const isConvertingProforma = localStorage.getItem('convertingProforma') === 'true';
 
     if (isConvertingProforma) {
-    // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
-    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+        // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
+        if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
     } else {
-    // Pedido normal: solo notas del pedido
-    if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+        // Pedido normal: solo notas del pedido
+        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
     }
 
     // Las notas de recoger son independientes y siempre aplican si corresponde
@@ -1531,8 +1531,8 @@ async function generateTicketContentAsync(dailyOrderNumber) {
     const isConvertingProforma = localStorage.getItem('convertingProforma') === 'true';
 
     if (isConvertingProforma) {
-    // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
-    if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+        // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
+        if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
     } else {
         // Pedido normal: solo notas del pedido
         if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
@@ -2338,7 +2338,7 @@ async function saveProforma(event) {
         order.forEach(item => {
             if (item.manage_inventory) {
                 const newStock = item.stock - item.quantity;
-                
+
                 // Usar la función global updateStockBadge
                 if (typeof window.updateStockBadge === 'function') {
                     window.updateStockBadge(
@@ -2349,7 +2349,7 @@ async function saveProforma(event) {
                         item.stock_unit,
                         item.manage_inventory
                     );
-                    
+
                     console.log(`✅ Badge actualizado para ${item.name}: ${item.stock} → ${newStock}`);
                 }
             }
@@ -3349,79 +3349,25 @@ function checkProformaConversion() {
         const order = JSON.parse(localStorage.getItem('order')) || [];
         const isConverting = localStorage.getItem('convertingProforma') === 'true';
         const proformaId = localStorage.getItem('proformaId');
+
         if (!isConverting || !proformaId) {
             console.warn('⚠️ Banderas de conversión inválidas, limpiando');
             clearProformaConversionFlags();
+            window.history.replaceState({}, document.title, window.location.pathname);
             return;
         }
 
+        // ✅ Solo actualizar el panel del pedido, sin abrir el modal
         if (order.length > 0 && isConverting && proformaId) {
-            console.log('✅ Abriendo modal automáticamente...');
-
-            setTimeout(() => {
-                if (typeof updateOrderDetails === 'function') {
-                    updateOrderDetails();
-                }
-
-                if (typeof window.openPaymentModal === 'function') {
-                    window.openPaymentModal();
-                } else if (typeof showPaymentModal === 'function') {
-                    showPaymentModal();
-                }
-
-                setTimeout(() => {
-                    const proformaId = localStorage.getItem('proformaId');
-                    if (proformaId && typeof showProformaConversionBanner === 'function') {
-                        showProformaConversionBanner(proformaId);
-                    }
-                }, 500);
-
-            }, 1000);
+            console.log('✅ Datos de proforma cargados — actualizando vista');
+            if (typeof updateOrderDetails === 'function') {
+                updateOrderDetails();
+            }
         }
 
-        setTimeout(() => {
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }, 2000);
+        // Limpiar el parámetro de la URL
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
-}
-function showProformaConversionBanner(proformaId) {
-    const modalContent = document.querySelector('#payment-modal .payment-modal-content');
-    if (!modalContent || document.querySelector('.proforma-conversion-banner')) {
-        return;
-    }
-
-    const infoBanner = document.createElement('div');
-    infoBanner.className = 'proforma-conversion-banner';
-    infoBanner.style.cssText = `
-        background: linear-gradient(135deg, #EF476F, #ff6b8a);
-        color: white;
-        padding: 16px 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
-        animation: slideInDown 0.5s ease-out;
-    `;
-
-    const convertingNotes = localStorage.getItem('proformaNotes') || '';
-
-    infoBanner.innerHTML = `
-        <i class="fas fa-file-invoice" style="font-size: 1.8rem;"></i>
-        <div style="flex: 1;">
-            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">
-                🔄 Convirtiendo Proforma a Orden
-            </div>
-            <div style="font-size: 0.9rem; opacity: 0.95;">
-                Proforma ID: PROF-${proformaId}
-                ${convertingNotes ? ` • ${convertingNotes}` : ''}
-            </div>
-        </div>
-        <i class="fas fa-arrow-right" style="font-size: 1.3rem;"></i>
-    `;
-
-    modalContent.insertBefore(infoBanner, modalContent.firstChild);
 }
 
 
@@ -3520,7 +3466,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.checkProformaConversion = checkProformaConversion;
-window.showProformaConversionBanner = showProformaConversionBanner;
 // ========== ESTILOS PARA LA ANIMACIÓN ==========
 const style = document.createElement('style');
 style.textContent = `
