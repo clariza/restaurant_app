@@ -892,6 +892,7 @@
     };
     window.csrfToken = "<?php echo e(csrf_token()); ?>";
     window.authUserName = "<?php echo e(Auth::user()->name ?? ''); ?>";
+    window.isAdmin = <?php echo e(auth()->user()->role === 'admin' ? 'true' : 'false'); ?>;
     window.tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false, 15, 512) ?>;
     console.log('🌍 Variables globales configuradas');
     console.log('📦 Estado caja chica:', window.pettyCashData);
@@ -1300,8 +1301,8 @@ console.log('🏢 Información de sucursal cargada:', {
     }
 </script>
 <div id="petty-cash-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background: rgba(0, 0, 0, 0.5);">
-    <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+    <div class="flex items-start justify-center min-h-screen px-4 py-2">
+        <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[92vh] overflow-hidden flex flex-col">
             <!-- Header del Modal -->
             <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                 <h2 class="text-xl font-semibold text-gray-800">
@@ -1315,7 +1316,7 @@ console.log('🏢 Información de sucursal cargada:', {
             </div>
 
             <!-- Contenido del Modal -->
-            <div id="petty-cash-content" class="overflow-y-auto" style="max-height: calc(90vh - 70px);">
+            <div id="petty-cash-content" class="overflow-y-auto flex-1">
                 <!-- El contenido se cargará aquí dinámicamente -->
                 <div class="flex items-center justify-center p-12">
                     <div class="text-center">

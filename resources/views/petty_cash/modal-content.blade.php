@@ -9,7 +9,7 @@
         
         <!-- Header del modal -->
         <div class="closure-header">
-            <h3 class="closure-title">Cierre de Caja Chica</h3>
+            <h3 class="closure-title"><i class="fas fa-cash-register mr-3"></i>Cierre de Caja Chica</h3>
         </div>
 
         <!-- Contenido desplazable -->
@@ -50,6 +50,7 @@
                                        name="expense_amount[]"
                                        autocomplete="off">
                             </div>
+                            @if(auth()->user()->role === 'admin')
                             <div class="expense-actions">
                                 <button type="button" 
                                         class="btn btn-danger" 
@@ -58,6 +59,7 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -218,6 +220,13 @@
 {{-- ESTILOS DEL MODAL DE CIERRE --}}
 {{-- ============================================ --}}
 <style>
+    .closure-internal-modal {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
     #modal-closure-internal {
         position: fixed;
         top: 50%;
@@ -229,9 +238,8 @@
         flex-direction: column;
         border-radius: 0.75rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        width: 95%;
-        max-width: 900px;
-        max-height: 85vh;
+        width: 60vw;
+        height: 80vh;
         overflow: hidden;
         opacity: 0;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -277,7 +285,7 @@
     .closure-header {
         padding: 1.5rem;
         border-bottom: 1px solid #e5e7eb;
-        background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        background-color: #203363;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -287,7 +295,7 @@
     .closure-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #1f2937;
+        color: white;
         margin: 0;
         display: flex;
         align-items: center;
@@ -303,11 +311,11 @@
         background: none;
         border: none;
         font-size: 1.5rem;
-        color: #6b7280;
+        color: white;
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 0.375rem;
-        transition: all 0.2s;
+        transition: color 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -316,9 +324,7 @@
     }
     
     .closure-close-btn:hover {
-        background: #fee2e2;
-        color: #dc2626;
-        transform: rotate(90deg);
+        color: #d1d5db;
     }
 
     /* ========================================== */
@@ -328,9 +334,10 @@
     .closure-scroll-content {
         padding: 1.5rem;
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
-        max-height: calc(85vh - 90px);
+        max-height: none;
     }
 
     .closure-scroll-content::-webkit-scrollbar {

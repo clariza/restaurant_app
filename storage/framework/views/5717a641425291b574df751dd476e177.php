@@ -272,7 +272,8 @@
         background-color: rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
+        padding: 0.75rem 1rem;
         z-index: 1000;
         opacity: 0;
         visibility: hidden;
@@ -288,13 +289,14 @@
         background-color: white;
         border-radius: 0.75rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        width: 90%;
-        max-width: 900px;
-        max-height: 90vh;
-        overflow-y: auto;
+        width: 60vw;
+        height: 90vh;
+        max-height: calc(100vh - 1.5rem);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         transform: translateY(20px);
         transition: transform 0.3s ease;
-        padding: 2rem;
     }
 
     .modal-overlay.active .modal-container {
@@ -302,25 +304,26 @@
     }
 
     .modal-header {
-        padding: 1.5rem 0;
+        padding: 1.5rem;
         border-bottom: 1px solid #e5e7eb;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
+        background-color: #203363;
+        flex-shrink: 0;
     }
 
     .modal-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #1f2937;
+        color: white;
     }
 
     .modal-close {
         background: none;
         border: none;
         font-size: 1.75rem;
-        color: #6b7280;
+        color: white;
         cursor: pointer;
         transition: color 0.2s;
         padding: 0.5rem;
@@ -328,13 +331,17 @@
     }
 
     .modal-close:hover {
-        color: #1f2937;
+        color: #d1d5db;
     }
 
     .modal-content {
         display: flex;
         flex-direction: column;
         gap: 2rem;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 1.5rem;
     }
 
 
@@ -626,9 +633,8 @@
     flex-direction: column;
     border-radius: 0.75rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 95%;
-    max-width: 900px;
-    max-height: 85vh;
+    width: 60vw;
+    height: 60vh;
     overflow: hidden;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1268,7 +1274,7 @@
 <div id="modal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <h3 class="modal-title">Cierre de Caja Chica</h3>
+            <h3 class="modal-title"><i class="fas fa-cash-register mr-3"></i>Cierre de Caja Chica</h3>
             <button onclick="closeModal()" class="modal-close">
                 <i class="fas fa-times"></i>
             </button>

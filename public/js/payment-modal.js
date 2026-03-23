@@ -1006,6 +1006,7 @@ function updateNoPaymentsMessage() {
  */
 function addExpenseModalClosure() {
     console.log('➕ Agregando nueva fila de gasto en modal de cierre...');
+    const canDeleteExpenses = window.isAdmin === true;
 
     const container = document.getElementById('expensesContainerClosure');
 
@@ -1043,6 +1044,7 @@ function addExpenseModalClosure() {
                    autocomplete="off"
                    oninput="actualizarTotalGastosClosure()">
         </div>
+        ${canDeleteExpenses ? `
         <div class="expense-actions">
             <button type="button" 
                     class="btn btn-danger" 
@@ -1050,7 +1052,7 @@ function addExpenseModalClosure() {
                     aria-label="Eliminar gasto">
                 <i class="fas fa-trash"></i>
             </button>
-        </div>
+        </div>` : ''}
     `;
 
     // Agregar animación de entrada
@@ -1076,6 +1078,11 @@ function addExpenseModalClosure() {
  */
 function removeExpenseClosure(button) {
     console.log('🗑️ Eliminando fila de gasto...');
+
+    if (window.isAdmin !== true) {
+        console.warn('⛔ Usuario sin permisos para eliminar gastos en este modal');
+        return;
+    }
 
     const expenseRow = button.closest('.expense-row');
     const container = document.getElementById('expensesContainerClosure');

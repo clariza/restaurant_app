@@ -10,10 +10,22 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $expenses = Expense::orderBy('date', 'desc')->get();
+        // Obtener la caja chica abierta del usuario actual
         $openPettyCash = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
             ->first();
+
+        // Filtrar gastos según el rol del usuario
+        if (auth()->user()->role === 'admin') {
+            // Administradores ven todos los gastos
+            $expenses = Expense::orderBy('date', 'desc')->get();
+        } else {
+            // Usuarios regulares solo ven gastos de cajas abiertas
+            $openPettyCashIds = PettyCash::where('status', 'open')->pluck('id');
+            $expenses = Expense::whereIn('petty_cash_id', $openPettyCashIds)
+                ->orderBy('date', 'desc')
+                ->get();
+        }
 
         // Si la petición solicita JSON
         if ($request->wantsJson() || $request->has('json')) {
@@ -86,17 +98,59 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense)
     {
+        // Verificar permisos para usuarios no administradores
+        if (auth()->user()->role !== 'admin') {
+            // Verificar si el gasto pertenece a una caja chica abierta
+            $isFromOpenPettyCash = PettyCash::where('id', $expense->petty_cash_id)
+                ->where('status', 'open')
+                ->exists();
+
+            if (!$isFromOpenPettyCash) {
+                abort(403, 'No tienes permiso para ver este gasto.');
+            }
+        }
+
         return view('expenses.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
+        // Verificar permisos para usuarios no administradores
+        if (auth()->user()->role !== 'admin') {
+            // Verificar si el gasto pertenece a una caja chica abierta
+            $isFromOpenPettyCash = PettyCash::where('id', $expense->petty_cash_id)
+                ->where('status', 'open')
+                ->exists();
+
+            if (!$isFromOpenPettyCash) {
+                abort(403, 'No tienes permiso para editar este gasto.');
+            }
+        }
+
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         return view('expenses.edit', compact('expense', 'hasOpenPettyCash'));
     }
 
     public function update(Request $request, Expense $expense)
     {
+        // Verificar permisos para usuarios no administradores
+        if (auth()->user()->role !== 'admin') {
+            // Verificar si el gasto pertenece a una caja chica abierta
+            $isFromOpenPettyCash = PettyCash::where('id', $expense->petty_cash_id)
+                ->where('status', 'open')
+                ->exists();
+
+            if (!$isFromOpenPettyCash) {
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No tienes permiso para actualizar este gasto'
+                    ], 403);
+                }
+                abort(403, 'No tienes permiso para actualizar este gasto.');
+            }
+        }
+
         $validated = $request->validate([
             'expense_name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -120,6 +174,18 @@ class ExpenseController extends Controller
 
     public function destroy(Request $request, Expense $expense)
     {
+        // Verificar que el usuario sea administrador
+        if (auth()->user()->role !== 'admin') {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes permisos para eliminar gastos'
+                ], 403);
+            }
+            return redirect()->route('expenses.index')
+                ->with('error', 'No tienes permisos para eliminar gastos');
+        }
+
         $expense->delete();
 
         if ($request->wantsJson()) {

@@ -191,6 +191,8 @@ window.addExpenseRow = function (name = '', description = '', amount = '') {
         return;
     }
 
+    const canDeleteExpenses = window.isAdmin === true;
+
     const newExpenseRow = document.createElement('div');
     newExpenseRow.className = 'expense-row';
     newExpenseRow.innerHTML = `
@@ -209,12 +211,13 @@ window.addExpenseRow = function (name = '', description = '', amount = '') {
                    placeholder="Monto" step="0.01" min="0" name="expense_amount[]" 
                    value="${amount}">
         </div>
+        ${canDeleteExpenses ? `
         <div class="expense-actions">
             <button type="button" class="btn btn-outline-danger btn-sm remove-expense-btn" 
                     onclick="removeExpense(this)">
                 <i class="fas fa-trash"></i>
             </button>
-        </div>
+        </div>` : ''}
     `;
     expensesContainer.appendChild(newExpenseRow);
     console.log('➕ Fila de gasto agregada');
@@ -230,6 +233,11 @@ window.addExpense = function () {
  * Eliminar fila de gasto
  */
 window.removeExpense = function (button) {
+    if (window.isAdmin !== true) {
+        console.warn('⛔ Usuario sin permisos para eliminar gastos en este modal');
+        return;
+    }
+
     const expenseRow = button.closest('.expense-row');
     const container = document.getElementById('expensesContainer');
 

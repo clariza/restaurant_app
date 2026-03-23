@@ -125,7 +125,7 @@
                             
                             <div>
                                 <label for="expense-amount" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Monto (S/) *
+                                    Monto (Bs.) *
                                 </label>
                                 <input type="number" 
                                        id="expense-amount" 
@@ -231,7 +231,7 @@
 <!-- ✅ NUEVO: Modal de Caja Chica -->
 <div id="petty-cash-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[9999] overflow-y-auto">
     <div class="flex items-start justify-center min-h-screen pt-4 px-4 pb-20">
-        <div class="bg-white rounded-lg w-full max-w-7xl my-8 shadow-xl transform transition-all">
+        <div class="bg-white rounded-lg w-[60vw] h-[60vh] my-8 shadow-xl transform transition-all">
             <!-- Header del Modal -->
             <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-[#203363]">
                 <h2 class="text-2xl font-bold text-white flex items-center">
@@ -244,7 +244,7 @@
             </div>
 
             <!-- Contenido del Modal -->
-            <div id="petty-cash-content" class="p-6 max-h-[80vh] overflow-y-auto">
+            <div id="petty-cash-content" class="p-6 max-h-[calc(60vh-120px)] overflow-y-auto">
                 <!-- El contenido se cargará dinámicamente aquí -->
                 <div class="flex justify-center items-center py-12">
                     <div class="text-center">
@@ -280,6 +280,7 @@ window.routes = {
 };
 window.csrfToken = "{{ csrf_token() }}";
 window.authUserName = "{{ Auth::user()->name ?? '' }}";
+window.isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
 window.tablesEnabled = @json($settings->tables_enabled ?? false);
 
 
@@ -434,10 +435,12 @@ function renderExpensesTable() {
                                     class="text-blue-600 hover:text-blue-800 mr-3 transition duration-200">
                                 <i class="fas fa-edit mr-1"></i>Editar
                             </button>
+                            ${window.isAdmin ? `
                             <button onclick="deleteExpense(${expense.id})" 
                                     class="text-red-600 hover:text-red-800 transition duration-200">
                                 <i class="fas fa-trash-alt mr-1"></i>Eliminar
                             </button>
+                            ` : ''}
                         </td>
                     </tr>
                 `).join('')}

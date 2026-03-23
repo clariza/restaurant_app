@@ -49,6 +49,7 @@
                            class="text-[var(--blue)] hover:text-[var(--primary-light)] mr-3 transition duration-200">
                             <i class="fas fa-edit mr-1"></i>Editar
                         </a>
+                        @if(auth()->user()->role === 'admin')
                         <form action="{{ route('expenses.destroy', $expense->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
@@ -58,6 +59,7 @@
                                 <i class="fas fa-trash-alt mr-1"></i>Eliminar
                             </button>
                         </form>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

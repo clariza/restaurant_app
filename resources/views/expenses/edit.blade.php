@@ -37,7 +37,7 @@
             
             <!-- Monto -->
             <div class="mb-4">
-                <label for="amount" class="input-label">Monto (S/)</label>
+                <label for="amount" class="input-label">Monto (Bs.)</label>
                 <input type="number" name="amount" id="amount" step="0.01" 
                        class="modal-input" 
                        placeholder="0.00"
