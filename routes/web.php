@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
@@ -139,6 +140,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('items', ItemsController::class);
 
     // ─── CATEGORIES ──────────────────────────────────────────────
+    // Justo antes o después del resource de categories
+    Route::post('/categories/reorder', [CategoryController::class, 'reorder'])
+        ->name('categories.reorder')
+        ->middleware('auth');
     Route::resource('categories', CategoryController::class);
 
     // ─── SUPPLIERS ───────────────────────────────────────────────
@@ -250,3 +255,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
     Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
 });
+Route::get('/api/items/stock', [InventoryController::class, 'getItemsStock'])
+    ->middleware('auth')
+    ->name('api.items.stock');

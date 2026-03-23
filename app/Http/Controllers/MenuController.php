@@ -55,8 +55,18 @@ class MenuController extends Controller
             $q->with(['branchStocks' => function ($sq) use ($currentBranchId) {
                 $sq->where('branch_id', $currentBranchId);
             }]);
-        }])->get();
-        // $categories = Category::with('menuItems')->get();
+        }])
+            ->orderBy('order', 'asc')  // ← agregar esto
+            ->get();
+
+        $categories->each(function ($category) {
+            $category->menuItems->each(function ($item) {
+                $branchStock = $item->branchStocks->first();
+                $item->branch_stock     = $branchStock?->stock     ?? $item->stock;
+                $item->branch_min_stock = $branchStock?->min_stock ?? $item->min_stock;
+            });
+        });
+
         $tables = Table::all();
 
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
@@ -76,7 +86,8 @@ class MenuController extends Controller
             'showOrderDetails' => true,
             'deliveryServices' => $deliveryServices,
             'settings' => $settings,
-            'openPettyCash' => $openPettyCash
+            'openPettyCash' => $openPettyCash,
+            'currentBranchId'  => $currentBranchId,
         ]);
     }
     public function available()

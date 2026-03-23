@@ -169,22 +169,22 @@
                 @foreach ($category->menuItems as $item)
                     <div class="border rounded-lg p-4 flex flex-col items-center hover:shadow-lg transition-shadow relative"
                          data-item-id="{{ $item->id }}"
-                         data-stock-type="{{ $item->stock_type }}"
-                         data-stock="{{ $item->stock }}"
-                         data-stock-unit="{{ $item->stock_unit }}"
+                         data-stock-type="{{ $item->branch_stock_type }}"
+                         data-stock="{{ $item->branch_stock }}"
+                         data-stock-unit="{{ $item->branch_stock_unit }}"
                          data-min-stock="{{ $item->min_stock }}">
                          
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
                             @if($item->manage_inventory)
                             <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
-                                @if($item->stock <= 0) bg-gray-500 text-white
-                                @elseif($item->stock < $item->min_stock) bg-yellow-500 text-white
+                                @if($item->branch_stock <= 0) bg-gray-500 text-white
+                                @elseif($item->branch_stock < $item->min_stock) bg-yellow-500 text-white
                                 @else bg-green-500 text-white @endif">
-                                @if($item->stock_type == 'discrete')
-                                {{ (int)$item->stock }} UNI
+                                @if($item->branch_stock_type == 'discrete')
+                                {{ (int)$item->branch_stock }} UNI
                                  @else
-                                {{ (int)$item->stock }} {{ strtoupper($item->stock_unit) }}
+                                {{ (int)$item->branch_stock }} {{ strtoupper($item->branch_stock_unit) }}
                                 @endif
                                 </span>
                             @endif
@@ -222,15 +222,15 @@
                                 'id' => $item->id,
                                 'name' => $item->name,
                                 'price' => $item->price,
-                                'stock' => $item->stock,
-                                'stock_type' => $item->stock_type,
-                                'stock_unit' => $item->stock_unit,
+                                'stock' => $item->branch_stock,
+                                'stock_type' => $item->branch_stock_type,
+                                'stock_unit' => $item->branch_stock_unit,
                                 'min_stock' => $item->min_stock,
                                 'manage_inventory' => $item->manage_inventory
                                 ]) }}, event); return false;" 
         class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
-               @if($item->manage_inventory && $item->stock <= 0) opacity-50 cursor-not-allowed @endif"
-        @if($item->manage_inventory && $item->stock <= 0) disabled @endif>
+               @if($item->manage_inventory && $item->branch_stock <= 0) opacity-50 cursor-not-allowed @endif"
+        @if($item->manage_inventory && $item->branch_stock <= 0) disabled @endif>
     Agregar
 </button>
                         </div>
@@ -927,9 +927,41 @@ button[disabled] {
 
 @push('scripts')
 <script>
+async function syncStockFromServer() {
+    try {
+        const branchId = {{ $currentBranchId ?? 'null' }};
+        const url = '/api/items/stock' + (branchId ? '?branch_id=' + branchId : '');
+
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            }
+        });
+
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data.success) return;
+
+        data.data.forEach(item => {
+            if (typeof window.updateStockBadge === 'function') {
+                window.updateStockBadge(
+                    item.id,
+                    item.stock,
+                    item.min_stock,
+                    item.stock_type,
+                    item.stock_unit,
+                    true
+                );
+            }
+        });
+    } catch (e) {
+        console.warn('Stock sync silenciado:', e);
+    }
+}
 
 // Función mejorada para filtrar órdenes
-    function filterOrders(type) {
+function filterOrders(type) {
         const isAdmin = {{ auth()->user()->type === 'Admin' ? 'true' : 'false' }};
         document.querySelectorAll('.order-filters button').forEach(btn => {
             btn.classList.remove('bg-[#203363]', 'text-white');
@@ -1696,7 +1728,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+     syncStockFromServer();
+    const stockInterval = setInterval(syncStockFromServer, 30000);
+    window.addEventListener('beforeunload', () => clearInterval(stockInterval));
 });
+
     </script>
    
 @endpush

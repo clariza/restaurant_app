@@ -221,4 +221,28 @@ class InventoryController extends Controller
 
         return view('inventory.report', compact('movements', 'summary', 'startDate', 'endDate'));
     }
+    // Agregar esta ruta y método para que el menú pueda consultar stock actualizado
+    public function getItemsStock(Request $request)
+    {
+        $branchId = $request->get(
+            'branch_id',
+            Branch::where('is_main', true)->first()?->id
+        );
+
+        $items = MenuItem::where('is_available', true)
+            ->where('manage_inventory', true)
+            ->with(['branchStocks' => function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            }])
+            ->get()
+            ->map(fn($item) => [
+                'id'         => $item->id,
+                'stock'      => $item->branchStocks->first()?->stock      ?? $item->stock,
+                'min_stock'  => $item->branchStocks->first()?->min_stock  ?? $item->min_stock,
+                'stock_type' => $item->stock_type,
+                'stock_unit' => $item->stock_unit,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $items]);
+    }
 }

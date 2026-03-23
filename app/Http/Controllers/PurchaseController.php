@@ -150,28 +150,40 @@ class PurchaseController extends Controller
                     'expiry_date' => $productData['expiry_date'] ?? null,
                 ]);
 
-                // Actualizar el stock del producto
                 if ($product->manage_inventory) {
+                    $branchId = $validated['branch_id'];
+
+                    // ── 1. Actualizar BranchMenuItemStock (stock por sucursal) ──
+                    $branchStock = \App\Models\BranchMenuItemStock::firstOrCreate(
+                        ['branch_id' => $branchId, 'menu_item_id' => $product->id],
+                        ['stock' => 0, 'min_stock' => $product->min_stock]
+                    );
+
+                    $oldBranchStock = $branchStock->stock;
+                    $newBranchStock = $oldBranchStock + $quantity;
+                    $branchStock->stock = $newBranchStock;
+                    $branchStock->save();
+
+                    // ── 2. Actualizar MenuItem::stock global (suma de sucursales) ──
                     $oldStock = $product->stock;
                     $newStock = $oldStock + $quantity;
-
                     $product->stock = $newStock;
                     $product->save();
 
-                    // Obtener el nombre de la sucursal
-                    $branchName = \App\Models\Branch::find($validated['branch_id'])->name ?? 'N/A';
+                    // ── 3. Registrar movimiento con branch_id ──
+                    $branchName = \App\Models\Branch::find($branchId)->name ?? 'N/A';
 
-                    // Registrar movimiento de inventario
-                    $movement = InventoryMovement::create([
-                        'menu_item_id' => $product->id,
-                        'user_id' => Auth::id(),
+                    InventoryMovement::create([
+                        'menu_item_id'  => $product->id,
+                        'branch_id'     => $branchId,           // ← antes faltaba
+                        'user_id'       => Auth::id(),
                         'movement_type' => 'addition',
-                        'quantity' => $quantity,
-                        'old_stock' => $oldStock,
-                        'new_stock' => $newStock,
-                        'notes' => "Compra #" . $purchase->id .
+                        'quantity'      => $quantity,
+                        'old_stock'     => $oldBranchStock,      // ← stock de sucursal, no global
+                        'new_stock'     => $newBranchStock,
+                        'notes'         => "Compra #" . $purchase->id .
                             ($purchase->reference_number ? " - Ref: {$purchase->reference_number}" : "") .
-                            " - Sucursal: " . $branchName
+                            " - Sucursal: {$branchName}",
                     ]);
                 }
 
@@ -218,7 +230,7 @@ class PurchaseController extends Controller
             'products.*.unit_cost' => 'required|numeric|min:0',
             'products.*.discount' => 'nullable|numeric|min:0|max:100',
             'products.*.selling_price' => 'required|numeric|min:0',
-            'products.*.expiry_date' => 'nullable|date',
+            'products.*.expiry_date' => 'nullable|date|after_or_equal:today',
         ]);
 
         try {
@@ -260,7 +272,7 @@ class PurchaseController extends Controller
             'products.*.unit_cost' => 'required|numeric|min:0',
             'products.*.discount' => 'nullable|numeric|min:0|max:100',
             'products.*.selling_price' => 'required|numeric|min:0',
-            'products.*.expiry_date' => 'nullable|date',
+            'products.*.expiry_date' => 'nullable|date|after_or_equal:today',
         ]);
 
         if ($validator->fails()) {
@@ -312,44 +324,68 @@ class PurchaseController extends Controller
         });
     }
 
-    protected function processPurchaseProducts($purchase, $products)
+    protected function processPurchaseProducts($purchase, $products, ?int $branchId = null)
     {
+        // Si no viene branchId, usar el de la compra o la sucursal principal
+        $branchId = $branchId
+            ?? $purchase->branch_id
+            ?? Branch::where('is_main', true)->first()?->id;
+
         foreach ($products as $productData) {
-            $discount = isset($productData['discount']) ? floatval($productData['discount']) : 0;
-            $unitCost = floatval($productData['unit_cost']);
-            $quantity = intval($productData['quantity']);
+            $discount    = floatval($productData['discount'] ?? 0);
+            $unitCost    = floatval($productData['unit_cost']);
+            $quantity    = floatval($productData['quantity']);
             $sellingPrice = floatval($productData['selling_price']);
 
-            // Calcular costo unitario después del descuento
             $unitCostAfterDiscount = $unitCost * (1 - ($discount / 100));
-            $totalCost = $quantity * $unitCostAfterDiscount;
+            $totalCost    = $quantity * $unitCostAfterDiscount;
+            $profitMargin = $unitCostAfterDiscount > 0
+                ? (($sellingPrice - $unitCostAfterDiscount) / $unitCostAfterDiscount) * 100
+                : 0;
 
-            // Calcular margen de utilidad
-            $profitMargin = 0;
-            if ($unitCostAfterDiscount > 0) {
-                $profitMargin = (($sellingPrice - $unitCostAfterDiscount) / $unitCostAfterDiscount) * 100;
-            }
-
-            // Crear registro en Stock
             Stock::create([
-                'product_id' => $productData['product_id'],
-                'purchase_id' => $purchase->id,
-                'quantity' => $quantity,
-                'unit_cost' => $unitCost,
-                'discount' => $discount,
-                'total_cost' => $totalCost,
+                'product_id'   => $productData['product_id'],
+                'purchase_id'  => $purchase->id,
+                'quantity'     => $quantity,
+                'unit_cost'    => $unitCost,
+                'discount'     => $discount,
+                'total_cost'   => $totalCost,
                 'selling_price' => $sellingPrice,
-                'profit_margin' => $profitMargin, // Guardar margen de utilidad
-                'expiry_date' => isset($productData['expiry_date']) ? $productData['expiry_date'] : null,
+                'profit_margin' => $profitMargin,
+                'expiry_date'  => $productData['expiry_date'] ?? null,
             ]);
 
-            // Actualizar el stock del producto
             $menuItem = MenuItem::find($productData['product_id']);
             if ($menuItem) {
+                // ── Stock global ──
                 $menuItem->increment('stock', $quantity);
 
-                // Actualizar el precio de venta del producto si es diferente
-                if ($menuItem->price != $sellingPrice) {
+                // ── Stock por sucursal ──
+                if ($menuItem->manage_inventory && $branchId) {
+                    $branchStock = \App\Models\BranchMenuItemStock::firstOrCreate(
+                        ['branch_id' => $branchId, 'menu_item_id' => $menuItem->id],
+                        ['stock' => 0, 'min_stock' => $menuItem->min_stock]
+                    );
+                    $oldBranchStock = $branchStock->stock;
+                    $branchStock->increment('stock', $quantity);
+
+                    InventoryMovement::create([
+                        'menu_item_id'  => $menuItem->id,
+                        'branch_id'     => $branchId,
+                        'user_id'       => Auth::id(),
+                        'movement_type' => 'addition',
+                        'quantity'      => $quantity,
+                        'old_stock'     => $oldBranchStock,
+                        'new_stock'     => $oldBranchStock + $quantity,
+                        'notes'         => "Compra #" . $purchase->id .
+                            ($purchase->reference_number
+                                ? " - Ref: {$purchase->reference_number}"
+                                : ""),
+                    ]);
+                }
+
+                // ── Precio de venta ──
+                if ($sellingPrice > 0 && $menuItem->price != $sellingPrice) {
                     $menuItem->update(['price' => $sellingPrice]);
                 }
             }
@@ -397,13 +433,38 @@ class PurchaseController extends Controller
             DB::beginTransaction();
 
             // Revertir el stock de los productos antiguos
+            // DESPUÉS — revierte MenuItem::stock Y BranchMenuItemStock
             foreach ($purchase->stocks as $stock) {
                 $menuItem = MenuItem::find($stock->product_id);
                 if ($menuItem) {
+                    // ── Stock global ──
                     $menuItem->decrement('stock', $stock->quantity);
+
+                    // ── Stock por sucursal ──
+                    if ($menuItem->manage_inventory && $purchase->branch_id) {
+                        $branchStock = \App\Models\BranchMenuItemStock::where([
+                            'branch_id'    => $purchase->branch_id,
+                            'menu_item_id' => $menuItem->id,
+                        ])->first();
+
+                        if ($branchStock) {
+                            $oldStock = $branchStock->stock;
+                            $branchStock->decrement('stock', $stock->quantity);
+
+                            InventoryMovement::create([
+                                'menu_item_id'  => $menuItem->id,
+                                'branch_id'     => $purchase->branch_id,
+                                'user_id'       => Auth::id(),
+                                'movement_type' => 'subtraction',
+                                'quantity'      => $stock->quantity,
+                                'old_stock'     => $oldStock,
+                                'new_stock'     => max(0, $oldStock - $stock->quantity),
+                                'notes'         => "Edición compra #" . $purchase->id . " - reversión de stock anterior",
+                            ]);
+                        }
+                    }
                 }
             }
-
             // Eliminar los stocks antiguos
             $purchase->stocks()->delete();
 
@@ -419,7 +480,7 @@ class PurchaseController extends Controller
             ]);
 
             // Procesar los nuevos productos
-            $this->processPurchaseProducts($purchase, $request->products);
+            $this->processPurchaseProducts($purchase, $request->products, $request->branch_id ?? $purchase->branch_id);
 
             DB::commit();
 
@@ -477,10 +538,34 @@ class PurchaseController extends Controller
             foreach ($purchase->stocks as $stock) {
                 $menuItem = MenuItem::find($stock->product_id);
                 if ($menuItem) {
+                    // ── Stock global ──
                     $menuItem->decrement('stock', $stock->quantity);
+
+                    // ── Stock por sucursal ──
+                    if ($menuItem->manage_inventory && $purchase->branch_id) {
+                        $branchStock = \App\Models\BranchMenuItemStock::where([
+                            'branch_id'    => $purchase->branch_id,
+                            'menu_item_id' => $menuItem->id,
+                        ])->first();
+
+                        if ($branchStock) {
+                            $oldStock = $branchStock->stock;
+                            $branchStock->decrement('stock', $stock->quantity);
+
+                            InventoryMovement::create([
+                                'menu_item_id'  => $menuItem->id,
+                                'branch_id'     => $purchase->branch_id,
+                                'user_id'       => Auth::id(),
+                                'movement_type' => 'subtraction',
+                                'quantity'      => $stock->quantity,
+                                'old_stock'     => $oldStock,
+                                'new_stock'     => max(0, $oldStock - $stock->quantity),
+                                'notes'         => "Eliminación compra #" . $purchase->id,
+                            ]);
+                        }
+                    }
                 }
             }
-
             // Eliminar los stocks asociados
             $purchase->stocks()->delete();
 
