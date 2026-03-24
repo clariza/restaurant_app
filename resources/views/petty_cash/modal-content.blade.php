@@ -1,16 +1,12 @@
 <!-- Overlay para el modal de cierre -->
 <div id="closure-internal-overlay" class="closure-overlay"></div>
-
 <!-- Modal de cierre interno -->
 <div class="closure-internal-modal">
     @if($openPettyCash)
         <!-- ✅ INPUT OCULTO CON ID DE CAJA CHICA -->
         <input  id="petty_cash_id_closure" hidden name="petty_cash_id_closure" value="{{ $openPettyCash->id }}">
         
-        <!-- Header del modal -->
-        <div class="closure-header">
-            <h3 class="closure-title"><i class="fas fa-cash-register mr-3"></i>Cierre de Caja Chica</h3>
-        </div>
+        {{-- ✅ CAMBIO: Header eliminado — el título ya lo provee el modal padre --}}
 
         <!-- Contenido desplazable -->
         <div class="closure-scroll-content">
@@ -63,7 +59,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="closure-grid">
                     
                     <div class="denominations-section">
@@ -111,7 +106,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="closure-form-section">
                         <div class="section-container">
                             <h4 class="section-title">Resumen de Cierre</h4>
@@ -129,7 +123,6 @@
                                            readonly
                                            tabindex="-1">
                                 </div>
-
                                 <!-- Ventas en Efectivo  -->
                                 <div class="input-group">
                                     <label for="ventas-efectivo-closure">
@@ -144,7 +137,6 @@
                                            readonly
                                            tabindex="-1">
                                 </div>
-
                                 <!-- Ventas QR -->
                                 <div class="input-group">
                                     <label for="ventas-qr-closure">Ventas QR</label>
@@ -156,7 +148,6 @@
                                            min="0"
                                            autocomplete="off">
                                 </div>
-
                                 <!-- Ventas Tarjeta -->
                                 <div class="input-group">
                                     <label for="ventas-tarjeta-closure">Ventas Tarjeta</label>
@@ -185,15 +176,13 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
-
     @else
         {{-- Mensaje cuando no hay caja abierta --}}
-        <div class="closure-header">
-            <h3 class="closure-title">Cierre de Caja Chica</h3>
+        {{-- ✅ CAMBIO: Solo se mantiene el botón de cerrar, sin título duplicado --}}
+        <div class="closure-header" style="justify-content: flex-end;">
             <button type="button" onclick="closeInternalModalClosure()" class="closure-close-btn">
                 <i class="fas fa-times"></i>
             </button>
@@ -215,7 +204,6 @@
         </div>
     @endif
 </div>
-
 {{-- ============================================ --}}
 {{-- ESTILOS DEL MODAL DE CIERRE --}}
 {{-- ============================================ --}}
@@ -226,7 +214,6 @@
         height: 100%;
         min-height: 0;
     }
-
     #modal-closure-internal {
         position: fixed;
         top: 50%;
@@ -250,63 +237,41 @@
         opacity: 1;
         transform: translate(-50%, -50%) scale(1);
     }
-
     /* Overlay del modal */
     .closure-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 10001;
-    backdrop-filter: blur(2px);
-    
-    /* ✅ CRÍTICO: Oculto por defecto */
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10001;
+        backdrop-filter: blur(2px);
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
     
     .closure-overlay.active {
-    display: block !important;
-    opacity: 1;
-}
-
+        display: block !important;
+        opacity: 1;
+    }
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
-
     /* ========================================== */
-    /* HEADER DEL MODAL */
+    /* HEADER DEL MODAL (solo usado en estado sin caja) */
     /* ========================================== */
-    
     .closure-header {
-        padding: 1.5rem;
+        padding: 1rem 1.5rem;
         border-bottom: 1px solid #e5e7eb;
         background-color: #203363;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         flex-shrink: 0;
     }
-    
-    .closure-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .closure-title::before {
-        content: '💰';
-        font-size: 1.75rem;
-    }
-    
     .closure-close-btn {
         background: none;
         border: none;
@@ -322,15 +287,12 @@
         width: 40px;
         height: 40px;
     }
-    
     .closure-close-btn:hover {
         color: #d1d5db;
     }
-
     /* ========================================== */
     /* CONTENIDO DESPLAZABLE */
     /* ========================================== */
-    
     .closure-scroll-content {
         padding: 1.5rem;
         flex: 1;
@@ -339,46 +301,37 @@
         overflow-x: hidden;
         max-height: none;
     }
-
     .closure-scroll-content::-webkit-scrollbar {
         width: 8px;
     }
-
     .closure-scroll-content::-webkit-scrollbar-track {
         background: #f1f5f9;
         border-radius: 4px;
     }
-
     .closure-scroll-content::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 4px;
     }
-
     .closure-scroll-content::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
-
     .modal-content {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
     }
-
     /* ========================================== */
     /* GRID PRINCIPAL (2 COLUMNAS) */
     /* ========================================== */
-    
     .closure-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.5rem;
         align-items: start;
     }
-
     /* ========================================== */
     /* CONTENEDORES DE SECCIÓN */
     /* ========================================== */
-    
     .section-container {
         padding: 1.25rem;
         background: linear-gradient(to bottom, #f8fafc, #ffffff);
@@ -389,7 +342,6 @@
         height: 100%;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    
     .section-title {
         font-size: 1.125rem;
         font-weight: 600;
@@ -398,11 +350,9 @@
         padding-bottom: 0.75rem;
         border-bottom: 2px solid #e5e7eb;
     }
-
     /* ========================================== */
     /* SECCIÓN DE GASTOS */
     /* ========================================== */
-    
     .expenses-section {
         background: white;
         padding: 1.5rem;
@@ -410,7 +360,6 @@
         border: 1px solid #e5e7eb;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    
     .expenses-header {
         display: flex;
         justify-content: space-between;
@@ -418,20 +367,17 @@
         margin-bottom: 1rem;
         gap: 1rem;
     }
-
     .expenses-title {
         margin: 0;
         font-size: 1.125rem;
         color: #1f2937;
         font-weight: 600;
     }
-    
     .expenses-container {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
     }
-    
     .expense-row {
         display: grid;
         grid-template-columns: 1.5fr 1.5fr 120px 50px;
@@ -442,17 +388,14 @@
         border-radius: 0.375rem;
         transition: background 0.2s;
     }
-
     .expense-row:hover {
         background: #f3f4f6;
     }
-    
     .expense-field {
         min-width: 0;
         display: flex;
         flex-direction: column;
     }
-    
     .expense-input {
         width: 100%;
         padding: 0.625rem 0.75rem;
@@ -462,38 +405,31 @@
         transition: all 0.2s;
         background: white;
     }
-    
     .expense-input:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-
     .expense-input::placeholder {
         color: #9ca3af;
     }
-    
     .expense-actions {
         display: flex;
         justify-content: center;
         align-items: center;
     }
-
     /* ========================================== */
     /* TABLA DE DENOMINACIONES */
     /* ========================================== */
-    
     .table-container {
         overflow-x: auto;
         flex: 1;
     }
-    
     .denominations-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.875rem;
     }
-    
     .denominations-table th {
         background: linear-gradient(to bottom, #f1f5f9, #e2e8f0);
         padding: 0.75rem;
@@ -505,33 +441,27 @@
         top: 0;
         z-index: 1;
     }
-    
     .denominations-table td {
         padding: 0.75rem;
         border-bottom: 1px solid #e5e7eb;
         vertical-align: middle;
     }
-
     .denominations-table tbody tr:hover {
         background: #f9fafb;
     }
-    
     .text-right { text-align: right; }
-    .text-left { text-align: left; }
+    .text-left  { text-align: left; }
     .text-center { text-align: center; }
-    
     .total-row {
         background: linear-gradient(to bottom, #dbeafe, #bfdbfe) !important;
         font-weight: 600;
         border-top: 2px solid #3b82f6;
     }
-
     .total-row td {
         padding: 1rem 0.75rem;
         color: #1e40af;
         font-size: 1rem;
     }
-    
     .denomination-input {
         width: 100%;
         max-width: 80px;
@@ -543,33 +473,27 @@
         transition: all 0.2s;
         font-weight: 500;
     }
-    
     .denomination-input:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         transform: scale(1.05);
     }
-
     .denomination-input:hover {
         border-color: #93c5fd;
     }
-
     .subtotal-closure {
         font-weight: 600;
         color: #059669;
     }
-
     /* ========================================== */
     /* FORMULARIO DE CIERRE */
     /* ========================================== */
-    
     .form-grid {
         display: grid;
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
     .input-group {
         display: flex;
         flex-direction: column;
@@ -584,13 +508,11 @@
         align-items: center;
         gap: 0.25rem;
     }
-
     .label-hint {
         font-size: 0.75rem;
         color: #6b7280;
         font-weight: 400;
     }
-    
     .form-control {
         width: 100%;
         padding: 0.625rem 0.75rem;
@@ -600,27 +522,20 @@
         transition: all 0.2s;
         background: white;
     }
-
-    
     .form-control:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-    
     .form-control[readonly] {
         background-color: #f9fafb;
         color: #6b7280;
         cursor: not-allowed;
         border-style: dashed;
     }
-
-   
-
     /* ========================================== */
     /* BOTONES */
     /* ========================================== */
-    
     .btn {
         padding: 0.625rem 1.25rem;
         border: none;
@@ -635,41 +550,28 @@
         gap: 0.5rem;
         white-space: nowrap;
     }
-    
     .btn-primary {
         background: linear-gradient(to bottom, #10b981, #059669);
         color: white;
         box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
     }
-    
     .btn-primary:hover {
         background: linear-gradient(to bottom, #059669, #047857);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
     }
-
-    .btn-primary:active {
-        transform: translateY(0);
-    }
-
-    .btn-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
+    .btn-primary:active  { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .btn-secondary {
         background: linear-gradient(to bottom, #6b7280, #4b5563);
         color: white;
         box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
     }
-    
     .btn-secondary:hover {
         background: linear-gradient(to bottom, #4b5563, #374151);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
     }
-    
     .btn-danger {
         background: #fee2e2;
         color: #dc2626;
@@ -678,12 +580,10 @@
         height: 40px;
         border-radius: 0.375rem;
     }
-    
     .btn-danger:hover {
         background: #fecaca;
         transform: scale(1.1) rotate(5deg);
     }
-    
     .add-expense-btn {
         background: linear-gradient(to bottom, #dbeafe, #bfdbfe);
         color: #1e40af;
@@ -698,13 +598,11 @@
         gap: 0.5rem;
         transition: all 0.2s;
     }
-    
     .add-expense-btn:hover {
         background: linear-gradient(to bottom, #bfdbfe, #93c5fd);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
     }
-    
     .form-actions {
         margin-top: 1.5rem;
         padding-top: 1.25rem;
@@ -713,11 +611,9 @@
         justify-content: flex-end;
         gap: 0.75rem;
     }
-
     /* ========================================== */
     /* ALERTA DE ADVERTENCIA */
     /* ========================================== */
-    
     .alert-warning {
         background: linear-gradient(to right, #fef3c7, #fde68a);
         border: 2px solid #fbbf24;
@@ -730,134 +626,45 @@
         gap: 1rem;
         box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);
     }
-
-    .alert-warning i {
-        font-size: 2rem;
-        flex-shrink: 0;
-    }
-
-    .alert-warning strong {
-        display: block;
-        font-size: 1.125rem;
-        margin-bottom: 0.25rem;
-    }
-
-    .alert-warning p {
-        margin: 0;
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
-
-    .no-petty-cash-actions {
-        text-align: center;
-        margin-top: 2rem;
-    }
-
+    .alert-warning i        { font-size: 2rem; flex-shrink: 0; }
+    .alert-warning strong   { display: block; font-size: 1.125rem; margin-bottom: 0.25rem; }
+    .alert-warning p        { margin: 0; font-size: 0.875rem; line-height: 1.5; }
+    .no-petty-cash-actions  { text-align: center; margin-top: 2rem; }
     /* ========================================== */
     /* RESPONSIVE DESIGN */
     /* ========================================== */
-    
     @media (max-width: 768px) {
         #modal-closure-internal {
             width: 98%;
             max-height: 90vh;
             margin: 1vh;
         }
-
-        .closure-scroll-content {
-            padding: 1rem;
-        }
-        
-        .closure-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .expense-row {
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-        }
-
-        .expense-actions {
-            justify-content: flex-start;
-        }
-
-        .section-container {
-            padding: 1rem;
-        }
-
-        .form-actions {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .btn {
-            width: 100%;
-        }
-
-        .expenses-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .add-expense-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .denominations-table {
-            font-size: 0.8rem;
-        }
-
+        .closure-scroll-content { padding: 1rem; }
+        .closure-grid           { grid-template-columns: 1fr; gap: 1rem; }
+        .expense-row            { grid-template-columns: 1fr; gap: 0.5rem; }
+        .expense-actions        { justify-content: flex-start; }
+        .section-container      { padding: 1rem; }
+        .form-actions           { flex-direction: column; gap: 0.5rem; }
+        .btn                    { width: 100%; }
+        .expenses-header        { flex-direction: column; align-items: flex-start; }
+        .add-expense-btn        { width: 100%; justify-content: center; }
+        .denominations-table    { font-size: 0.8rem; }
         .denominations-table th,
-        .denominations-table td {
-            padding: 0.5rem 0.375rem;
-        }
-
-        .denomination-input {
-            max-width: 60px;
-            padding: 0.375rem;
-        }
-
-        .closure-title {
-            font-size: 1.25rem;
-        }
+        .denominations-table td { padding: 0.5rem 0.375rem; }
+        .denomination-input     { max-width: 60px; padding: 0.375rem; }
     }
-
     @media (max-width: 480px) {
-        .closure-scroll-content {
-            padding: 0.75rem;
-        }
-
-        .section-title {
-            font-size: 1rem;
-        }
-
-        .expenses-title {
-            font-size: 1rem;
-        }
-
-        .expenses-section {
-            padding: 1rem;
-        }
+        .closure-scroll-content { padding: 0.75rem; }
+        .section-title          { font-size: 1rem; }
+        .expenses-title         { font-size: 1rem; }
+        .expenses-section       { padding: 1rem; }
     }
-
     /* ========================================== */
     /* ANIMACIONES */
     /* ========================================== */
-    
     @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
-
-    .expense-row {
-        animation: slideIn 0.3s ease;
-    }
+    .expense-row { animation: slideIn 0.3s ease; }
 </style>
