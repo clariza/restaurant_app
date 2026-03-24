@@ -215,14 +215,50 @@ const tablesEnabled = @json($settings->tables_enabled ?? false);
 @endif
 
 /* ── Gastos (sin cambios) ── */
-let openPettyCash  = false;
+let openPettyCash  = null; 
 let expensesData   = [];
 
-function openExpensesModal() {
+async function openExpensesModal() {
     document.getElementById('expenses-modal').classList.remove('hidden');
-    loadExpenses();
+    
+    // ✅ Cargar primero la caja chica abierta
+    await loadOpenPettyCash();
+    
+    // Luego cargar los gastos
+    await loadExpenses();
     checkPettyCashStatus();
 }
+async function loadOpenPettyCash() {
+    try {
+        const res = await fetch('/petty-cash/open', {
+            headers: { 
+                'X-CSRF-TOKEN': window.csrfToken, 
+                'Accept': 'application/json' 
+            }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.petty_cash_id) {
+                openPettyCash = {
+                    id: data.petty_cash_id,
+                    date: data.date,
+                    initial_amount: data.initial_amount
+                };
+                console.log('✅ Caja chica abierta cargada:', openPettyCash);
+            } else {
+                openPettyCash = null;
+                console.log('⚠️ No hay caja chica abierta');
+            }
+        } else {
+            openPettyCash = null;
+        }
+    } catch (e) {
+        console.error('❌ Error al cargar caja chica:', e);
+        openPettyCash = null;
+    }
+}
+
 function closeExpensesModal() {
     document.getElementById('expenses-modal').classList.add('hidden');
     hideExpenseForm();
@@ -233,10 +269,12 @@ async function checkPettyCashStatus() {
             headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json' }
         });
         const data = await res.json();
-        openPettyCash  = data.open || false;
+        
+        const isOpen    = data.open || false;
         const btnCreate = document.getElementById('btn-create-expense');
         const warning   = document.getElementById('no-petty-cash-warning');
-        if (!openPettyCash) {
+        
+        if (!isOpen) {
             btnCreate.classList.add('opacity-50','cursor-not-allowed');
             btnCreate.disabled = true;
             warning.classList.remove('hidden');
@@ -245,65 +283,123 @@ async function checkPettyCashStatus() {
             btnCreate.disabled = false;
             warning.classList.add('hidden');
         }
-    } catch(e) { console.error('Error al verificar caja chica:', e); }
+    } catch(e) { 
+        console.error('Error al verificar caja chica:', e); 
+    }
 }
+
 async function loadExpenses() {
     const container = document.getElementById('expenses-table-container');
     container.innerHTML = `<div class="flex justify-center items-center py-12">
         <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
+    
     try {
         const res = await fetch('/expenses?json=1', {
-            headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: { 
+                'X-CSRF-TOKEN': window.csrfToken, 
+                'Accept': 'application/json', 
+                'X-Requested-With': 'XMLHttpRequest' 
+            },
             credentials: 'same-origin'
         });
+        
         if (!res.ok) throw new Error(`Error ${res.status}`);
+        
         const data = await res.json();
         expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
+        
+        console.log('📦 Gastos cargados:', expensesData.length);
+        
         renderExpensesTable();
     } catch(e) {
         container.innerHTML = `<div class="text-center py-12 text-red-500">${e.message}</div>`;
     }
 }
+
 function renderExpensesTable() {
     const container = document.getElementById('expenses-table-container');
-    if (!Array.isArray(expensesData) || expensesData.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-gray-500">No hay gastos registrados</div>`;
+    
+    // ✅ Filtrar gastos solo de la caja chica abierta
+    let filteredExpenses = expensesData;
+    
+    if (openPettyCash && openPettyCash.id) {
+        filteredExpenses = expensesData.filter(e => e.petty_cash_id === openPettyCash.id);
+        console.log(`🔍 Filtrando gastos de caja #${openPettyCash.id}: ${filteredExpenses.length} encontrados`);
+    } else {
+        console.log('⚠️ No hay caja abierta, mostrando mensaje');
+        filteredExpenses = [];
+    }
+    
+    // Si no hay gastos para mostrar
+    if (!Array.isArray(filteredExpenses) || filteredExpenses.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-gray-500">
+            <i class="fas fa-receipt text-4xl mb-4 opacity-50"></i>
+            <p class="text-lg font-medium">${openPettyCash ? 'No hay gastos registrados en esta caja chica' : 'No hay caja chica abierta'}</p>
+        </div>`;
         return;
     }
+    
+    // Renderizar tabla con gastos filtrados
     container.innerHTML = `
+        <div class="mb-4 px-6 py-3 bg-blue-50 border-l-4 border-blue-500 text-blue-700">
+            <p class="text-sm font-medium">
+                <i class="fas fa-filter mr-2"></i>
+                Mostrando ${filteredExpenses.length} gasto(s) de la caja chica actual (ID: ${openPettyCash.id})
+            </p>
+        </div>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-[#203363]">
                 <tr>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white">Nombre</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white">Descripción</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white">Monto</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-white">Fecha</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-sm font-medium text-white">Fecha</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white">Acciones</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                ${expensesData.map(e => `
+                ${filteredExpenses.map(e => `
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 text-sm text-gray-900">${e.expense_name}</td>
                         <td class="px-6 py-4 text-sm text-gray-900">${e.description || '-'}</td>
                         <td class="px-6 py-4 text-sm font-medium text-gray-900">Bs. ${parseFloat(e.amount).toFixed(2)}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">${formatDate(e.date)}</td>
                         <td class="px-6 py-4 text-sm">
-                            <button onclick="editExpense(${e.id})" class="text-blue-600 hover:text-blue-800 mr-3"><i class="fas fa-edit mr-1"></i>Editar</button>
-                            ${window.isAdmin ? `<button onclick="deleteExpense(${e.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt mr-1"></i>Eliminar</button>` : ''}
+                            <button onclick="editExpense(${e.id})" 
+                                    class="text-blue-600 hover:text-blue-800 mr-3">
+                                <i class="fas fa-edit mr-1"></i>Editar
+                            </button>
+                            ${window.isAdmin ? `
+                                <button onclick="deleteExpense(${e.id})" 
+                                        class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash-alt mr-1"></i>Eliminar
+                                </button>
+                            ` : ''}
                         </td>
-                    </tr>`).join('')}
+                    </tr>
+                `).join('')}
             </tbody>
-        </table>`;
+        </table>
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
+            <p class="text-sm text-gray-600">
+                <strong>Total de gastos:</strong> Bs. ${filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0).toFixed(2)}
+            </p>
+        </div>
+    `;
 }
 function showCreateExpenseForm() {
-    if (!openPettyCash) { alert('No hay caja chica abierta.'); return; }
+    if (!openPettyCash || !openPettyCash.id) { 
+        alert('No hay caja chica abierta.'); 
+        return; 
+    }
+    
     const container = document.getElementById('expense-form-container');
     document.getElementById('expense-form').reset();
     document.getElementById('expense-id').value   = '';
     document.getElementById('form-method').value  = 'POST';
     document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Nuevo Gasto';
+    
     container.classList.remove('hidden');
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -318,22 +414,33 @@ async function saveExpense(event) {
     const expenseId = document.getElementById('expense-id').value;
     const method    = document.getElementById('form-method').value;
     const url = expenseId ? `/expenses/${expenseId}` : '/expenses';
+    
     if (method === 'PUT') formData.append('_method', 'PUT');
+    
     try {
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json' },
             body: formData
         });
-        if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Error'); }
+        
+        if (!res.ok) { 
+            const err = await res.json(); 
+            throw new Error(err.message || 'Error al guardar'); 
+        }
+        
         await loadExpenses();
         hideExpenseForm();
-        showNotification(expenseId ? 'Gasto actualizado' : 'Gasto creado', 'success');
-    } catch(e) { showNotification(e.message || 'Error al guardar', 'error'); }
+        showNotification(expenseId ? 'Gasto actualizado exitosamente' : 'Gasto creado exitosamente', 'success');
+    } catch(e) { 
+        showNotification(e.message || 'Error al guardar', 'error'); 
+    }
 }
+
 function editExpense(id) {
     const expense = expensesData.find(e => e.id === id);
     if (!expense) return;
+    
     document.getElementById('expense-id').value          = expense.id;
     document.getElementById('form-method').value         = 'PUT';
     document.getElementById('expense-name').value        = expense.expense_name;
@@ -341,21 +448,27 @@ function editExpense(id) {
     document.getElementById('expense-date').value        = expense.date;
     document.getElementById('expense-description').value = expense.description || '';
     document.getElementById('form-title').innerHTML = '<i class="fas fa-edit mr-2"></i>Editar Gasto';
+    
     const container = document.getElementById('expense-form-container');
     container.classList.remove('hidden');
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 async function deleteExpense(id) {
     if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
+    
     try {
         const res = await fetch(`/expenses/${id}`, {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json' }
         });
+        
         if (!res.ok) throw new Error('Error al eliminar');
+        
         await loadExpenses();
-        showNotification('Gasto eliminado', 'success');
-    } catch(e) { showNotification('Error al eliminar', 'error'); }
+        showNotification('Gasto eliminado exitosamente', 'success');
+    } catch(e) { 
+        showNotification('Error al eliminar el gasto', 'error'); 
+    }
 }
 function formatDate(dateString) {
     const d = new Date(dateString);
@@ -363,11 +476,23 @@ function formatDate(dateString) {
 }
 function showNotification(message, type = 'success') {
     const bg = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+    const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+    
     const el = document.createElement('div');
     el.className = `fixed top-4 right-4 ${bg} text-white px-6 py-3 rounded-lg shadow-lg z-[10000] transition-all duration-300`;
-    el.innerHTML = `<div class="flex items-center"><i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'} mr-2"></i><span>${message}</span></div>`;
+    el.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${icon} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
     document.body.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+    
+    setTimeout(() => { 
+        el.style.opacity = '0'; 
+        setTimeout(() => el.remove(), 300); 
+    }, 3000);
 }
 </script>
 

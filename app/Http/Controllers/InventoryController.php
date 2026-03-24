@@ -17,34 +17,29 @@ class InventoryController extends Controller
     // En el controlador index():
     public function index(Request $request)
     {
-        $branchId = $request->get(
-            'branch_id',
-            Branch::where('is_main', true)->first()?->id
-        );
+        $branchId = $request->get('branch_id',
+                    Branch::where('is_main', true)->first()?->id);
 
         $branches = Branch::where('is_active', true)->get();
 
         $items = MenuItem::where('manage_inventory', true)
             ->with(['category', 'branchStocks' => function ($q) use ($branchId) {
-                $q->where('branch_id', $branchId);
+            $q->where('branch_id', $branchId);
             }])
             ->orderBy('name')
             ->get()
             ->map(function ($item) use ($branchId) {
-                // Adjuntar el stock de la sucursal como atributo virtual
-                $item->branch_stock = $item->branchStocks->first()?->stock ?? 0;
-                $item->branch_min_stock = $item->branchStocks->first()?->min_stock
-                    ?? $item->min_stock;
-                return $item;
-            });
+            // Adjuntar el stock de la sucursal como atributo virtual
+            $item->branch_stock = $item->branchStocks->first()?->stock ?? 0;
+            $item->branch_min_stock = $item->branchStocks->first()?->min_stock
+                                      ?? $item->min_stock;
+            return $item;
+        });
 
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
 
         return view('inventory.index', compact(
-            'items',
-            'branches',
-            'branchId',
-            'hasOpenPettyCash'
+        'items', 'branches', 'branchId', 'hasOpenPettyCash'
         ));
     }
 
@@ -52,70 +47,68 @@ class InventoryController extends Controller
     {
         $request->validate([
             'item_id'       => 'required|exists:menu_items,id',
-            'branch_id'     => 'required|exists:branches,id',
+            'branch_id'     => 'required|exists:branches,id',  // nuevo
             'quantity'      => 'required|numeric|min:0.01',
             'movement_type' => 'required|in:addition,subtraction',
             'notes'         => 'nullable|string|max:255',
         ]);
-
-        // Fallback por si no llega branch_id
-        $branchId = $request->branch_id
-            ?? Branch::where('is_main', true)->first()?->id
-            ?? Branch::first()?->id;
 
         try {
             DB::beginTransaction();
 
             $item = MenuItem::findOrFail($request->item_id);
 
-            if (!$item->manage_inventory) {
-                DB::rollBack();
-                return back()->withErrors(['error' => 'Producto sin gestión de inventario.']);
-            }
+        if (!$item->manage_inventory) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Producto sin gestión de inventario.']);
+        }
 
-            $user = auth()->user();
-            if (!$user) {
-                DB::rollBack();
-                return back()->withErrors(['error' => 'Debe estar autenticado.']);
-            }
+        $user = auth()->user();
+        if (!$user) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Debe estar autenticado.']);
+        }
 
-            $branchStock = BranchMenuItemStock::firstOrCreate(
-                ['branch_id' => $branchId, 'menu_item_id' => $item->id],
-                ['stock' => $item->stock, 'min_stock' => $item->min_stock]
-            );
+        // Obtener o crear el registro de stock para esa sucursal
+        $branchStock = BranchMenuItemStock::firstOrCreate(
+            ['branch_id' => $request->branch_id, 'menu_item_id' => $item->id],
+            ['stock' => $item->stock, 'min_stock' => $item->min_stock]
+        );
 
-            if (
-                $request->movement_type === 'subtraction'
-                && $request->quantity > $branchStock->stock
-            ) {
-                DB::rollBack();
-                return back()->withErrors([
-                    'quantity' => 'Stock insuficiente en esta sucursal. Stock actual: '
-                        . $branchStock->stock
-                ]);
-            }
-
-            $oldStock  = $branchStock->stock;
-            $newStock  = $request->movement_type === 'addition'
-                ? $branchStock->stock + $request->quantity
-                : $branchStock->stock - $request->quantity;
-
-            $branchStock->stock = $newStock;
-            $branchStock->save();
-
-            InventoryMovement::create([
-                'menu_item_id'  => $item->id,
-                'branch_id'     => $branchId,
-                'user_id'       => $user->id,
-                'movement_type' => $request->movement_type,
-                'quantity'      => $request->quantity,
-                'old_stock'     => $oldStock,
-                'new_stock'     => $newStock,
-                'notes'         => $request->notes,
+        // Validar stock suficiente
+        if ($request->movement_type === 'subtraction'
+            && $request->quantity > $branchStock->stock) {
+            DB::rollBack();
+            return back()->withErrors([
+                'quantity' => 'Stock insuficiente en esta sucursal. Stock actual: '
+                              . $branchStock->stock
             ]);
+        }
 
-            DB::commit();
-            return back()->with('success', 'Stock actualizado correctamente.');
+        $oldStock = $branchStock->stock;
+
+        $newStock = $request->movement_type === 'addition'
+            ? $branchStock->stock + $request->quantity
+            : $branchStock->stock - $request->quantity;
+
+        $branchStock->stock = $newStock;
+        $branchStock->save();
+
+        InventoryMovement::create([
+            'menu_item_id'  => $item->id,
+            'branch_id'     => $request->branch_id,
+            'user_id'       => $user->id,
+            'movement_type' => $request->movement_type,
+            'quantity'      => $request->quantity,
+            'old_stock'     => $oldStock,
+            'new_stock'     => $newStock,
+            'notes'         => $request->notes,
+        ]);
+
+        DB::commit();
+
+        return back()->with('success', 'Stock actualizado correctamente.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Error: ' . $e->getMessage()]);
@@ -237,10 +230,10 @@ class InventoryController extends Controller
             ->get()
             ->map(fn($item) => [
                 'id'         => $item->id,
-                'stock'      => $item->branchStocks->first()?->stock      ?? $item->stock,
-                'min_stock'  => $item->branchStocks->first()?->min_stock  ?? $item->min_stock,
-                'stock_type' => $item->stock_type,
-                'stock_unit' => $item->stock_unit,
+                'stock'      => $item->branch_stock,      
+                'min_stock'  => $item->branch_min_stock,  
+                'stock_type' => $item->branch_stock_type,
+                'stock_unit' => $item->branch_stock_unit,
             ]);
 
         return response()->json(['success' => true, 'data' => $items]);

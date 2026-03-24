@@ -62,6 +62,7 @@ class ExpenseController extends Controller
         // Verificar que hay caja chica abierta
         $openPettyCash = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
+            ->latest()  // ✅ toma la más reciente, no la más antigua
             ->first();
 
         if (!$openPettyCash) {

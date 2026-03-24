@@ -12,74 +12,153 @@ console.log('📦 Cargando petty-cash-index.js UNIFICADO...');
 /**
  * Abrir modal de cierre (index.blade.php)
  */
-window.openModal = function (id) {
+window.openModal = async function (id) {
     console.log('🔓 Abriendo modal para caja chica ID:', id);
+    if (!id) return;
 
     const modal = document.getElementById('modal');
-    if (!modal) {
-        console.error('❌ Modal no encontrado');
-        return;
-    }
+    if (!modal) return;
 
     modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
-    const pettyCashIdInput = document.getElementById('petty_cash_id');
-    if (pettyCashIdInput) {
-        pettyCashIdInput.value = id;
-        console.log('✅ ID de caja establecido:', id);
+    // Setear ID
+    const pettyCashIdInput = document.getElementById('petty_cash_id')
+        || document.querySelector('input[name="petty_cash_id"]');
+    if (pettyCashIdInput) pettyCashIdInput.value = id;
+
+    // Reset denominaciones
+    document.querySelectorAll('.denomination-input').forEach(i => i.value = '');
+    document.querySelectorAll('.subtotal').forEach(s => s.textContent = 'Bs.0.00');
+    const totalEl = document.getElementById('total');
+    if (totalEl) totalEl.textContent = 'Bs.0.00';
+
+    // ✅ Limpiar container MANUALMENTE — sin llamar a resetExpensesContainer()
+    const container = document.getElementById('expensesContainer');
+    if (container) container.innerHTML = '';
+
+    // Limpiar inputs de ventas/gastos
+    const gastosInput = document.getElementById('total-gastos');
+    if (gastosInput) {
+        gastosInput.value = '0.00';
+        gastosInput.setAttribute('data-gastos-bd', '0');
     }
+    const qrInput   = document.getElementById('ventas-qr');
+    const cardInput = document.getElementById('ventas-tarjeta');
+    if (qrInput)   qrInput.value = '0.00';
+    if (cardInput) cardInput.value = '0.00';
 
-    // Resetear denominaciones
-    document.querySelectorAll('.denomination-input').forEach(input => {
-        input.value = '';
-    });
-    document.querySelectorAll('.subtotal').forEach(span => {
-        span.textContent = '$0.00';
-    });
+    // ✅ Fetch datos reales de la caja
+    try {
+        const csrfToken = window.pettyCashData?.csrfToken
+            || document.querySelector('meta[name="csrf-token"]')?.content;
 
-    const totalElement = document.getElementById('total');
-    if (totalElement) {
-        totalElement.textContent = '$0.00';
-    }
-
-    const totalEfectivoInput = document.getElementById('total-efectivo');
-    if (totalEfectivoInput) {
-        totalEfectivoInput.value = '0';
-    }
-
-    const totalSalesCashInput = document.getElementById('total_sales_cash');
-    if (totalSalesCashInput) {
-        totalSalesCashInput.value = '0';
-    }
-
-    resetExpensesContainer();
-
-    if (window.pettyCashData) {
-        const ventasQRInput = document.getElementById('ventas-qr');
-        const ventasTarjetaInput = document.getElementById('ventas-tarjeta');
-        const totalGastosInput = document.getElementById('total-gastos');
-
-        if (ventasQRInput) {
-            ventasQRInput.value = window.pettyCashData.totalSalesQR || 0;
-        }
-        if (ventasTarjetaInput) {
-            ventasTarjetaInput.value = window.pettyCashData.totalSalesCard || 0;
-        }
-        if (totalGastosInput) {
-            const existingExpenses = window.pettyCashData.totalExpenses || 0;
-            totalGastosInput.value = existingExpenses.toFixed(2);
-            totalGastosInput.setAttribute('data-gastos-bd', existingExpenses);
-
-            const totalExpensesHidden = document.getElementById('total_expenses');
-            if (totalExpensesHidden) {
-                totalExpensesHidden.value = existingExpenses.toFixed(2);
+        const response = await fetch(`/petty-cash/closure-data?petty_cash_id=${id}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             }
+        });
+
+        const data = await response.json();
+        console.log('📦 closure-data recibido:', data);
+
+        if (data.success) {
+            // Ventas
+            if (qrInput)   qrInput.value   = (data.total_sales_qr   || 0).toFixed(2);
+            if (cardInput) cardInput.value  = (data.total_sales_card || 0).toFixed(2);
+
+            // Total gastos
+            if (gastosInput) {
+                const existingExpenses = parseFloat(data.total_expenses) || 0;
+                gastosInput.value = existingExpenses.toFixed(2);
+                gastosInput.setAttribute('data-gastos-bd', existingExpenses);
+                console.log('✅ total-gastos:', existingExpenses);
+            }
+
+            // ✅ Renderizar gastos existentes
+            if (container) {
+                if (data.expenses && data.expenses.length > 0) {
+                    data.expenses.forEach(expense => {
+                        const row = document.createElement('div');
+                        row.className = 'expense-row';
+                        row.innerHTML = `
+                            <div class="expense-field">
+                                <input type="text" class="form-control form-control-sm expense-input"
+                                       value="${(expense.expense_name || '').replace(/"/g, '&quot;')}"
+                                       readonly style="background:#f3f4f6;color:#6b7280;">
+                            </div>
+                            <div class="expense-field">
+                                <input type="text" class="form-control form-control-sm expense-input"
+                                       value="${(expense.description || '').replace(/"/g, '&quot;')}"
+                                       readonly style="background:#f3f4f6;color:#6b7280;">
+                            </div>
+                            <div class="expense-field">
+                                <input type="number" class="form-control form-control-sm expense-input"
+                                       value="${parseFloat(expense.amount || 0).toFixed(2)}"
+                                       readonly style="background:#f3f4f6;color:#6b7280;">
+                            </div>
+                            <div class="expense-actions">
+                                <span style="font-size:11px;color:#9ca3af;padding:8px 4px;">✓ guardado</span>
+                            </div>
+                        `;
+                        container.appendChild(row);
+                    });
+                    console.log(`✅ ${data.expenses.length} gastos renderizados`);
+                }
+
+                // Fila vacía para nuevos gastos
+                addExpenseRow('', '', '');
+            }
+
+            console.log('✅ Modal cargado correctamente');
+        } else {
+            console.error('❌ Error del servidor:', data.message);
+            addExpenseRow('', '', '');
         }
+
+    } catch (error) {
+        console.error('❌ Error en fetch:', error);
+        if (container) addExpenseRow('', '', '');
     }
-
-    console.log('✅ Modal abierto correctamente');
 };
+window.renderExistingExpenses = function (expenses) {
+    const container = document.getElementById('expensesContainer');
+    if (!container) return;
 
+    container.innerHTML = ''; // limpiar
+
+    expenses.forEach(expense => {
+        const row = document.createElement('div');
+        row.className = 'expense-row';
+        row.innerHTML = `
+            <div class="expense-field">
+                <input type="text" class="form-control form-control-sm expense-input"
+                       value="${expense.expense_name}" readonly
+                       style="background:#f8f9fa; color:#6b7280;">
+            </div>
+            <div class="expense-field">
+                <input type="text" class="form-control form-control-sm expense-input"
+                       value="${expense.description ?? ''}" readonly
+                       style="background:#f8f9fa; color:#6b7280;">
+            </div>
+            <div class="expense-field">
+                <input type="number" class="form-control form-control-sm expense-input"
+                       value="${expense.amount}" readonly
+                       style="background:#f8f9fa; color:#6b7280;">
+            </div>
+            <div class="expense-actions">
+                <span style="font-size:11px; color:#9ca3af; padding:4px;">guardado</span>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+
+    // Agregar una fila vacía al final para nuevos gastos
+    addExpenseRow('', '', '');
+    
+    console.log(`✅ ${expenses.length} gastos existentes renderizados`);
+};
 /**
  * Cerrar modal (index.blade.php)
  */

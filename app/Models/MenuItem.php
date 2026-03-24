@@ -93,14 +93,14 @@ class MenuItem extends Model
 
         return $branchStock ? $branchStock->stock : $this->stock; // fallback al stock global
     }
+    
     // Actualizar stock para una sucursal específica
     public function updateStockForBranch(
         int $branchId,
         float $quantity,
         string $movementType,
         ?string $notes = null,
-        ?int $userId = null
-    ): InventoryMovement {
+        ?int $userId = null): InventoryMovement {
         $branchStock = BranchMenuItemStock::firstOrCreate(
             ['branch_id' => $branchId, 'menu_item_id' => $this->id],
             ['stock' => $this->stock, 'min_stock' => $this->min_stock]
@@ -126,5 +126,34 @@ class MenuItem extends Model
             'new_stock'     => $branchStock->stock,
             'notes'         => $notes,
         ]);
+    }
+    public function getBranchStockAttribute(): float
+    {
+        // Si ya se cargó la relación branchStocks (eager load del controlador)
+        if ($this->relationLoaded('branchStocks')) {
+            $branchStock = $this->branchStocks->first();
+            return $branchStock?->stock ?? $this->stock;
+            }
+        // Fallback al stock global
+        return $this->stock;
+    }
+
+    public function getBranchMinStockAttribute(): float
+    {
+        if ($this->relationLoaded('branchStocks')) {
+            $branchStock = $this->branchStocks->first();
+            return $branchStock?->min_stock ?? $this->min_stock;
+        }
+        return $this->min_stock;
+    }
+
+    public function getBranchStockTypeAttribute(): string
+    {
+        return $this->stock_type;
+    }
+
+    public function getBranchStockUnitAttribute(): ?string
+    {
+        return $this->stock_unit;
     }
 }

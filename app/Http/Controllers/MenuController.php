@@ -51,21 +51,21 @@ class MenuController extends Controller
             Branch::where('is_main', true)->first()?->id
         );
 
+        // $categories = Category::with(['menuItems' => function ($q) use ($currentBranchId) {
+        //     $q->with(['branchStocks' => function ($sq) use ($currentBranchId) {
+        //         $sq->where('branch_id', $currentBranchId);
+        //     }]);}])
+        //     ->orderBy('order', 'asc')  // ← agregar esto
+        //     ->get();
+
+        $currentBranchId = session('branch_id',
+                       Branch::where('is_main', true)->first()?->id);
+
         $categories = Category::with(['menuItems' => function ($q) use ($currentBranchId) {
             $q->with(['branchStocks' => function ($sq) use ($currentBranchId) {
-                $sq->where('branch_id', $currentBranchId);
+            $sq->where('branch_id', $currentBranchId);
             }]);
-        }])
-            ->orderBy('order', 'asc')  // ← agregar esto
-            ->get();
-
-        $categories->each(function ($category) {
-            $category->menuItems->each(function ($item) {
-                $branchStock = $item->branchStocks->first();
-                $item->branch_stock     = $branchStock?->stock     ?? $item->stock;
-                $item->branch_min_stock = $branchStock?->min_stock ?? $item->min_stock;
-            });
-        });
+        }])->get();
 
         $tables = Table::all();
 

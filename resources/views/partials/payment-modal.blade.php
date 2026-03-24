@@ -1808,7 +1808,7 @@ window.addEventListener('load', function() {
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(32, 51, 99, 0.2);
 }
-    #table-grid,
+#table-grid,
 #tables-disabled-message,
 #table-loading {
     transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -1821,6 +1821,30 @@ window.addEventListener('load', function() {
     height: 0;
     overflow: hidden;
 }
+#payment-modal input:-webkit-autofill,
+#payment-modal input:-webkit-autofill:hover,
+#payment-modal input:-webkit-autofill:focus,
+#payment-modal input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+        box-shadow: 0 0 0 30px white inset !important;
+}
+#payment-modal input:-webkit-autofill {
+        -webkit-text-fill-color: #203363 !important;
+}
+#payment-modal input {
+        -webkit-autofill: none !important;
+}
+#payment-modal input[type="text"],
+    #payment-modal input[type="email"],
+    #payment-modal input[type="tel"],
+    #payment-modal input[type="password"],
+    #payment-modal input[type="date"] {
+        -webkit-autofill-background-color: transparent !important;
+        background-clip: padding-box !important;
+    }
+#payment-modal datalist {
+        display: none !important;
+    }
     /* Estilos para items de método de pago en Paso 3 */
 #payment-modal .payment-method-item {
     display: flex !important;
@@ -1866,23 +1890,23 @@ window.addEventListener('load', function() {
     color: var(--success-color) !important;
     font-weight: 700 !important;
 }
-             /* Estilos para el modal de configuración de mesas */
-         #payment-modal .customer-details-section {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 20px !important;
-        }
-        #payment-modal .customer-details-section > h3 {
-            margin: 0 0 4px 0 !important;
-            font-size: 1.4rem !important;
-            font-weight: 700 !important;
-            color: var(--primary-color) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            padding-bottom: 16px !important;
-            border-bottom: 2px solid var(--border-color) !important;
-        }
+/* Estilos para el modal de configuración de mesas */
+#payment-modal .customer-details-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+#payment-modal .customer-details-section > h3 {
+        margin: 0 0 4px 0 !important;
+        font-size: 1.4rem !important;
+        font-weight: 700 !important;
+        color: var(--primary-color) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding-bottom: 16px !important;
+        border-bottom: 2px solid var(--border-color) !important;
+}
         #payment-modal .customer-details-section > h3 i {
             font-size: 1.3rem !important;
             color: var(--secondary-color) !important;
