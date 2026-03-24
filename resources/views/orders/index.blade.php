@@ -500,7 +500,7 @@
                 timerProgressBar: true
             });
 
-            window.location.href = '{{ route("menu.index") }}?open_payment=true';
+            window.location.href = '{{ route("menu.index") }}';
 
         } catch (error) {
             localStorage.removeItem('convertingProforma');

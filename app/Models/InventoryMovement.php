@@ -8,6 +8,7 @@ class InventoryMovement extends Model
 {
     protected $fillable = [
         'menu_item_id',
+        'branch_id',
         'user_id',
         'movement_type',
         'quantity',
@@ -20,7 +21,10 @@ class InventoryMovement extends Model
         'previous_stock' => 'decimal:2',
         'new_stock' => 'decimal:2'
     ];
-
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
     public function menuItem()
     {
         return $this->belongsTo(MenuItem::class);
@@ -30,7 +34,7 @@ class InventoryMovement extends Model
     {
         return $this->belongsTo(User::class);
     }
-     // Accesor para el tipo de movimiento
+    // Accesor para el tipo de movimiento
     public function getTypeNameAttribute()
     {
         return $this->movement_type === 'addition' ? 'Ingreso' : 'Salida';

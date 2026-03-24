@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
+
 class CategoryController extends Controller
 {
     // Mostrar lista de categorías
@@ -12,7 +13,7 @@ class CategoryController extends Controller
     {
         $categorias = Category::all();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('categories.index', compact('categorias','hasOpenPettyCash'));
+        return view('categories.index', compact('categorias', 'hasOpenPettyCash'));
     }
 
     // Mostrar formulario para crear una nueva categoría
@@ -29,8 +30,17 @@ class CategoryController extends Controller
             'icon' => 'nullable|string',
         ]);
 
-        Category::create($request->all());
-        return redirect()->route('categories.index')->with('success', 'Categoría creada correctamente.');
+        // La nueva categoría va al final
+        $maxOrder = Category::max('order') ?? 0;
+
+        Category::create([
+            'name'  => $request->name,
+            'icon'  => $request->icon,
+            'order' => $maxOrder + 1,
+        ]);
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Categoría creada correctamente.');
     }
 
     // Mostrar detalles de una categoría
@@ -43,28 +53,41 @@ class CategoryController extends Controller
     public function edit(Category $category)
     {
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
-        return view('categories.edit', compact('category','hasOpenPettyCash'));
+        return view('categories.edit', compact('category', 'hasOpenPettyCash'));
     }
 
-   // Actualizar una categoría
-   public function update(Request $request, Category $category)
-   {
-       $request->validate([
-           'name' => 'required|string|unique:categories,name,' . $category->id,
-           'icon' => 'nullable|string',
-       ]);
-      
-       //$categoria->update($request->all());
-       $category->update([
-        'name' => $request->name,
-        'icon' => $request->icon,
-       ]);
-       return redirect()->route('categories.index')->with('success', 'Categoría actualizada correctamente.');
-   }
+    // Actualizar una categoría
+    public function update(Request $request, Category $category)
+    {
+        $request->validate([
+            'name' => 'required|string|unique:categories,name,' . $category->id,
+            'icon' => 'nullable|string',
+        ]);
+
+        //$categoria->update($request->all());
+        $category->update([
+            'name' => $request->name,
+            'icon' => $request->icon,
+        ]);
+        return redirect()->route('categories.index')->with('success', 'Categoría actualizada correctamente.');
+    }
     // Eliminar una categoría
     public function destroy(Category $category)
     {
         $category->delete();
         return redirect()->route('categories.index')->with('success', 'Categoría eliminada correctamente.');
+    }
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'order'   => 'required|array',
+            'order.*' => 'integer|exists:categories,id',
+        ]);
+
+        foreach ($request->order as $position => $id) {
+            Category::where('id', $id)->update(['order' => $position]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

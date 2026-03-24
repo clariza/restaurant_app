@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class MenuItem extends Model
@@ -79,5 +80,51 @@ class MenuItem extends Model
     public function isOutOfStock()
     {
         return $this->stock <= 0;
+    }
+    public function branchStocks()
+    {
+        return $this->hasMany(BranchMenuItemStock::class);
+    }
+    public function getStockForBranch(int $branchId): float
+    {
+        $branchStock = $this->branchStocks()
+            ->where('branch_id', $branchId)
+            ->first();
+
+        return $branchStock ? $branchStock->stock : $this->stock; // fallback al stock global
+    }
+    // Actualizar stock para una sucursal específica
+    public function updateStockForBranch(
+        int $branchId,
+        float $quantity,
+        string $movementType,
+        ?string $notes = null,
+        ?int $userId = null
+    ): InventoryMovement {
+        $branchStock = BranchMenuItemStock::firstOrCreate(
+            ['branch_id' => $branchId, 'menu_item_id' => $this->id],
+            ['stock' => $this->stock, 'min_stock' => $this->min_stock]
+        );
+
+        $oldStock = $branchStock->stock;
+
+        $branchStock->stock = $movementType === 'addition'
+            ? $branchStock->stock + $quantity
+            : $branchStock->stock - $quantity;
+
+        $branchStock->save();
+
+
+        $currentUserId = $userId ?? Auth::id();
+
+        return $this->inventoryMovements()->create([
+            'user_id'       => $currentUserId,
+            'branch_id'     => $branchId,
+            'movement_type' => $movementType,
+            'quantity'      => $quantity,
+            'old_stock'     => $oldStock,
+            'new_stock'     => $branchStock->stock,
+            'notes'         => $notes,
+        ]);
     }
 }

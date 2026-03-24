@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Table;
-use App\Models\Sale;
-use App\Models\SaleItem;
+use App\Models\Branch;
 use App\Models\Category;
-use App\Models\Proforma;
-use Illuminate\Http\Request;
-use App\Models\PettyCash;
 use App\Models\Delivery;
 use App\Models\DeliveryService;
+use App\Models\PettyCash;
+use App\Models\Proforma;
+use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Setting;
+use App\Models\Table;
+use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
@@ -45,7 +46,27 @@ class MenuController extends Controller
         ];
 
         // Obtener todas las categorías con sus elementos del menú
-        $categories = Category::with('menuItems')->get();
+        $currentBranchId = session(
+            'branch_id',
+            Branch::where('is_main', true)->first()?->id
+        );
+
+        $categories = Category::with(['menuItems' => function ($q) use ($currentBranchId) {
+            $q->with(['branchStocks' => function ($sq) use ($currentBranchId) {
+                $sq->where('branch_id', $currentBranchId);
+            }]);
+        }])
+            ->orderBy('order', 'asc')  // ← agregar esto
+            ->get();
+
+        $categories->each(function ($category) {
+            $category->menuItems->each(function ($item) {
+                $branchStock = $item->branchStocks->first();
+                $item->branch_stock     = $branchStock?->stock     ?? $item->stock;
+                $item->branch_min_stock = $branchStock?->min_stock ?? $item->min_stock;
+            });
+        });
+
         $tables = Table::all();
 
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
@@ -65,7 +86,8 @@ class MenuController extends Controller
             'showOrderDetails' => true,
             'deliveryServices' => $deliveryServices,
             'settings' => $settings,
-            'openPettyCash' => $openPettyCash
+            'openPettyCash' => $openPettyCash,
+            'currentBranchId'  => $currentBranchId,
         ]);
     }
     public function available()

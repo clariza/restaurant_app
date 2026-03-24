@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+<form method="GET" action="{{ route('inventory.index') }}">
+    <select name="branch_id" onchange="this.form.submit()"
+            class="border rounded px-3 py-2">
+        @foreach($branches as $branch)
+            <option value="{{ $branch->id }}"
+                {{ $branch->id == $branchId ? 'selected' : '' }}>
+                {{ $branch->name }} {{ $branch->is_main ? '(Principal)' : '' }}
+            </option>
+        @endforeach
+    </select>
+</form>
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-xl font-bold text-[#203363]">Gestión de Inventario</h2>
     <div class="flex space-x-2">
@@ -75,13 +86,13 @@
                     @foreach($items as $item)
                     @if($item->manage_inventory)
                     <tr class="border-b hover:bg-gray-50 cursor-pointer inventory-item" 
-                        data-id="{{ $item->id }}"
+                         data-id="{{ $item->id }}"
                         data-name="{{ $item->name }}"
-                        data-stock="{{ $item->stock }}"
-                        data-min-stock="{{ $item->min_stock }}"
-                        data-category="{{ $item->category->name }}"
-                        data-stock-type="{{ $item->stock_type }}"
-                        data-stock-unit="{{ $item->stock_unit }}">
+                        data-stock="{{ $item->branch_stock }}"          {{-- ← era branch_stock pero faltaba --}}
+    data-min-stock="{{ $item->branch_min_stock }}"  {{-- ← corregir también min_stock --}}
+    data-category="{{ $item->category->name }}"
+    data-stock-type="{{ $item->stock_type }}"
+    data-stock-unit="{{ $item->stock_unit }}">
                         <td class="py-2">
                             <div class="font-medium">{{ $item->name }}</div>
                             <div class="text-sm text-gray-500">
@@ -92,15 +103,20 @@
                             </div>
                         </td>
                         <td class="text-right py-2">
-                            <span class="font-bold {{ $item->stock < $item->min_stock ? 'text-red-600' : ($item->stock == 0 ? 'text-red-700' : 'text-[#203363]') }}">
-                                {{ $item->stock }} {{ $item->stock_type == 'discrete' ? ($item->stock_unit ?? 'unid.') : ($item->stock_unit ?? 'gr/ml') }}
-                            </span>
-                            @if($item->stock == 0)
-                                <span class="text-xs text-red-700 block font-semibold">(Sin stock)</span>
-                            @elseif($item->stock < $item->min_stock)
-                                <span class="text-xs text-red-500 block">(Bajo stock)</span>
-                            @endif
-                        </td>
+                        <span class="font-bold {{ $item->branch_stock < $item->branch_min_stock 
+                        ? 'text-red-600' 
+                        : ($item->branch_stock == 0 ? 'text-red-700' : 'text-[#203363]') }}">
+                        {{ $item->branch_stock }} 
+                        {{ $item->stock_type == 'discrete' 
+                        ? ($item->stock_unit ?? 'unid.') 
+                        : ($item->stock_unit ?? 'gr/ml') }}
+                    </span>
+                    @if($item->branch_stock == 0)
+                        <span class="text-xs text-red-700 block font-semibold">(Sin stock)</span>
+                    @elseif($item->branch_stock < $item->branch_min_stock)
+                        <span class="text-xs text-red-500 block">(Bajo stock)</span>
+                    @endif
+                </td>
                     </tr>
                     @endif
                     @endforeach
@@ -127,6 +143,7 @@
         <form id="update-stock-form" action="{{ route('inventory.update-stock') }}" method="POST" style="display: none;">
             @csrf
             <input type="hidden" name="item_id" id="item_id">
+            <input type="hidden" name="branch_id" value="{{ $branchId }}">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
