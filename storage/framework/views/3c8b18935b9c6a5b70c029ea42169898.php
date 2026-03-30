@@ -1307,7 +1307,7 @@ console.log('🏢 Información de sucursal cargada:', {
             <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                 <h2 class="text-xl font-semibold text-gray-800">
                     <i class="fas fa-cash-register mr-2"></i>
-                    Gestión de Caja Chica 1
+                    Gestión de Caja Chica 
                 </h2>
                 <button onclick="closePettyCashModal()" 
                         class="text-gray-500 hover:text-gray-700 transition-colors">

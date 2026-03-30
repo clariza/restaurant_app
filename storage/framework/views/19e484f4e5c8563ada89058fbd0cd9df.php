@@ -229,11 +229,11 @@
                                 'min_stock' => $item->min_stock,
                                 'manage_inventory' => $item->manage_inventory
                                 ])); ?>, event); return false;" 
-        class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
-               <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
-        <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> disabled <?php endif; ?>>
-    Agregar
-</button>
+                                class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
+                                <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
+                                <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> disabled <?php endif; ?>>
+                                Agregar
+                            </button>
                         </div>
                     </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -1232,79 +1232,97 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-// 🔥 FUNCIÓN MEJORADA: Agregar item al pedido (SIN DUPLICADOS)
-function addToOrder(item, event) {
-    // 🔥 CRÍTICO: PREVENIR COMPORTAMIENTO POR DEFECTO
+async function addToOrder(item, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
     }
-    
-    console.log('➕ AGREGANDO ITEM (inicio):', item.name);
-    
-    // Verificar stock ANTES de agregar
+
+    // Verificar stock visual antes de llamar al backend
     if (item.manage_inventory) {
-        const menuItem = document.querySelector(`[data-item-id="${item.id}"]`);
-        if (!menuItem) {
-            console.error('❌ No se encontró el elemento del menú');
-            return false;
-        }
-        
-        const currentStock = parseInt(menuItem.dataset.stock) || 0;
-        console.log(`📊 Stock actual de ${item.name}: ${currentStock}`);
-        
+        const menuItemEl = document.querySelector(`[data-item-id="${item.id}"]`);
+        const currentStock = parseFloat(menuItemEl?.dataset.stock ?? 0);
         if (currentStock <= 0) {
-            alert('No hay suficiente stock disponible');
+            Swal.fire('Sin stock', `No hay stock disponible para "${item.name}"`, 'warning');
             return false;
         }
     }
 
-    // Obtener pedido actual
-    let order = JSON.parse(localStorage.getItem('order')) || [];
-    console.log('📦 Pedido actual:', order);
-   
-    // Buscar si el ítem ya existe
-    const existingItemIndex = order.findIndex(i => i.id === item.id);
-    
-    if (existingItemIndex !== -1) {
-        // Item existe - incrementar cantidad
-        order[existingItemIndex].quantity += 1;
-        console.log(`✅ Cantidad incrementada: ${order[existingItemIndex].name} x${order[existingItemIndex].quantity}`);
-    } else {
-        // Item nuevo - agregar con cantidad 1
-        const newItem = { ...item, quantity: 1 };
-        order.push(newItem);
-        console.log(`✅ Item nuevo agregado: ${newItem.name} x1`);
-    }
+    // Llamada al backend para reservar stock
+    if (item.manage_inventory) {
+        try {
+            const branchId = <?php echo e($currentBranchId ?? 'null'); ?>;
+            const response = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    item_id:   item.id,
+                    quantity:  1,
+                    branch_id: branchId,
+                }),
+            });
 
-    // Guardar en localStorage
-    localStorage.setItem('order', JSON.stringify(order));
-    console.log('💾 Pedido guardado en localStorage');
+            const data = await response.json();
 
-    // Actualizar interfaz
-    let updateCalled = false;
-    
-    if (typeof window.updateOrderDetails === 'function') {
-        console.log('🔄 Actualizando interfaz del pedido...');
-        window.updateOrderDetails();
-        updateCalled = true;
-    } else {
-        console.error('❌ window.updateOrderDetails no está disponible');
-    }
-    
-    // Fallback si no se actualizó
-    if (!updateCalled) {
-        setTimeout(() => {
-            if (typeof window.updateOrderDetails === 'function') {
-                window.updateOrderDetails();
+            if (!data.success) {
+                Swal.fire('Stock insuficiente', data.message, 'warning');
+                // Actualizar badge con el stock real que devuelve el servidor
+                if (data.new_stock !== undefined && data.new_stock !== null) {
+                    window.updateStockBadge(
+                        item.id, data.new_stock, item.min_stock,
+                        item.stock_type, item.stock_unit, item.manage_inventory
+                    );
+                    const el = document.querySelector(`[data-item-id="${item.id}"]`);
+                    if (el) el.dataset.stock = data.new_stock;
+                }
+                return false;
             }
-        }, 100);
+            const safeStockUnit = item.stock_unit ?? 'UNI';
+            const safeStockType = item.stock_type ?? 'discrete';
+            const safeMinStock  = item.min_stock  ?? 0;
+            // Actualizar badge con stock real de BD
+            window.updateStockBadge(
+        item.id, 
+        data.new_stock, 
+        safeMinStock,
+        safeStockType, 
+        safeStockUnit, 
+        item.manage_inventory
+    );
+            const menuItemEl = document.querySelector(`[data-item-id="${item.id}"]`);
+            if (menuItemEl) menuItemEl.dataset.stock = data.new_stock;
+
+        } catch (e) {
+            console.error('❌ Error completo:', e);
+            console.error('❌ Error message:', e.message);
+    console.error('❌ Error stack:', e.stack);
+    // Mostrar en pantalla para debug
+    alert('Error detallado: ' + e.message + '\n\nStack: ' + e.stack);
+    return false;
+        }
     }
-    
-    console.log('✅ ITEM AGREGADO COMPLETAMENTE');
-    
-    // IMPORTANTE: Retornar false para prevenir cualquier acción adicional
+
+    // Actualizar carrito en localStorage
+    let order = JSON.parse(localStorage.getItem('order')) || [];
+    const existingIndex = order.findIndex(i => i.id === item.id);
+
+    if (existingIndex !== -1) {
+        order[existingIndex].quantity += 1;
+    } else {
+        order.push({ ...item, quantity: 1 });
+    }
+
+    localStorage.setItem('order', JSON.stringify(order));
+
+    if (typeof window.updateOrderDetails === 'function') {
+        window.updateOrderDetails();
+    }
+
     return false;
 }
 function goBack() {
@@ -1659,7 +1677,8 @@ window.updateStockBadge = function(itemId, newStock, minStock, stockType, stockU
     if (stockType === 'discrete') {
         stockBadge.textContent = `${Math.floor(newStock)} UNI`;
     } else {
-        stockBadge.textContent = `${Math.floor(newStock)} ${stockUnit.toUpperCase()}`;
+        // FIX: manejar stockUnit null/undefined
+        stockBadge.textContent = `${Math.floor(newStock)} ${(stockUnit ?? 'UNI').toUpperCase()}`;
     }
 
     // 🔥 LIMPIAR TODAS LAS CLASES DE COLOR

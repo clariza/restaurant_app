@@ -8,36 +8,50 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Obtener la caja chica abierta del usuario actual
+        $branchId = session('branch_id');
+
         $openPettyCash = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->first();
 
-        // Filtrar gastos según el rol del usuario
-        if (auth()->user()->role === 'admin') {
-            // Administradores ven todos los gastos
-            $expenses = Expense::orderBy('date', 'desc')->get();
-        } else {
-            // Usuarios regulares solo ven gastos de cajas abiertas
-            $openPettyCashIds = PettyCash::where('status', 'open')->pluck('id');
-            $expenses = Expense::whereIn('petty_cash_id', $openPettyCashIds)
-                ->orderBy('date', 'desc')
-                ->get();
-        }
+        $expenses = Expense::whereHas('pettyCash', function ($q) use ($branchId) {
+            if ($branchId) {
+                $q->where('branch_id', $branchId);
+            }
+        })
+            ->with('pettyCash')
+            ->orderBy('date', 'desc')
+            ->get();
 
-        // Si la petición solicita JSON
-        if ($request->wantsJson() || $request->has('json')) {
-            return response()->json([
-                'expenses' => $expenses,  // ✅ Asegúrate que sea un array
-                'openPettyCash' => $openPettyCash ? true : false
-            ]);
-        }
-
-        // Vista normal
         return view('expenses.index', compact('expenses', 'openPettyCash'));
     }
+    // ── MODAL DE GASTOS (JSON) ────────────────────────────────────────
+    // Solo gastos de la caja abierta del usuario en su sucursal activa
+    public function modalExpenses()
+    {
+        $branchId = session('branch_id');
+
+        $openPettyCash = PettyCash::where('status', 'open')
+            ->where('user_id', auth()->id())
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->first();
+
+        $expenses = $openPettyCash
+            ? Expense::where('petty_cash_id', $openPettyCash->id)
+            ->orderBy('date', 'desc')
+            ->get()
+            : collect();
+
+        return response()->json([
+            'expenses'      => $expenses,
+            'openPettyCash' => (bool) $openPettyCash,
+            'petty_cash_id' => $openPettyCash?->id,
+        ]);
+    }
+
 
     public function create()
     {

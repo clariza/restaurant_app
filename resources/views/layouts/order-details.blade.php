@@ -252,12 +252,21 @@ async function loadExpenses() {
     container.innerHTML = `<div class="flex justify-center items-center py-12">
         <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
     try {
-        const res = await fetch('/expenses?json=1', {
-            headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        const res = await fetch('/expenses/modal', {  
+            headers: {
+                'X-CSRF-TOKEN': window.csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             credentials: 'same-origin'
         });
         if (!res.ok) throw new Error(`Error ${res.status}`);
         const data = await res.json();
+
+        if (data.petty_cash_id) {
+            window._activePettyCashId = data.petty_cash_id;
+        }
+
         expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
         renderExpensesTable();
     } catch(e) {

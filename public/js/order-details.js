@@ -83,14 +83,22 @@ window.updateStockBadge = function (itemId, newStock, minStock, stockType, stock
     const addButton = itemElement.querySelector('button');
     if (!stockBadge || !addButton) return;
 
+    // ✅ Sanitizar valores nulls/undefined
+    newStock = parseFloat(newStock) || 0;
+    minStock = parseFloat(minStock) || 0;
+    stockType = stockType ?? 'discrete';
+    stockUnit = stockUnit ?? 'UNI';   // ← FIX principal
+
     itemElement.dataset.stock = newStock;
 
+    // Actualizar texto del badge
     if (stockType === 'discrete') {
-        stockBadge.textContent = `${newStock} UNI`;
+        stockBadge.textContent = `${Math.floor(newStock)} UNI`;
     } else {
-        stockBadge.textContent = `${newStock} ${stockUnit.toUpperCase()}`;
+        stockBadge.textContent = `${Math.floor(newStock)} ${stockUnit.toUpperCase()}`;
     }
 
+    // Actualizar clases de color
     stockBadge.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'text-white');
 
     if (newStock <= 0) {
@@ -108,10 +116,11 @@ window.updateStockBadge = function (itemId, newStock, minStock, stockType, stock
         addButton.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 
+    // Animación
     stockBadge.classList.add('animate-pulse');
-    setTimeout(() => {
-        stockBadge.classList.remove('animate-pulse');
-    }, 500);
+    setTimeout(() => stockBadge.classList.remove('animate-pulse'), 500);
+
+    console.log(`✅ Stock badge actualizado — item ${itemId}: ${newStock}`);
 };
 
 function updateOrderDetails() {
@@ -144,14 +153,19 @@ function updateOrderDetails() {
         order.forEach((item, index) => {
             const itemElement = document.createElement('div');
             itemElement.className = 'flex justify-between items-center mb-2 p-1.5 bg-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm';
+            // DESPUÉS: + descuenta stock, - lo restaura
             itemElement.innerHTML = `
-                <div class="flex items-center">
-                    <button type="button" onclick="removeItem(${index})" class="text-red-600 font-bold text-sm hover:text-red-800 mr-2 transition-colors">-</button>
-                    <button type="button" onclick="increaseItemQuantity(${index})" class="text-green-600 font-bold text-sm hover:text-green-800 mr-2 transition-colors">+</button>
+            <div class="flex items-center">
+                <button type="button" onclick="removeItem(${index})" 
+                    class="text-red-600 font-bold text-sm hover:text-red-800  mr-2 transition-colors" 
+                    title="Quitar 1 unidad (restaura stock)">-</button>
+                <button type="button" onclick="increaseItemQuantity(${index})" 
+                    class="text-green-600 font-bold text-sm hover:text-green-800  mr-2 transition-colors"
+                    title="Agregar 1 unidad (descuenta stock)">+</button>
                     <p class="text-[#203363]">${item.name} (x${item.quantity})</p>
-                </div>
-                <p class="text-[#203363]">Bs${(item.price * item.quantity).toFixed(2)}</p>
-            `;
+                    </div>
+                    <p class="text-[#203363]">Bs${(item.price * item.quantity).toFixed(2)}</p>
+                    `;
             orderDetails.appendChild(itemElement);
         });
 
@@ -227,36 +241,59 @@ function syncLocalStorageWithDOM(defaults) {
         });
     }
 }
-function removeItem(index) {
-    console.log('🗑️ Disminuyendo cantidad del item índice:', index);
-
+async function removeItem(index) {
     try {
         const order = JSON.parse(localStorage.getItem('order')) || [];
+        if (index < 0 || index >= order.length) return;
 
-        if (index >= 0 && index < order.length) {
-            const item = order[index];
+        const item = order[index];
 
-            // Si la cantidad es mayor a 1, solo disminuir
-            if (item.quantity > 1) {
-                item.quantity -= 1;
-                console.log(`📉 Cantidad reducida a: ${item.quantity}`);
-            } else {
-                // Si la cantidad es 1, eliminar el item completamente
-                order.splice(index, 1);
-                console.log('🗑️ Item eliminado completamente del pedido');
-            }
+        // ✅ Restaurar 1 unidad de stock en BD
+        if (item.manage_inventory) {
+            try {
+                const response = await fetch('/cart/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': window.csrfToken,
+                    },
+                    body: JSON.stringify({ item_id: item.id, quantity: 1 }),
+                });
 
-            // Guardar cambios en localStorage
-            localStorage.setItem('order', JSON.stringify(order));
+                const data = await response.json();
 
-            // Actualizar la interfaz
-            if (typeof window.updateOrderDetails === 'function') {
-                window.updateOrderDetails();
-            } else {
-                console.error('updateOrderDetails no disponible en removeItem');
-                location.reload();
+                if (data.success && data.new_stock !== undefined) {
+                    window.updateStockBadge(
+                        item.id,
+                        data.new_stock,
+                        item.min_stock ?? 0,
+                        item.stock_type ?? 'discrete',
+                        item.stock_unit ?? 'UNI',
+                        item.manage_inventory
+                    );
+                    const el = document.querySelector(`[data-item-id="${item.id}"]`);
+                    if (el) el.dataset.stock = data.new_stock;
+                }
+
+            } catch (e) {
+                console.error('❌ Error al restaurar stock en removeItem:', e);
             }
         }
+
+        // Actualizar carrito local
+        if (item.quantity > 1) {
+            order[index].quantity -= 1;
+        } else {
+            order.splice(index, 1);
+        }
+
+        localStorage.setItem('order', JSON.stringify(order));
+
+        if (typeof window.updateOrderDetails === 'function') {
+            window.updateOrderDetails();
+        }
+
     } catch (error) {
         console.error('❌ Error en removeItem:', error);
     }
@@ -523,27 +560,81 @@ function checkTablesEnabled() {
 /**
  * Aumenta la cantidad de un ítem
  */
-function increaseItemQuantity(index) {
+async function increaseItemQuantity(index) {
     console.log('➕ Aumentando cantidad índice:', index);
 
     try {
         const order = JSON.parse(localStorage.getItem('order')) || [];
 
-        if (index >= 0 && index < order.length) {
-            order[index].quantity += 1;
-            console.log('📈 Nueva cantidad:', order[index].quantity);
+        if (index < 0 || index >= order.length) return;
 
-            localStorage.setItem('order', JSON.stringify(order));
+        const item = order[index];
 
-            if (typeof window.updateOrderDetails === 'function') {
-                window.updateOrderDetails();
-            } else {
-                console.error('updateOrderDetails no disponible en increaseItemQuantity');
-                location.reload();
+        // ✅ Descontar stock en BD al aumentar cantidad
+        if (item.manage_inventory) {
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': window.csrfToken,
+                    },
+                    body: JSON.stringify({
+                        item_id: item.id,
+                        quantity: 1,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    // Stock insuficiente — no incrementar
+                    Swal.fire('Sin stock', data.message || 'Stock insuficiente', 'warning');
+                    // Actualizar badge con stock real
+                    if (data.new_stock !== undefined && data.new_stock !== null) {
+                        window.updateStockBadge(
+                            item.id,
+                            data.new_stock,
+                            item.min_stock ?? 0,
+                            item.stock_type ?? 'discrete',
+                            item.stock_unit ?? 'UNI',
+                            item.manage_inventory
+                        );
+                        const el = document.querySelector(`[data-item-id="${item.id}"]`);
+                        if (el) el.dataset.stock = data.new_stock;
+                    }
+                    return; // ← No incrementar cantidad si no hay stock
+                }
+
+                // Actualizar badge con stock real de BD
+                window.updateStockBadge(
+                    item.id,
+                    data.new_stock,
+                    item.min_stock ?? 0,
+                    item.stock_type ?? 'discrete',
+                    item.stock_unit ?? 'UNI',
+                    item.manage_inventory
+                );
+                const el = document.querySelector(`[data-item-id="${item.id}"]`);
+                if (el) el.dataset.stock = data.new_stock;
+
+            } catch (e) {
+                console.error('❌ Error al descontar stock en increaseItemQuantity:', e);
+                // Si falla la conexión, igual incrementamos localmente
             }
         }
+
+        // Incrementar cantidad en localStorage
+        order[index].quantity += 1;
+        localStorage.setItem('order', JSON.stringify(order));
+
+        if (typeof window.updateOrderDetails === 'function') {
+            window.updateOrderDetails();
+        }
+
     } catch (error) {
-        console.error('Error en increaseItemQuantity:', error);
+        console.error('❌ Error en increaseItemQuantity:', error);
     }
 }
 
@@ -2141,7 +2232,8 @@ async function processOrder() {
             payment_methods: paymentMethods,
 
             // 🔥 CRÍTICO: Agregar ID de proforma si está convirtiendo
-            converting_from_proforma: (convertingFromProforma && proformaId) ? parseInt(proformaId) : null
+            converting_from_proforma: (convertingFromProforma && proformaId) ? parseInt(proformaId) : null,
+            stock_already_reserved: true,
         };
         console.log('📤 Datos a enviar (incluyendo proforma):', {
             converting_from_proforma: requestData.converting_from_proforma,
@@ -2570,19 +2662,41 @@ function showOrderPanel() {
         orderPanel.classList.add('block');
     }
 }
-function clearOrder() {
-    console.log('🧹 Limpiando todo el pedido');
+async function clearOrder() {
+    const order = JSON.parse(localStorage.getItem('order')) || [];
+    const itemsWithInventory = order.filter(i => i.manage_inventory);
+
+    if (itemsWithInventory.length > 0) {
+        try {
+            await fetch('/cart/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': window.csrfToken,
+                },
+                body: JSON.stringify({
+                    items: itemsWithInventory.map(i => ({
+                        item_id: i.id,
+                        quantity: i.quantity,
+                    })),
+                }),
+            });
+        } catch (e) {
+            console.error('❌ Error al restaurar stock en clearOrder:', e);
+        }
+    }
 
     localStorage.setItem('order', JSON.stringify([]));
 
-    // Llamar a updateOrderDetails de forma segura
-    if (typeof window.updateOrderDetails === 'function') {
-        window.updateOrderDetails();
-    } else {
-        console.error('updateOrderDetails no disponible en clearOrder');
-        location.reload();
+    // Sincronizar badges desde el servidor
+    if (typeof syncStockFromServer === 'function') {
+        await syncStockFromServer();
     }
 
+    if (typeof window.updateOrderDetails === 'function') {
+        window.updateOrderDetails();
+    }
 }
 /**
  * Función para cambiar la disponibilidad de una mesa

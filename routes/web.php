@@ -19,6 +19,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\PettyCashController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CartController;
 
 // ============================================
 // REDIRECCIÓN RAÍZ
@@ -51,6 +52,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/branches/{branch}/toggle-status', [BranchController::class, 'toggleStatus'])
             ->name('branches.toggle-status');
     });
+    Route::post('/cart/add',   [CartController::class, 'add']);
+    Route::post('/cart/remove', [CartController::class, 'remove']);
+    Route::post('/cart/clear', [CartController::class, 'clear']);
 
     // ─── BRANCHES (Lectura pública) ── DINÁMICAS DESPUÉS ─────────
     Route::get('/branches', [BranchController::class, 'index'])->name('branches.index');
@@ -111,9 +115,10 @@ Route::middleware(['auth'])->group(function () {
 
     // ─── EXPENSES ── ESTÁTICAS PRIMERO ───────────────────────────
     Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::get('expenses/modal', [ExpenseController::class, 'modalExpenses'])
+        ->name('expenses.modal');
     Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
     Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
-
     // ─── ORDERS ── ESTÁTICAS PRIMERO ─────────────────────────────
     Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -199,6 +204,7 @@ Route::middleware(['auth', 'check.pettycash'])->group(function () {
     Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
 
     // ─── PROFORMAS (Creación y conversión) ───────────────────────
     Route::post('/proformas', [ProformaController::class, 'store']);
