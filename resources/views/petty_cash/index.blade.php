@@ -1387,9 +1387,7 @@
 <!-- ========================================
      SCRIPTS - IMPORTANTE: Solo configuración
      ======================================== -->
-<script src="{{ asset('js/petty-cash-index.js') }}"></script>
-{{-- <script>
-    // Inicializar datos de PHP a JavaScript
+<script>
     window.pettyCashData = {
         totalExpenses: {{ $totalExpenses ?? 0 }},
         totalSalesQR: {{ $totalSalesQR ?? 0 }},
@@ -1397,11 +1395,10 @@
         saveClosureUrl: "{{ route('petty-cash.save-closure') }}",
         csrfToken: "{{ csrf_token() }}"
     };
-
-    console.log('✅ Configuración de caja chica cargada:', window.pettyCashData);
-    
-    // Disparar evento personalizado para notificar que los datos están listos
+    window.isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
+    console.log('✅ pettyCashData cargado:', window.pettyCashData);
     window.dispatchEvent(new Event('pettyCashDataReady'));
-</script> --}}
+</script>
+<script src="{{ asset('js/petty-cash-index.js') }}"></script>
 
 @endsection

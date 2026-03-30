@@ -172,21 +172,21 @@
                          data-stock-type="{{ $item->branch_stock_type }}"
                          data-stock="{{ $item->branch_stock }}"
                          data-stock-unit="{{ $item->branch_stock_unit }}"
-                         data-min-stock="{{ $item->min_stock }}">
+                         data-min-stock="{{ $item->branch_min_stock }}">
                          
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
                             @if($item->manage_inventory)
                             <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
                                 @if($item->branch_stock <= 0) bg-gray-500 text-white
-                                @elseif($item->branch_stock < $item->min_stock) bg-yellow-500 text-white
+                                @elseif($item->branch_stock < $item->branch_min_stock) bg-yellow-500 text-white
                                 @else bg-green-500 text-white @endif">
                                 @if($item->branch_stock_type == 'discrete')
-                                {{ (int)$item->branch_stock }} UNI
-                                 @else
-                                {{ (int)$item->branch_stock }} {{ strtoupper($item->branch_stock_unit) }}
+                                    {{ (int)$item->branch_stock }} UNI
+                                @else
+                                    {{ (int)$item->branch_stock }} {{ strtoupper($item->branch_stock_unit ?? 'UNI') }}
                                 @endif
-                                </span>
+                            </span>
                             @endif
                         </div>
 
@@ -229,10 +229,16 @@
                                 'manage_inventory' => $item->manage_inventory
                                 ]) }}, event); return false;" 
                                 class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
+
                                 @if($item->manage_inventory && $item->branch_stock <= 0) opacity-50 cursor-not-allowed @endif"
                                 @if($item->manage_inventory && $item->branch_stock <= 0) disabled @endif>
                                 Agregar
                             </button>
+                                    @if($item->manage_inventory && $item->branch_stock <= 0) opacity-50 cursor-not-allowed @endif"
+                                    @if($item->manage_inventory && $item->branch_stock <= 0) disabled @endif>
+                                    Agregar
+                                </button>
+
                         </div>
                     </div>
                 @endforeach

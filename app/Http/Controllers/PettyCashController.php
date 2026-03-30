@@ -92,44 +92,66 @@ class PettyCashController extends Controller
         }
     }
 
-    public function getClosureData()
+    public function getClosureData(Request $request)
     {
         try {
             $branchId = $this->getBranchId();
 
+            // ✅ Si se pasa un ID específico, úsalo (para admin cerrando cualquier caja)
+            if ($request->filled('petty_cash_id')) {
+                $openPettyCash = PettyCash::find($request->petty_cash_id);
+            
+            if (!$openPettyCash) {
+                return response()->json(['success' => false, 'message' => 'Caja no encontrada'], 404);
+            }
+
+            // Verificar permisos
+            if (!$this->isAdmin() && $openPettyCash->user_id !== auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'Sin permisos'], 403);
+            }
+        } else {
+            // Comportamiento original: buscar caja abierta del usuario
             $query = PettyCash::where('status', 'open')
                 ->when($branchId, fn($q) => $q->where('branch_id', $branchId));
 
-            // ✅ Admin ve todas las cajas de la sucursal, cajero solo la suya
             if (!$this->isAdmin()) {
                 $query->where('user_id', auth()->id());
             }
 
             $openPettyCash = $query->first();
+        }
 
-            if (!$openPettyCash) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No hay caja chica abierta para esta sucursal'
-                ], 404);
-            }
-
-            $totalExpenses  = Expense::where('petty_cash_id', $openPettyCash->id)->sum('amount') ?? 0;
-            $totalSalesCash = Sale::where('petty_cash_id', $openPettyCash->id)->where('payment_method', 'Efectivo')->sum('total') ?? 0;
-            $totalSalesQR   = Sale::where('petty_cash_id', $openPettyCash->id)->where('payment_method', 'QR')->sum('total') ?? 0;
-            $totalSalesCard = Sale::where('petty_cash_id', $openPettyCash->id)->whereIn('payment_method', ['Tarjeta', 'Card'])->sum('total') ?? 0;
-
+        if (!$openPettyCash) {
             return response()->json([
-                'success'          => true,
-                'petty_cash_id'    => $openPettyCash->id,
-                'initial_amount'   => $openPettyCash->initial_amount ?? 0,
-                'total_expenses'   => $totalExpenses,
-                'total_sales_cash' => $totalSalesCash,
-                'total_sales_qr'   => $totalSalesQR,
-                'total_sales_card' => $totalSalesCard,
-            ]);
+                'success' => false,
+                'message' => 'No hay caja chica abierta para esta sucursal'
+            ], 404);
+        }
+
+        $totalExpenses  = Expense::where('petty_cash_id', $openPettyCash->id)->sum('amount') ?? 0;
+        $totalSalesCash = Sale::where('petty_cash_id', $openPettyCash->id)->where('payment_method', 'Efectivo')->sum('total') ?? 0;
+        $totalSalesQR   = Sale::where('petty_cash_id', $openPettyCash->id)->where('payment_method', 'QR')->sum('total') ?? 0;
+        $totalSalesCard = Sale::where('petty_cash_id', $openPettyCash->id)->whereIn('payment_method', ['Tarjeta', 'Card'])->sum('total') ?? 0;
+
+        // ✅ Incluir la lista de gastos individuales
+        $expenses = Expense::where('petty_cash_id', $openPettyCash->id)
+            ->select('id', 'expense_name', 'description', 'amount', 'date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        return response()->json([
+            'success'          => true,
+            'petty_cash_id'    => $openPettyCash->id,
+            'initial_amount'   => $openPettyCash->initial_amount ?? 0,
+            'total_expenses'   => $totalExpenses,
+            'total_sales_cash' => $totalSalesCash,
+            'total_sales_qr'   => $totalSalesQR,
+            'total_sales_card' => $totalSalesCard,
+            'expenses'         => $expenses,  // ✅ ESTE ERA EL DATO FALTANTE
+        ]);
+
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -213,17 +235,17 @@ class PettyCashController extends Controller
 
         if (!$branchId) {
             return redirect()->back()
-                ->with('error', 'No hay sucursal activa. Por favor, inicia sesión nuevamente.');
+            ->with('error', 'No hay sucursal activa.');
         }
 
+        // ✅ Verificar por usuario — no por sucursal
         $existing = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
-            ->where('branch_id', $branchId)
-            ->first();
+            ->first();  // sin filtro de branch, un usuario = una caja
 
         if ($existing) {
             return redirect()->route('menu.index')
-                ->with('warning', 'Ya tienes una caja chica abierta para esta sucursal.');
+            ->with('warning', 'Ya tienes una caja chica abierta.');
         }
 
         PettyCash::create([
@@ -236,9 +258,9 @@ class PettyCashController extends Controller
             'branch_id'      => $branchId,
         ]);
 
-        return redirect()->route('menu.index')->with('success', 'Caja chica abierta correctamente.');
+        return redirect()->route('menu.index')
+        ->with('success', 'Caja chica abierta correctamente.');
     }
-
     public function show(PettyCash $pettyCash)
     {
         return view('petty_cash.show', compact('pettyCash'));
