@@ -1389,8 +1389,19 @@
 <!-- ========================================
      SCRIPTS - IMPORTANTE: Solo configuración
      ======================================== -->
+<script>
+    window.pettyCashData = {
+        totalExpenses: <?php echo e($totalExpenses ?? 0); ?>,
+        totalSalesQR: <?php echo e($totalSalesQR ?? 0); ?>,
+        totalSalesCard: <?php echo e($totalSalesCard ?? 0); ?>,
+        saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
+        csrfToken: "<?php echo e(csrf_token()); ?>"
+    };
+    window.isAdmin = <?php echo e(auth()->user()->role === 'admin' ? 'true' : 'false'); ?>;
+    console.log('✅ pettyCashData cargado:', window.pettyCashData);
+    window.dispatchEvent(new Event('pettyCashDataReady'));
+</script>
 <script src="<?php echo e(asset('js/petty-cash-index.js')); ?>"></script>
-
 
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/index.blade.php ENDPATH**/ ?>

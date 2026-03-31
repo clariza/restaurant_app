@@ -174,6 +174,9 @@
                                 <i class="fas fa-percentage mr-1"></i>DESCUENTO
                             </th>
                             <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
+                                <i class="fas fa-dollar-sign mr-1"></i>DESCUENTO<br/>(Bs.)
+                            </th>
+                            <th class="px-3 py-3 text-center font-semibold border-r border-white/20 whitespace-nowrap">
                                 <i class="fas fa-dollar-sign mr-1"></i>COSTO UNITARIO<br/>(DESPUÉS DE DESC.)
                             </th>
                             <th class="px-3 py-3 text-center font-semibold border-r border-white/20">
@@ -337,6 +340,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="flex items-center justify-center gap-1">
+                    <input type="number" name="products[${productRowCounter}][discount_amount]" 
+                    class="w-24 text-center discount-amount border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                    step="0.01" min="0" placeholder="0.00">
+                    <span class="text-gray-500">Bs.</span>
+                </div>
+            </td>
+           
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
                        class="w-24 text-center unit-cost-after-discount bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-medium text-[var(--primary-color)]" 
                        step="0.01" min="0" readonly placeholder="0.00">
@@ -378,6 +390,8 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('input', updateRowCalculations);
             input.addEventListener('change', updateRowCalculations);
         });
+        row.querySelector('.discount-amount').addEventListener('input', updateRowFromDiscountAmount);
+        row.querySelector('.discount-amount').addEventListener('change', updateRowFromDiscountAmount);
         
         // Botón eliminar
         row.querySelector('.remove-product').addEventListener('click', function() {
@@ -623,9 +637,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const discountAmount = unitCost * (discount / 100);
             const unitCostAfterDiscount = unitCost - discountAmount;
             const lineTotal = quantity * unitCostAfterDiscount;
+
+            const totalDiscountAmount = discountAmount * quantity;
             
             row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
             row.querySelector('.line-total').value = lineTotal.toFixed(2);
+
+
+            const discountAmountInput = row.querySelector('.discount-amount');
+            if (discountAmountInput && document.activeElement !== discountAmountInput) {
+                discountAmountInput.value = totalDiscountAmount.toFixed(2);
+            }
             
             if (sellingPrice > 0 && unitCostAfterDiscount > 0) {
                 const profitMargin = ((sellingPrice - unitCostAfterDiscount) / unitCostAfterDiscount) * 100;
@@ -647,11 +669,67 @@ document.addEventListener('DOMContentLoaded', function() {
             row.querySelector('.unit-cost-after-discount').value = '';
             row.querySelector('.line-total').value = '';
             row.querySelector('.profit-margin').textContent = '-';
-        }
+             const discountAmountInput = row.querySelector('.discount-amount');
+                if (discountAmountInput) discountAmountInput.value = '';
+            }
         
-        updateTotals();
+            updateTotals();
+    }
+    function updateRowFromDiscountAmount(event) {
+        const row = event.target.closest('tr');
+        if (!row || row.id === 'empty-table-message') return;
+
+            const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+            const unitCost = parseFloat(row.querySelector('.unit-cost-input').value) || 0;
+            const totalDiscountAmount = parseFloat(row.querySelector('.discount-amount').value) || 0;
+            const sellingPrice = parseFloat(row.querySelector('.selling-price').value) || 0;
+
+            if (unitCost <= 0) return;
+
+            // Calcular descuento por unidad y porcentaje
+            const discountPerUnit = quantity > 0 ? totalDiscountAmount / quantity : 0;
+            const discountPercent = (discountPerUnit / unitCost) * 100;
+
+            // Validar que el descuento no supere el costo total
+        if (discountPerUnit > unitCost) {
+            alert('El descuento en Bs. no puede superar el costo unitario total.');
+            row.querySelector('.discount-amount').value = (unitCost * quantity).toFixed(2);
+            return;
+        }
+
+        const unitCostAfterDiscount = unitCost - discountPerUnit;
+        const lineTotal = quantity * unitCostAfterDiscount;
+
+    // Sincronizar porcentaje sin disparar su listener
+        const discountInput = row.querySelector('.discount-input');
+        if (discountInput && document.activeElement !== discountInput) {
+            discountInput.value = discountPercent.toFixed(2);
+        }
+
+    // Actualizar campos readonly
+    row.querySelector('.unit-cost-after-discount').value = unitCostAfterDiscount.toFixed(2);
+    row.querySelector('.line-total').value = lineTotal.toFixed(2);
+
+    // Actualizar margen de utilidad
+    if (sellingPrice > 0 && unitCostAfterDiscount > 0) {
+        const profitMargin = ((sellingPrice - unitCostAfterDiscount) / unitCostAfterDiscount) * 100;
+        const profitMarginElement = row.querySelector('.profit-margin');
+        profitMarginElement.textContent = profitMargin.toFixed(2) + '%';
+
+        if (profitMargin < 0) {
+            profitMarginElement.style.color = '#dc3545';
+        } else if (profitMargin < 20) {
+            profitMarginElement.style.color = '#ffc107';
+        } else {
+            profitMarginElement.style.color = '#28a745';
+        }
+    } else {
+        row.querySelector('.profit-margin').textContent = '-';
+        row.querySelector('.profit-margin').style.color = '#6c757d';
     }
 
+    updateTotals();
+}
     // Actualizar totales
     function updateTotals() {
         const rows = productsTableBody.querySelectorAll('tr:not(#empty-table-message)');
@@ -729,6 +807,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </td>
             <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
+                <div class="flex items-center justify-center gap-1">
+                    <input type="number" name="products[${productRowCounter}][discount_amount]" 
+                    class="w-24 text-center discount-amount border border-[var(--gray-light)] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" 
+                    step="0.01" min="0" placeholder="0.00">
+                    <span class="text-gray-500">Bs.</span>
+                </div>
+            </td>
+            <td class="px-3 py-3 text-center border-r border-[var(--gray-light)]">
                 <input type="number" name="products[${productRowCounter}][unit_cost_after_discount]" 
                        class="w-24 text-center unit-cost-after-discount bg-gray-50 border border-[var(--gray-light)] rounded px-2 py-1 font-medium text-[var(--primary-color)]" 
                        step="0.01" min="0" readonly placeholder="0.00">
@@ -769,6 +855,8 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('input', updateRowCalculations);
             input.addEventListener('change', updateRowCalculations);
         });
+        row.querySelector('.discount-amount').addEventListener('input', updateRowFromDiscountAmount);
+        row.querySelector('.discount-amount').addEventListener('change', updateRowFromDiscountAmount);
         
         row.querySelector('.remove-product').addEventListener('click', function() {
             row.remove();

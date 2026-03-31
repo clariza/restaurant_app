@@ -1303,17 +1303,20 @@ console.log('🏢 Información de sucursal cargada:', {
 <div id="petty-cash-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background: rgba(0, 0, 0, 0.5);">
     <div class="flex items-start justify-center min-h-screen px-4 py-2">
         <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[92vh] overflow-hidden flex flex-col">
-            <!-- Header del Modal -->
-            <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-xl font-semibold text-gray-800">
-                    <i class="fas fa-cash-register mr-2"></i>
-                    Gestión de Caja Chica 
-                </h2>
-                <button onclick="closePettyCashModal()" 
-                        class="text-gray-500 hover:text-gray-700 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
+
+           <!-- Header del Modal -->
+    <div class="flex items-center justify-between" 
+         style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #203363; flex-shrink: 0;">
+        <h2 class="text-xl font-semibold" style="color: #b6e0f6;">
+            <i class="fas fa-cash-register mr-2"></i>
+            Gestión de Caja Chica 
+        </h2>
+        <button onclick="closePettyCashModal()" 
+            style="color: #b6e0f6;"
+            class="hover:text-white transition-colors">
+            <i class="fas fa-times text-2xl"></i>
+        </button>
+    </div>
 
             <!-- Contenido del Modal -->
             <div id="petty-cash-content" class="overflow-y-auto flex-1">

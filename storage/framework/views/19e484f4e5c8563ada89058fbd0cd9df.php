@@ -171,22 +171,22 @@
                          data-stock-type="<?php echo e($item->branch_stock_type); ?>"
                          data-stock="<?php echo e($item->branch_stock); ?>"
                          data-stock-unit="<?php echo e($item->branch_stock_unit); ?>"
-                         data-min-stock="<?php echo e($item->min_stock); ?>">
+                         data-min-stock="<?php echo e($item->branch_min_stock); ?>">
                          
                         <!-- Label de stock en esquina superior izquierda -->
                         <div class="absolute top-2 left-2">
                             <?php if($item->manage_inventory): ?>
                             <span class="stock-badge px-2 py-1 rounded text-xs font-medium 
                                 <?php if($item->branch_stock <= 0): ?> bg-gray-500 text-white
-                                <?php elseif($item->branch_stock < $item->min_stock): ?> bg-yellow-500 text-white
+                                <?php elseif($item->branch_stock < $item->branch_min_stock): ?> bg-yellow-500 text-white
                                 <?php else: ?> bg-green-500 text-white <?php endif; ?>">
                                 <?php if($item->branch_stock_type == 'discrete'): ?>
-                                <?php echo e((int)$item->branch_stock); ?> UNI
-                                 <?php else: ?>
-                                <?php echo e((int)$item->branch_stock); ?> <?php echo e(strtoupper($item->branch_stock_unit)); ?>
+                                    <?php echo e((int)$item->branch_stock); ?> UNI
+                                <?php else: ?>
+                                    <?php echo e((int)$item->branch_stock); ?> <?php echo e(strtoupper($item->branch_stock_unit ?? 'UNI')); ?>
 
                                 <?php endif; ?>
-                                </span>
+                            </span>
                             <?php endif; ?>
                         </div>
 
@@ -230,10 +230,13 @@
                                 'manage_inventory' => $item->manage_inventory
                                 ])); ?>, event); return false;" 
                                 class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c] transition-colors text-sm sm:text-base w-full max-w-[150px]
+
                                 <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> opacity-50 cursor-not-allowed <?php endif; ?>"
                                 <?php if($item->manage_inventory && $item->branch_stock <= 0): ?> disabled <?php endif; ?>>
                                 Agregar
                             </button>
+                                  
+
                         </div>
                     </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

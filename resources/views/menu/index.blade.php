@@ -234,10 +234,7 @@
                                 @if($item->manage_inventory && $item->branch_stock <= 0) disabled @endif>
                                 Agregar
                             </button>
-                                    @if($item->manage_inventory && $item->branch_stock <= 0) opacity-50 cursor-not-allowed @endif"
-                                    @if($item->manage_inventory && $item->branch_stock <= 0) disabled @endif>
-                                    Agregar
-                                </button>
+                                  
 
                         </div>
                     </div>
