@@ -1305,12 +1305,11 @@ console.log('🏢 Información de sucursal cargada:', {
         <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[92vh] overflow-hidden flex flex-col">
 
            <!-- Header del Modal -->
-    <div class="flex items-center justify-between" 
-         style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #203363; flex-shrink: 0;">
-        <h2 class="text-xl font-semibold" style="color: #b6e0f6;">
-            <i class="fas fa-cash-register mr-2"></i>
-            Gestión de Caja Chica 
-        </h2>
+        <div class="flex items-center justify-between" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #203363; flex-shrink: 0;">
+            <h2 class="text-xl font-semibold" style="color: #b6e0f6;">
+                <i class="fas fa-cash-register mr-2"></i>
+                    Gestión de Caja Chica 
+            </h2>
         <button onclick="closePettyCashModal()" 
             style="color: #b6e0f6;"
             class="hover:text-white transition-colors">

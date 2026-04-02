@@ -177,6 +177,25 @@
                         </div>
                     </div>
                 </div>
+                   <div class="closure-notes-section">
+                <label for="closure-notes-modal">
+                    <i class="fas fa-sticky-note" style="color:#6b7280; font-size:14px;"></i>
+                    Notas de cierre
+                    <span class="label-hint">(opcional)</span>
+                </label>
+                <textarea
+                    id="closure-notes-modal"
+                    name="closure_notes"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="Observaciones, incidencias, comentarios del cierre..."
+                    class="form-control"
+                    style="resize: none; margin-top: 0.375rem;"
+                ></textarea>
+                <div style="text-align:right; font-size:0.75rem; color:#9ca3af; margin-top:2px;">
+                    <span id="notes-char-count-modal">0</span>/500
+                </div>
+            </div>
             </div>
         </div>
     @else
@@ -208,6 +227,22 @@
 {{-- ESTILOS DEL MODAL DE CIERRE --}}
 {{-- ============================================ --}}
 <style>
+    .closure-notes-section {
+    background: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .closure-notes-section label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0;
+    }
     .closure-internal-modal {
         display: flex;
         flex-direction: column;
@@ -668,3 +703,15 @@
     }
     .expense-row { animation: slideIn 0.3s ease; }
 </style>
+<script>
+(function () {
+    const textarea = document.getElementById('closure-notes-modal');
+    const counter  = document.getElementById('notes-char-count-modal');
+    if (!textarea || !counter) return;
+
+    textarea.addEventListener('input', function () {
+        counter.textContent = this.value.length;
+        counter.style.color = this.value.length > 450 ? '#ef4444' : '#9ca3af';
+    });
+})();
+</script>

@@ -37,15 +37,23 @@ window.openModal = async function (id) {
     const container = document.getElementById('expensesContainer');
     if (container) container.innerHTML = '';
 
-    // Limpiar inputs de ventas/gastos
+    // Limpiar textarea de notas
+    const notesTextarea = document.getElementById('closure-notes');
+    const charCount = document.getElementById('notes-char-count');
+    if (notesTextarea && charCount) {
+        notesTextarea.addEventListener('input', function () {
+            charCount.textContent = this.value.length;
+            charCount.style.color = this.value.length > 450 ? '#ef4444' : '#9ca3af';
+        });
+    }
     const gastosInput = document.getElementById('total-gastos');
     if (gastosInput) {
         gastosInput.value = '0.00';
         gastosInput.setAttribute('data-gastos-bd', '0');
     }
-    const qrInput   = document.getElementById('ventas-qr');
+    const qrInput = document.getElementById('ventas-qr');
     const cardInput = document.getElementById('ventas-tarjeta');
-    if (qrInput)   qrInput.value = '0.00';
+    if (qrInput) qrInput.value = '0.00';
     if (cardInput) cardInput.value = '0.00';
 
     // ✅ Fetch datos reales de la caja
@@ -65,8 +73,8 @@ window.openModal = async function (id) {
 
         if (data.success) {
             // Ventas
-            if (qrInput)   qrInput.value   = (data.total_sales_qr   || 0).toFixed(2);
-            if (cardInput) cardInput.value  = (data.total_sales_card || 0).toFixed(2);
+            if (qrInput) qrInput.value = (data.total_sales_qr || 0).toFixed(2);
+            if (cardInput) cardInput.value = (data.total_sales_card || 0).toFixed(2);
 
             // Total gastos
             if (gastosInput) {
@@ -156,7 +164,7 @@ window.renderExistingExpenses = function (expenses) {
 
     // Agregar una fila vacía al final para nuevos gastos
     addExpenseRow('', '', '');
-    
+
     console.log(`✅ ${expenses.length} gastos existentes renderizados`);
 };
 /**
@@ -494,10 +502,6 @@ window.saveClosure = async function () {
         const totalSalesQR = parseFloat(document.getElementById('ventas-qr')?.value) || 0;
         const totalSalesCard = parseFloat(document.getElementById('ventas-tarjeta')?.value) || 0;
 
-        console.log('💰 Valores de ventas:');
-        console.log('   - Efectivo:', totalSalesCash);
-        console.log('   - QR:', totalSalesQR);
-        console.log('   - Tarjeta:', totalSalesCard);
 
         // Calcular total de gastos
         const totalExpenses = calculateTotalExpenses();
@@ -528,6 +532,9 @@ window.saveClosure = async function () {
 
         console.log(`📋 Total gastos nuevos a registrar: ${expenses.length}`);
 
+        // Capturar notas de cierre
+        const closureNotes = document.getElementById('closure-notes')?.value?.trim() || '';
+
         // Preparar datos
         const dataToSend = {
             petty_cash_id: pettyCashId,
@@ -535,6 +542,7 @@ window.saveClosure = async function () {
             total_sales_qr: totalSalesQR,
             total_sales_card: totalSalesCard,
             total_expenses: totalExpenses,
+            closure_notes: closureNotes,
             expenses: expenses
         };
 
@@ -579,8 +587,12 @@ window.saveClosure = async function () {
 
             // Cerrar el modal
             closeModal();
-
-            // ✅✅✅ MOSTRAR NOTIFICACIÓN Y REDIRECCIÓN AUTOMÁTICA ✅✅✅
+            const notesEl = document.getElementById('closure-notes');
+            if (notesEl) {
+                notesEl.value = '';
+                const charCount = document.getElementById('notes-char-count');
+                if (charCount) charCount.textContent = '0';
+            }
             setTimeout(() => {
                 Swal.fire({
                     icon: 'success',
@@ -639,7 +651,7 @@ window.saveClosure = async function () {
         }
     }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
 };
 
 // ========================================
