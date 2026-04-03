@@ -187,12 +187,16 @@ async function guardarCierreUnificado(pettyCashId = null) {
     const totalSalesQR = parseFloat(document.querySelector(selectors.ventasQRInput)?.value) || 0;
     const totalSalesCard = parseFloat(document.querySelector(selectors.ventasTarjetaInput)?.value) || 0;
     const totalExpenses = calcularTotalGastosUnificado();
+    const closureNotes = selectors.closureNotesInput
+        ? (document.querySelector(selectors.closureNotesInput)?.value?.trim() || '')
+        : '';
 
     console.log('📊 Datos del cierre:');
     console.log(`   - Total Efectivo: $${totalSalesCash.toFixed(2)}`);
     console.log(`   - Total QR: $${totalSalesQR.toFixed(2)}`);
     console.log(`   - Total Tarjeta: $${totalSalesCard.toFixed(2)}`);
     console.log(`   - Total Gastos: $${totalExpenses.toFixed(2)}`);
+    console.log(`   - Notas de cierre: ${closureNotes}`);
 
     // 3. Recopilar gastos nuevos
     const expenses = [];
@@ -221,6 +225,7 @@ async function guardarCierreUnificado(pettyCashId = null) {
         total_sales_qr: totalSalesQR,
         total_sales_card: totalSalesCard,
         total_expenses: totalExpenses,
+        closure_notes: closureNotes,
         expenses: expenses
     };
 
@@ -381,6 +386,7 @@ function getSelectors(context) {
             totalElement: '#total',
             totalEfectivoInput: '#total-efectivo',
             totalGastosInput: '#total-gastos',
+            closureNotesInput: '#closure-notes',
             ventasQRInput: '#ventas-qr',
             ventasTarjetaInput: '#ventas-tarjeta',
             expensesContainer: '#expensesContainer',
@@ -394,6 +400,7 @@ function getSelectors(context) {
             totalElement: '#total-closure',
             totalEfectivoInput: '#ventas-efectivo-closure',
             totalGastosInput: '#total-gastos-closure',
+            closureNotesInput: '#closure-notes-modal',
             ventasQRInput: '#ventas-qr-closure',
             ventasTarjetaInput: '#ventas-tarjeta-closure',
             expensesContainer: '#expensesContainerClosure',
@@ -462,12 +469,14 @@ window.initializeClosureModal = function (pettyCashId) {
  * Configurar event listeners del modal de cierre
  */
 function setupClosureEventListeners() {
+    const closureNotes = document.querySelector(selectors.closureNotesInput)?.value?.trim() || '';
     console.log('🔧 [SETUP] Configurando event listeners...');
 
     const wrapper = document.getElementById('closure-modal-content-wrapper');
     if (!wrapper) {
         console.error('❌ [SETUP] Wrapper del modal no encontrado');
         return;
+    console.log(`   - Notas de cierre: ${closureNotes}`);
     }
 
     const denominationInputs = wrapper.querySelectorAll('.denomination-input2');
@@ -496,6 +505,7 @@ function setupClosureEventListeners() {
     expenseInputs.forEach((input, index) => {
         input.addEventListener('input', function (e) {
             console.log(`💰 [INPUT] Gasto ${index + 1}: ${e.target.value}`);
+        closure_notes: closureNotes,
             calculateExpensesTotal();
         });
 
@@ -774,6 +784,7 @@ async function saveClosure(pettyCashId) {
     const totalSalesCash = parseFloat(wrapper.querySelector('#total-efectivo-modal')?.value) || 0;
     const totalSalesQR = parseFloat(wrapper.querySelector('#ventas-qr-modal')?.value) || 0;
     const totalSalesCard = parseFloat(wrapper.querySelector('#ventas-tarjeta-modal')?.value) || 0;
+    const closureNotes = wrapper.querySelector('#closure-notes-modal, #closure-notes')?.value?.trim() || '';
     const totalExpenses = calculateExpensesTotal();
 
     const expenses = [];
@@ -799,6 +810,7 @@ async function saveClosure(pettyCashId) {
         total_sales_qr: totalSalesQR,
         total_sales_card: totalSalesCard,
         total_expenses: totalExpenses,
+        closure_notes: closureNotes,
         expenses: expenses
     };
 
