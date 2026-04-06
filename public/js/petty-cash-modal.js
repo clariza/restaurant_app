@@ -1,1118 +1,648 @@
 console.log('📦 petty-cash-modal.js cargado');
 
 // =============================================
-// 🔥 FUNCIONES DEL MODAL DE CIERRE (closure-modal)
+// CIERRE DE MODALES — función centralizada
 // =============================================
 
 /**
- * 🔍 FUNCIÓN DE DEPURACIÓN: Ver estructura del DOM
+ * Cierra TODOS los modales relacionados con caja chica.
+ * Es la única función que debe llamarse para cerrar — sin duplicados.
  */
-function debugModalStructure() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔍 [DEBUG] Analizando estructura del modal...');
-
-    const elements = {
-        'closure-internal-overlay': document.getElementById('closure-internal-overlay'),
-        'modal-closure-internal': document.getElementById('modal-closure-internal'),
-        '.closure-internal-modal': document.querySelector('.closure-internal-modal'),
-        'petty-cash-modal': document.getElementById('petty-cash-modal'),
-        'petty-cash-content': document.getElementById('petty-cash-content')
-    };
-
-    for (const [name, element] of Object.entries(elements)) {
-        if (element) {
-            console.log(`✅ ${name}:`);
-            console.log(`   - display: ${window.getComputedStyle(element).display}`);
-            console.log(`   - opacity: ${window.getComputedStyle(element).opacity}`);
-            console.log(`   - visibility: ${window.getComputedStyle(element).visibility}`);
-            console.log(`   - zIndex: ${window.getComputedStyle(element).zIndex}`);
-        } else {
-            console.log(`❌ ${name}: NO ENCONTRADO`);
-        }
+function _closeAllModals() {
+    var outerModal = document.getElementById('petty-cash-modal');
+    if (outerModal) {
+        outerModal.classList.add('hidden');
+        console.log('✅ [CLOSE] #petty-cash-modal ocultado');
     }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-}
-
-/**
- * ✅ FUNCIÓN MEJORADA PARA CERRAR EL MODAL DE CIERRE
- * Cierra TODOS los elementos relacionados con el modal
- */
-function closeInternalModalClosure() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🚪 [CLOSE] Iniciando cierre completo del modal...');
-
-    // 1. Buscar TODOS los posibles contenedores del modal
-    const overlay = document.getElementById('closure-internal-overlay');
-    const modal = document.getElementById('modal-closure-internal');
-    const modalWrapper = document.querySelector('.closure-internal-modal');
-    const parentModal = document.getElementById('petty-cash-modal');
-    const modalContent = document.getElementById('petty-cash-content');
-
-    console.log('🔍 [CLOSE] Elementos encontrados:');
-    console.log('  - Overlay:', overlay ? '✅' : '❌');
-    console.log('  - Modal:', modal ? '✅' : '❌');
-    console.log('  - Modal Wrapper:', modalWrapper ? '✅' : '❌');
-    console.log('  - Parent Modal:', parentModal ? '✅' : '❌');
-    console.log('  - Modal Content:', modalContent ? '✅' : '❌');
-
-    // 2. Ocultar overlay
+    var overlay = document.getElementById('closure-internal-overlay');
     if (overlay) {
+        overlay.classList.remove('active');
         overlay.style.display = 'none';
-        overlay.style.opacity = '0';
-        overlay.style.visibility = 'hidden';
-        console.log('✅ [CLOSE] Overlay ocultado');
+        console.log('✅ [CLOSE] #closure-internal-overlay ocultado');
     }
 
-    // 3. Ocultar modal principal
-    if (modal) {
-        modal.style.display = 'none';
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        console.log('✅ [CLOSE] Modal ocultado');
-    }
-
-    // 4. Ocultar wrapper si existe y es diferente del modal
-    if (modalWrapper && modalWrapper !== modal) {
-        modalWrapper.style.display = 'none';
-        modalWrapper.style.opacity = '0';
-        modalWrapper.style.visibility = 'hidden';
-        console.log('✅ [CLOSE] Wrapper ocultado');
-    }
-
-    // 5. OPCIÓN A: Cerrar también el modal padre (si existe)
-    if (parentModal && !parentModal.classList.contains('hidden')) {
-        parentModal.classList.add('hidden');
-        console.log('✅ [CLOSE] Modal padre cerrado');
-    }
-
-    // 6. OPCIÓN B: Limpiar el contenido cargado dinámicamente
-    if (modalContent) {
-        // Comentar esta línea si NO quieres limpiar el contenido
-        // modalContent.innerHTML = '';
-        console.log('📝 [CLOSE] Contenido preservado (no limpiado)');
-    }
-
-    // 7. Restaurar scroll del body
     document.body.style.overflow = '';
-    console.log('✅ [CLOSE] Scroll restaurado');
-
-    // 8. Log final
-    console.log('✅ [CLOSE] Modal cerrado completamente');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    document.body.classList.remove('overflow-hidden');
+    console.log('✅ [CLOSE] Scroll del body restaurado');
 }
 
-/**
- * ✅ FUNCIÓN PARA ABRIR EL MODAL DE CIERRE
- * (Normalmente no se usa porque el modal ya está visible al cargar)
- */
+function closeInternalModalClosure() {
+    _closeAllModals();
+}
+
 function openInternalModalClosure() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔓 [OPEN] Abriendo modal interno de cierre...');
-
-    const overlay = document.getElementById('closure-internal-overlay');
-    const modal = document.getElementById('modal-closure-internal');
-
-    if (overlay) {
-        overlay.style.display = 'block';
-        console.log('✅ [OPEN] Overlay activado');
-    } else {
-        console.error('❌ [OPEN] Overlay no encontrado');
-    }
-
-    if (modal) {
-        modal.style.display = 'flex';
-        console.log('✅ [OPEN] Modal activado');
-    } else {
-        console.error('❌ [OPEN] Modal no encontrado');
-    }
-
-    // Prevenir scroll del body
+    var overlay = document.getElementById('closure-internal-overlay');
+    var modal = document.getElementById('petty-cash-modal');
+    if (overlay) overlay.style.display = 'block';
+    if (modal) modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-
-    console.log('✅ [OPEN] Modal abierto correctamente');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
 
-/**
- * Abrir página de creación de nueva caja chica
- */
 function openCreatePettyCashModal() {
-    console.log('🆕 [CREATE] Abriendo modal para crear nueva caja...');
-    closeInternalModalClosure();
-    setTimeout(() => {
+    _closeAllModals();
+    setTimeout(function () {
         window.location.href = '/petty-cash/create';
     }, 300);
 }
 
+// =============================================
+// DETECCIÓN DE CONTEXTO Y SELECTORES
+// =============================================
+
 /**
- * ✅ FUNCIÓN PRINCIPAL MEJORADA PARA GUARDAR CIERRE
- * Redirección AUTOMÁTICA después de guardar exitosamente
+ * Detecta si estamos en el modal flotante (modal-content) o en la página índice (index).
  */
-async function guardarCierreUnificado(pettyCashId = null) {
-    const context = detectContext();
+function detectContext() {
+    if (document.getElementById('closure-internal-overlay')) return 'modal-content';
+    if (document.getElementById('modal')) return 'index';
+    return null;
+}
+
+function getSelectors(context) {
+    var map = {
+        'index': {
+            pettyCashIdInput: '#petty_cash_id',
+            totalEfectivoInput: '#total-efectivo',
+            totalGastosInput: '#total-gastos',
+            closureNotesInput: '#closure-notes',
+            ventasQRInput: '#ventas-qr',
+            ventasTarjetaInput: '#ventas-tarjeta',
+            expensesContainer: '#expensesContainer',
+            saveButton: '.save-btn',
+        },
+        'modal-content': {
+            pettyCashIdInput: '#petty_cash_id_closure',
+            totalEfectivoInput: '#ventas-efectivo-closure',
+            totalGastosInput: '#total-gastos-closure',
+            closureNotesInput: '#closure-notes-modal',
+            ventasQRInput: '#ventas-qr-closure',
+            ventasTarjetaInput: '#ventas-tarjeta-closure',
+            expensesContainer: '#expensesContainerClosure',
+            saveButton: '.save-btn',
+        }
+    };
+    return map[context] || map['modal-content'];
+}
+
+// =============================================
+// CÁLCULO DE DENOMINACIONES
+// =============================================
+
+/**
+ * Recorre todos los inputs .contar-input-closure, actualiza subtotales
+ * por fila, el span de total general y el input #ventas-efectivo-closure.
+ */
+function calcularTotalClosure() {
+    var totalEfectivo = 0;
+
+    document.querySelectorAll('.contar-input-closure').forEach(function (input) {
+        var denominacion = parseFloat(input.getAttribute('data-denominacion')) || 0;
+        var cantidad = parseFloat(input.value) || 0;
+        var subtotal = denominacion * cantidad;
+
+        var fila = input.closest('tr');
+        if (fila) {
+            var spanSub = fila.querySelector('.subtotal-closure');
+            if (spanSub) spanSub.textContent = 'Bs.' + subtotal.toFixed(2);
+        }
+
+        totalEfectivo += subtotal;
+    });
+
+    var spanTotal = document.getElementById('total-closure');
+    if (spanTotal) spanTotal.textContent = 'Bs.' + totalEfectivo.toFixed(2);
+
+    var inputEfectivo = document.getElementById('ventas-efectivo-closure');
+    if (inputEfectivo) {
+        var anterior = parseFloat(inputEfectivo.value) || 0;
+        inputEfectivo.value = totalEfectivo.toFixed(2);
+
+        if (Math.abs(anterior - totalEfectivo) > 0.001) {
+            inputEfectivo.classList.remove('efectivo-pulse');
+            void inputEfectivo.offsetWidth;
+            inputEfectivo.classList.add('efectivo-pulse');
+            inputEfectivo.addEventListener('animationend', function () {
+                inputEfectivo.classList.remove('efectivo-pulse');
+            }, { once: true });
+        }
+    }
+
+    return totalEfectivo;
+}
+
+// =============================================
+// CÁLCULO DE GASTOS
+// =============================================
+
+/**
+ * Recalcula el input de total-gastos sumando:
+ *   - gastos del formulario principal (data-gastos-form, fijo desde el servidor)
+ *   - filas --saved visibles en el DOM
+ */
+function _recalcularTotalGastos(totalInputId) {
+    var containerId = totalInputId === 'total-gastos-closure'
+        ? 'expensesContainerClosure'
+        : 'expensesContainer';
+
+    var el = document.getElementById(totalInputId);
+    if (!el) return 0;
+
+    var totalForm = parseFloat(el.getAttribute('data-gastos-form') || 0);
+
+    var totalModalSaved = 0;
+    document.querySelectorAll('#' + containerId + ' .expense-row--saved').forEach(function (row) {
+        var inp = row.querySelector('input[type="number"]');
+        totalModalSaved += parseFloat(inp ? inp.value : 0) || 0;
+    });
+
+    el.setAttribute('data-gastos-bd', totalModalSaved.toFixed(2));
+    var totalAll = totalForm + totalModalSaved;
+    el.value = totalAll.toFixed(2);
+
+    console.log('💰 [' + totalInputId + '] form=' + totalForm.toFixed(2) +
+        ' + modal_saved=' + totalModalSaved.toFixed(2) +
+        ' = ' + totalAll.toFixed(2));
+
+    return totalAll;
+}
+window._recalcularTotalGastos = _recalcularTotalGastos;
+
+/**
+ * Calcula el total de gastos a enviar al guardar:
+ *   form (fijo) + filas --saved + filas --new con datos completos.
+ */
+function calcularTotalGastosUnificado() {
+    var context = detectContext();
+    if (!context) return 0;
+
+    var selectors = getSelectors(context);
+    var totalGastosInput = document.querySelector(selectors.totalGastosInput);
+    if (!totalGastosInput) return 0;
+
+    var totalForm = parseFloat(totalGastosInput.getAttribute('data-gastos-form') || 0);
+
+    var totalModalSaved = 0;
+    document.querySelectorAll(selectors.expensesContainer + ' .expense-row--saved').forEach(function (row) {
+        var inp = row.querySelector('input[type="number"]');
+        totalModalSaved += parseFloat(inp ? inp.value : 0) || 0;
+    });
+
+    var totalNew = 0;
+    document.querySelectorAll(selectors.expensesContainer + ' .expense-row--new').forEach(function (row) {
+        var name = ((row.querySelector('input[name="expense_name[]"]') || {}).value || '').trim();
+        var amount = parseFloat((row.querySelector('input[name="expense_amount[]"]') || {}).value) || 0;
+        if (name && amount > 0) totalNew += amount;
+    });
+
+    var total = totalForm + totalModalSaved + totalNew;
+    totalGastosInput.value = total.toFixed(2);
+
+    console.log('💾 calcularTotalGastosUnificado: form=' + totalForm.toFixed(2) +
+        ' + saved=' + totalModalSaved.toFixed(2) +
+        ' + new=' + totalNew.toFixed(2) +
+        ' = ' + total.toFixed(2));
+
+    return total;
+}
+
+// =============================================
+// GUARDAR CIERRE — FUNCIÓN PRINCIPAL
+// =============================================
+
+/**
+ * Guarda el cierre de caja.
+ *
+ * FLUJO:
+ *   1. Detectar contexto y recoger valores del DOM
+ *   2. POST a /petty-cash/save-closure
+ *   3. success → cerrar modal PRIMERO → SweetAlert → redirigir
+ *   4. error   → restaurar botón → mostrar alerta (modal permanece abierto)
+ */
+async function guardarCierreUnificado(pettyCashId) {
+    var context = detectContext();
     if (!context) {
-        console.error('❌ No se pudo detectar el contexto');
         alert('Error: No se pudo determinar el contexto del modal');
         return;
     }
 
-    const selectors = getSelectors(context);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`💾 [${context.toUpperCase()}] Guardando cierre...`);
-
-    // 1. Obtener el ID de la caja chica
-    const pettyCashIdInput = document.querySelector(selectors.pettyCashIdInput);
-    const finalPettyCashId = pettyCashId || (pettyCashIdInput ? pettyCashIdInput.value : null);
+    var selectors = getSelectors(context);
+    var pettyCashIdEl = document.querySelector(selectors.pettyCashIdInput);
+    var finalPettyCashId = pettyCashId || (pettyCashIdEl && pettyCashIdEl.value);
 
     if (!finalPettyCashId) {
-        console.error('❌ ID de caja chica no encontrado');
-        const shouldCreate = confirm(
-            '⚠️ No hay una caja chica abierta.\n\n' +
-            '¿Deseas abrir una nueva caja chica ahora?'
-        );
-
-        if (shouldCreate) {
+        if (confirm('⚠️ No hay una caja chica abierta.\n\n¿Deseas abrir una nueva caja chica ahora?')) {
             openCreatePettyCashModal();
         } else {
-            closeInternalModalClosure();
+            _closeAllModals();
         }
         return;
     }
 
-    console.log(`📌 Caja chica ID: ${finalPettyCashId}`);
+    // Recoger valores del formulario
+    var totalSalesCash = parseFloat((document.querySelector(selectors.totalEfectivoInput) || {}).value) || 0;
+    var totalSalesQR = parseFloat((document.querySelector(selectors.ventasQRInput) || {}).value) || 0;
+    var totalSalesCard = parseFloat((document.querySelector(selectors.ventasTarjetaInput) || {}).value) || 0;
+    var totalExpenses = calcularTotalGastosUnificado();
+    var closureNotes = selectors.closureNotesInput
+        ? ((document.querySelector(selectors.closureNotesInput) || {}).value || '').trim()
+        : '';
 
-    // 2. Obtener datos del formulario
-    const totalSalesCash = parseFloat(document.querySelector(selectors.totalEfectivoInput)?.value) || 0;
-    const totalSalesQR = parseFloat(document.querySelector(selectors.ventasQRInput)?.value) || 0;
-    const totalSalesCard = parseFloat(document.querySelector(selectors.ventasTarjetaInput)?.value) || 0;
-    const totalExpenses = calcularTotalGastosUnificado();
-
-    console.log('📊 Datos del cierre:');
-    console.log(`   - Total Efectivo: $${totalSalesCash.toFixed(2)}`);
-    console.log(`   - Total QR: $${totalSalesQR.toFixed(2)}`);
-    console.log(`   - Total Tarjeta: $${totalSalesCard.toFixed(2)}`);
-    console.log(`   - Total Gastos: $${totalExpenses.toFixed(2)}`);
-
-    // 3. Recopilar gastos nuevos
-    const expenses = [];
-    const expenseRows = document.querySelectorAll(`${selectors.expensesContainer} .expense-row`);
-
-    expenseRows.forEach((row, index) => {
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const descriptionInput = row.querySelector('input[name="expense_description[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const description = descriptionInput ? descriptionInput.value.trim() : '';
-        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
+    // Recoger gastos nuevos (filas --new con nombre y monto)
+    var expenses = [];
+    document.querySelectorAll(selectors.expensesContainer + ' .expense-row--new').forEach(function (row) {
+        var name = ((row.querySelector('input[name="expense_name[]"]') || {}).value || '').trim();
+        var description = ((row.querySelector('input[name="expense_description[]"]') || {}).value || '').trim();
+        var amount = parseFloat((row.querySelector('input[name="expense_amount[]"]') || {}).value) || 0;
         if (name && amount > 0) {
-            expenses.push({ name, description, amount });
+            expenses.push({ name: name, description: description, amount: amount });
         }
     });
 
-    console.log(`📋 Gastos nuevos a registrar: ${expenses.length}`);
-
-    // 4. Preparar datos para enviar
-    const dataToSend = {
+    var dataToSend = {
         petty_cash_id: finalPettyCashId,
         total_sales_cash: totalSalesCash,
         total_sales_qr: totalSalesQR,
         total_sales_card: totalSalesCard,
         total_expenses: totalExpenses,
+        closure_notes: closureNotes,
         expenses: expenses
     };
 
-    console.log('📤 Datos a enviar:', dataToSend);
+    console.log('📤 [guardarCierreUnificado] Enviando:', dataToSend);
 
-    // 5. Buscar y deshabilitar botón de guardar
-    const saveButton = document.querySelector(selectors.saveButton);
-
-    if (!saveButton) {
-        console.error('❌ ERROR: Botón de guardar no encontrado');
-        alert('Error: No se encontró el botón de guardar.');
-        return;
+    // Deshabilitar botón mientras se guarda
+    var saveButton = document.querySelector(selectors.saveButton);
+    var originalText = saveButton ? saveButton.innerHTML : '';
+    if (saveButton) {
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+        saveButton.disabled = true;
     }
 
-    const originalText = saveButton.innerHTML;
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
-    saveButton.disabled = true;
-
     try {
-        // 6. Enviar petición al servidor
-        const response = await fetch('/petty-cash/save-closure', {
+        var response = await fetch('/petty-cash/save-closure', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             },
             body: JSON.stringify(dataToSend)
         });
 
-        console.log('📡 Response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ Respuesta del servidor:', data);
+        var data = await response.json();
+        console.log('📥 [guardarCierreUnificado] Respuesta:', data);
 
         if (data.success) {
-            console.log('✅ Cierre guardado exitosamente');
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🚪 [SUCCESS] Cerrando modal y mostrando notificación...');
+            // ── 1. Cerrar el modal ANTES del SweetAlert ──────────────────────
+            _closeAllModals();
+            console.log('✅ [guardarCierreUnificado] Modal cerrado. Mostrando SweetAlert...');
 
-            // ✅ PASO 1: Cerrar modal inmediatamente
-            closeInternalModalClosure();
+            // ── 2. SweetAlert (el modal ya no es visible) ────────────────────
+            await Swal.fire({
+                icon: 'success',
+                title: '¡Cierre de Caja Exitoso!',
+                html: [
+                    '<div style="text-align:center;">',
+                    '  <p style="font-size:16px;margin:15px 0;">El cierre se ha guardado correctamente</p>',
+                    '  <hr style="margin:20px 0;">',
+                    '  <div style="background:#f8f9fa;padding:15px;border-radius:8px;">',
+                    '    <p style="margin:8px 0;"><strong>📊 Gastos registrados:</strong> ' +
+                    ((data.data && data.data.new_expenses_count) || 0) + '</p>',
+                    '    <p style="margin:8px 0;"><strong>💰 Monto final:</strong> Bs.' +
+                    ((data.data && data.data.current_amount)
+                        ? parseFloat(data.data.current_amount).toFixed(2)
+                        : '0.00') + '</p>',
+                    '  </div>',
+                    '</div>'
+                ].join(''),
+                confirmButtonText: 'Abrir Nueva Caja',
+                confirmButtonColor: '#10b981',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            });
 
-            // ✅ PASO 2: Mostrar Toast de éxito (SIN BOTÓN, AUTO-CIERRA)
-            setTimeout(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Cierre de Caja Exitoso!',
-                    html: `
-                        <div style="text-align: center;">
-                            <p style="font-size: 16px; margin: 15px 0;">El cierre se ha guardado correctamente</p>
-                            <hr style="margin: 20px 0;">
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                                <p style="margin: 8px 0;"><strong>📊 Gastos registrados:</strong> ${data.data?.new_expenses_count || 0}</p>
-                                <p style="margin: 8px 0;"><strong>💰 Monto final:</strong> Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}</p>
-                            </div>
-                            <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">
-                                <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo a nueva caja...
-                            </p>
-                        </div>
-                    `,
-                    showConfirmButton: false, // ✅ SIN BOTÓN
-                    timer: 2000, // ✅ Se cierra automáticamente en 2.5 segundos
-                    timerProgressBar: true, // ✅ Muestra barra de progreso
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    customClass: {
-                        popup: 'animated fadeInDown faster'
-                    },
-                    // ✅ REDIRECCIÓN AUTOMÁTICA cuando se cierra el modal
-                    didClose: () => {
-                        console.log('🔄 [SUCCESS] Redirigiendo automáticamente...');
-                        console.log('🔄 [SUCCESS] URL destino: /petty-cash/create');
-                        window.location.href = '/petty-cash/create';
-                    }
-                });
-
-                // ✅ REDIRECCIÓN ALTERNATIVA: Por si el didClose falla
-                setTimeout(() => {
-                    console.log('🔄 [FALLBACK] Ejecutando redirección de respaldo...');
-                    window.location.href = '/petty-cash/create';
-                }, 2500); // 100ms después de que se cierre el modal
-
-            }, 400); // Esperar a que el modal se cierre completamente
-
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            // ── 3. Redirigir tras confirmar ──────────────────────────────────
+            window.location.href = '/petty-cash/create';
 
         } else {
             throw new Error(data.message || 'No se pudo guardar el cierre');
         }
 
     } catch (error) {
-        console.error('❌ Error al guardar:', error);
+        console.error('❌ [guardarCierreUnificado] Error:', error);
 
-        if (error.message.includes('no encontrada') ||
-            error.message.includes('no abierta') ||
-            error.message.includes('cerrada')) {
-
-            const shouldCreate = confirm(
-                `⚠️ ${error.message}\n\n` +
-                '¿Deseas abrir una nueva caja chica?'
-            );
-
-            if (shouldCreate) {
-                openCreatePettyCashModal();
-            } else {
-                closeInternalModalClosure();
-            }
-        } else {
-            alert('❌ Error al guardar el cierre:\n' + error.message);
-        }
-
-    } finally {
-        // Restaurar botón (solo si hay error, ya que si hay éxito se redirige)
+        // Restaurar botón antes de mostrar el error (modal permanece abierto)
         if (saveButton) {
             saveButton.innerHTML = originalText;
             saveButton.disabled = false;
         }
-    }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-}
-
-
-/**
- * Detecta en qué contexto estamos
- */
-function detectContext() {
-    if (document.getElementById('closure-internal-overlay')) {
-        console.log('📍 Contexto detectado: MODAL INTERNO (modal-content.blade.php)');
-        return 'modal-content';
-    }
-
-    if (document.getElementById('modal')) {
-        console.log('📍 Contexto detectado: MODAL PRINCIPAL (index.blade.php)');
-        return 'index';
-    }
-
-    console.warn('⚠️ No se detectó ningún contexto válido');
-    return null;
-}
-
-/**
- * Obtiene los selectores según el contexto
- */
-function getSelectors(context) {
-    const selectors = {
-        'index': {
-            pettyCashIdInput: '#petty_cash_id',
-            denominationInputs: '.contar-input',
-            subtotalElements: '.subtotal',
-            totalElement: '#total',
-            totalEfectivoInput: '#total-efectivo',
-            totalGastosInput: '#total-gastos',
-            ventasQRInput: '#ventas-qr',
-            ventasTarjetaInput: '#ventas-tarjeta',
-            expensesContainer: '#expensesContainer',
-            saveButton: '.save-btn',
-            addExpenseButton: '.add-expense-btn'
-        },
-        'modal-content': {
-            pettyCashIdInput: '#petty_cash_id_closure',
-            denominationInputs: '.denomination-input2, .contar-input-closure',
-            subtotalElements: '.subtotal-closure',
-            totalElement: '#total-closure',
-            totalEfectivoInput: '#ventas-efectivo-closure',
-            totalGastosInput: '#total-gastos-closure',
-            ventasQRInput: '#ventas-qr-closure',
-            ventasTarjetaInput: '#ventas-tarjeta-closure',
-            expensesContainer: '#expensesContainerClosure',
-            saveButton: '.save-btn',
-            addExpenseButton: '.add-expense-btn'
-        }
-    };
-
-    return selectors[context] || selectors['index'];
-}
-
-/**
- * Calcula el total de gastos
- */
-function calcularTotalGastosUnificado() {
-    const context = detectContext();
-    if (!context) {
-        console.error('❌ No se pudo detectar el contexto');
-        return 0;
-    }
-
-    const selectors = getSelectors(context);
-    const totalGastosInput = document.querySelector(selectors.totalGastosInput);
-
-    if (!totalGastosInput) {
-        console.error('❌ Input de total gastos no encontrado');
-        return 0;
-    }
-
-    const existingExpenses = parseFloat(totalGastosInput.getAttribute('data-gastos-bd') || totalGastosInput.value || 0);
-
-    let newExpenses = 0;
-    const expenseRows = document.querySelectorAll(`${selectors.expensesContainer} .expense-row`);
-
-    expenseRows.forEach((row) => {
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
-        if (name && amount > 0) {
-            newExpenses += amount;
-        }
-    });
-
-    const totalExpenses = existingExpenses + newExpenses;
-    totalGastosInput.value = totalExpenses.toFixed(2);
-
-    return totalExpenses;
-}
-
-/**
- * Inicializa el modal de cierre
- */
-window.initializeClosureModal = function (pettyCashId) {
-    console.log('🚀 [INIT] Inicializando modal de cierre para caja:', pettyCashId);
-    setTimeout(() => {
-        setupClosureEventListeners();
-        calculateInitialTotals();
-        console.log('✅ [INIT] Modal de cierre completamente inicializado');
-    }, 100);
-};
-
-/**
- * Configurar event listeners del modal de cierre
- */
-function setupClosureEventListeners() {
-    console.log('🔧 [SETUP] Configurando event listeners...');
-
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) {
-        console.error('❌ [SETUP] Wrapper del modal no encontrado');
-        return;
-    }
-
-    const denominationInputs = wrapper.querySelectorAll('.denomination-input2');
-    console.log(`📊 [SETUP] Encontrados ${denominationInputs.length} inputs de denominaciones`);
-
-    denominationInputs.forEach((input, index) => {
-        input.addEventListener('input', function (e) {
-            console.log(`⌨️ [INPUT] Denominación ${index + 1}: ${e.target.value}`);
-            calculateDenominationsTotal();
-        });
-
-        input.addEventListener('change', function (e) {
-            console.log(`🔄 [CHANGE] Denominación ${index + 1}: ${e.target.value}`);
-            calculateDenominationsTotal();
-        });
-
-        input.addEventListener('keyup', function (e) {
-            console.log(`⬆️ [KEYUP] Denominación ${index + 1}: ${e.target.value}`);
-            calculateDenominationsTotal();
-        });
-    });
-
-    const expenseInputs = wrapper.querySelectorAll('.expense-amount-input');
-    console.log(`📊 [SETUP] Encontrados ${expenseInputs.length} inputs de gastos`);
-
-    expenseInputs.forEach((input, index) => {
-        input.addEventListener('input', function (e) {
-            console.log(`💰 [INPUT] Gasto ${index + 1}: ${e.target.value}`);
-            calculateExpensesTotal();
-        });
-
-        input.addEventListener('change', function (e) {
-            console.log(`💰 [CHANGE] Gasto ${index + 1}: ${e.target.value}`);
-            calculateExpensesTotal();
-        });
-    });
-
-    const addExpenseBtn = wrapper.querySelector('#add-expense-btn');
-    if (addExpenseBtn) {
-        addExpenseBtn.addEventListener('click', function () {
-            console.log('➕ [CLICK] Agregar gasto');
-            addExpenseRow();
-        });
-        console.log('✅ [SETUP] Listener agregado a botón agregar gasto');
-    }
-
-    const removeButtons = wrapper.querySelectorAll('.remove-expense-btn');
-    removeButtons.forEach((btn, index) => {
-        btn.addEventListener('click', function () {
-            console.log(`🗑️ [CLICK] Eliminar gasto ${index + 1}`);
-            removeExpenseRow(this);
-        });
-    });
-    console.log(`✅ [SETUP] Listeners agregados a ${removeButtons.length} botones eliminar`);
-
-    const saveBtn = wrapper.querySelector('#save-closure-btn');
-    if (saveBtn) {
-        const pettyCashId = saveBtn.getAttribute('data-petty-cash-id');
-        saveBtn.addEventListener('click', function () {
-            console.log('💾 [CLICK] Guardar cierre');
-            saveClosure(pettyCashId);
-        });
-        console.log('✅ [SETUP] Listener agregado a botón guardar');
-    }
-
-    const cancelBtn = wrapper.querySelector('#cancel-closure-btn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function () {
-            console.log('❌ [CLICK] Cancelar');
-            closeInternalModalClosure();
-        });
-        console.log('✅ [SETUP] Listener agregado a botón cancelar');
-    }
-
-    console.log('✅ [SETUP] Todos los event listeners configurados');
-}
-
-/**
- * Calcular totales iniciales
- */
-function calculateInitialTotals() {
-    console.log('🧮 [CALC] Calculando totales iniciales...');
-    calculateDenominationsTotal();
-    calculateExpensesTotal();
-}
-
-/**
- * Calcular total de denominaciones
- */
-function calculateDenominationsTotal() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💵 [DENOM] Calculando denominaciones...');
-
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) {
-        console.error('❌ [DENOM] Wrapper no encontrado');
-        return 0;
-    }
-
-    let total = 0;
-    const inputs = wrapper.querySelectorAll('.denomination-input2');
-    console.log(`📊 [DENOM] Inputs encontrados: ${inputs.length}`);
-
-    inputs.forEach((input, index) => {
-        const denominacion = parseFloat(input.getAttribute('data-denominacion')) || 0;
-        const cantidad = parseFloat(input.value) || 0;
-        const subtotal = denominacion * cantidad;
-
-        if (cantidad > 0) {
-            console.log(`  ${index + 1}. Bs.${denominacion} x ${cantidad} = Bs.${subtotal.toFixed(2)}`);
-        }
-
-        const row = input.closest('tr');
-        if (row) {
-            const subtotalElement = row.querySelector('.subtotal-modal');
-            if (subtotalElement) {
-                subtotalElement.textContent = `Bs. ${subtotal.toFixed(2)}`;
+        if (error.message && (error.message.includes('no encontrada') || error.message.includes('cerrada'))) {
+            if (confirm('⚠️ ' + error.message + '\n\n¿Deseas abrir una nueva caja chica?')) {
+                openCreatePettyCashModal();
+            } else {
+                _closeAllModals();
             }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al guardar',
+                text: error.message || 'Error inesperado. Intenta de nuevo.',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444',
+            });
         }
-
-        total += subtotal;
-    });
-
-    console.log(`💵 [DENOM] Total: Bs.${total.toFixed(2)}`);
-
-    const totalElement = wrapper.querySelector('#totalModal');
-    if (totalElement) {
-        totalElement.textContent = `Bs. ${total.toFixed(2)}`;
-    }
-
-    const totalEfectivoInput = wrapper.querySelector('#total-efectivo-modal');
-    if (totalEfectivoInput) {
-        totalEfectivoInput.value = total.toFixed(2);
-        console.log(`✅ [DENOM] Input actualizado: ${total.toFixed(2)}`);
-    }
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    return total;
-}
-
-/**
- * Calcular total de gastos
- */
-function calculateExpensesTotal() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💰 [EXPENSE] Calculando gastos...');
-
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) {
-        console.error('❌ [EXPENSE] Wrapper no encontrado');
-        return 0;
-    }
-
-    const totalGastosInput = wrapper.querySelector('#total-gastos-modal');
-    if (!totalGastosInput) {
-        console.error('❌ [EXPENSE] Input de total gastos no encontrado');
-        return 0;
-    }
-
-    const existingExpenses = parseFloat(totalGastosInput.getAttribute('data-existing-expenses') ||
-        totalGastosInput.value || 0);
-
-    console.log(`📊 [EXPENSE] Gastos existentes: ${existingExpenses.toFixed(2)}`);
-
-    let newExpenses = 0;
-    const expenseRows = wrapper.querySelectorAll('#expensesContainerModal .expense-row');
-    console.log(`📊 [EXPENSE] Filas de gastos: ${expenseRows.length}`);
-
-    expenseRows.forEach((row, index) => {
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
-        if (name && amount > 0) {
-            newExpenses += amount;
-            console.log(`  ${index + 1}. "${name}": Bs.${amount.toFixed(2)}`);
-        }
-    });
-
-    const totalExpenses = existingExpenses + newExpenses;
-
-    console.log(`📊 [EXPENSE] Gastos nuevos: ${newExpenses.toFixed(2)}`);
-    console.log(`💰 [EXPENSE] Total: ${totalExpenses.toFixed(2)}`);
-
-    totalGastosInput.value = totalExpenses.toFixed(2);
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    return totalExpenses;
-}
-
-/**
- * Agregar fila de gasto
- */
-function addExpenseRow() {
-    console.log('➕ [ADD] Agregando fila de gasto...');
-
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) {
-        console.error('❌ [ADD] Wrapper no encontrado');
-        return;
-    }
-
-    const container = wrapper.querySelector('#expensesContainerModal');
-    if (!container) {
-        console.error('❌ [ADD] Contenedor de gastos no encontrado');
-        return;
-    }
-
-    const newRow = document.createElement('div');
-    newRow.className = 'expense-row';
-    newRow.innerHTML = `
-        <div class="expense-field">
-            <input type="text" 
-                   class="expense-input expense-name-input" 
-                   placeholder="Nombre del gasto" 
-                   name="expense_name[]">
-        </div>
-        <div class="expense-field">
-            <input type="text" 
-                   class="expense-input" 
-                   placeholder="Descripción/Categoría" 
-                   name="expense_description[]">
-        </div>
-        <div class="expense-field" style="max-width: 150px;">
-            <input type="number" 
-                   class="expense-input expense-amount-input" 
-                   placeholder="Monto" 
-                   step="0.01" 
-                   min="0"
-                   name="expense_amount[]">
-        </div>
-        <button type="button" 
-                class="remove-expense-btn">
-            <i class="fas fa-trash"></i>
-        </button>
-    `;
-
-    container.appendChild(newRow);
-
-    const amountInput = newRow.querySelector('.expense-amount-input');
-    if (amountInput) {
-        amountInput.addEventListener('input', calculateExpensesTotal);
-        amountInput.addEventListener('change', calculateExpensesTotal);
-    }
-
-    const removeBtn = newRow.querySelector('.remove-expense-btn');
-    if (removeBtn) {
-        removeBtn.addEventListener('click', function () {
-            removeExpenseRow(this);
-        });
-    }
-
-    console.log('✅ [ADD] Fila agregada con listeners');
-}
-
-/**
- * Eliminar fila de gasto
- */
-function removeExpenseRow(button) {
-    console.log('🗑️ [REMOVE] Eliminando fila de gasto...');
-
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) return;
-
-    const container = wrapper.querySelector('#expensesContainerModal');
-    const row = button.closest('.expense-row');
-
-    if (!container || !row) return;
-
-    if (container.children.length > 1) {
-        row.remove();
-        calculateExpensesTotal();
-        console.log('✅ [REMOVE] Fila eliminada');
-    } else {
-        const inputs = row.querySelectorAll('input');
-        inputs.forEach(input => input.value = '');
-        calculateExpensesTotal();
-        console.log('🧹 [REMOVE] Última fila limpiada');
     }
 }
 
-/**
- * Guardar cierre (versión alternativa)
- */
-async function saveClosure(pettyCashId) {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💾 [SAVE] Guardando cierre...');
-    console.log(`📌 [SAVE] Caja chica ID: ${pettyCashId}`);
+// =============================================
+// CARGA DINÁMICA DEL MODAL DE CIERRE
+// =============================================
 
-    const wrapper = document.getElementById('closure-modal-content-wrapper');
-    if (!wrapper) {
-        console.error('❌ [SAVE] Wrapper no encontrado');
+async function loadClosureModal(pettyCashId, content) {
+    console.log('📥 [loadClosureModal] Cargando modal para caja:', pettyCashId);
+
+    if (!pettyCashId) {
+        showCreatePettyCashOption(content);
         return;
     }
 
-    const saveBtn = wrapper.querySelector('#save-closure-btn');
-    if (!saveBtn) {
-        console.error('❌ [SAVE] Botón de guardar no encontrado');
-        return;
-    }
-
-    const totalSalesCash = parseFloat(wrapper.querySelector('#total-efectivo-modal')?.value) || 0;
-    const totalSalesQR = parseFloat(wrapper.querySelector('#ventas-qr-modal')?.value) || 0;
-    const totalSalesCard = parseFloat(wrapper.querySelector('#ventas-tarjeta-modal')?.value) || 0;
-    const totalExpenses = calculateExpensesTotal();
-
-    const expenses = [];
-    const expenseRows = wrapper.querySelectorAll('#expensesContainerModal .expense-row');
-
-    expenseRows.forEach((row) => {
-        const nameInput = row.querySelector('input[name="expense_name[]"]');
-        const descriptionInput = row.querySelector('input[name="expense_description[]"]');
-        const amountInput = row.querySelector('input[name="expense_amount[]"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const description = descriptionInput ? descriptionInput.value.trim() : '';
-        const amount = amountInput ? parseFloat(amountInput.value) || 0 : 0;
-
-        if (name && amount > 0) {
-            expenses.push({ name, description, amount });
-        }
-    });
-
-    const dataToSend = {
-        petty_cash_id: pettyCashId,
-        total_sales_cash: totalSalesCash,
-        total_sales_qr: totalSalesQR,
-        total_sales_card: totalSalesCard,
-        total_expenses: totalExpenses,
-        expenses: expenses
-    };
-
-    console.log('📤 [SAVE] Datos a enviar:', dataToSend);
-
-    const originalBtnText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
-    saveBtn.disabled = true;
+    content.innerHTML = [
+        '<div class="flex items-center justify-center p-12">',
+        '  <div class="text-center">',
+        '    <i class="fas fa-spinner fa-spin text-4xl text-green-500 mb-4"></i>',
+        '    <p class="text-gray-600">Cargando datos de cierre...</p>',
+        '  </div>',
+        '</div>'
+    ].join('');
 
     try {
-        const response = await fetch('/petty-cash/save-closure', {
-            method: 'POST',
+        var response = await fetch('/petty-cash/modal-closure/' + pettyCashId, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(dataToSend)
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
 
-        const data = await response.json();
+        var html = await response.text();
+        content.innerHTML = html;
 
-        if (data.success) {
-            console.log('✅ Cierre guardado exitosamente');
-            console.log('🚪 [SUCCESS] Cerrando modal y mostrando notificación...');
-
-            closeInternalModalClosure();
-
-            setTimeout(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Cierre de Caja Exitoso!',
-                    html: `
-                        <div style="text-align: center;">
-                            <p style="font-size: 16px; margin: 15px 0;">El cierre se ha guardado correctamente</p>
-                            <hr style="margin: 20px 0;">
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                                <p style="margin: 8px 0;"><strong>📊 Gastos registrados:</strong> ${data.data?.new_expenses_count || 0}</p>
-                                <p style="margin: 8px 0;"><strong>💰 Monto final:</strong> Bs.${data.data?.current_amount?.toFixed(2) || '0.00'}</p>
-                            </div>
-                            <p style="margin-top: 20px; color: #6c757d; font-size: 14px;">
-                                <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo a nueva caja...
-                            </p>
-                        </div>
-                    `,
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    customClass: {
-                        popup: 'animated fadeInDown faster'
-                    },
-                    didClose: () => {
-                        console.log('🔄 [SUCCESS] Redirigiendo automáticamente...');
-                        window.location.href = '/petty-cash/create';
-                    }
-                });
-
-                setTimeout(() => {
-                    window.location.href = '/petty-cash/create';
-                }, 2500);
-
-            }, 400);
-
-        } else {
-            throw new Error(data.message || 'No se pudo guardar el cierre');
-        }
+        // Calcular totales en el siguiente frame (el DOM ya está pintado)
+        requestAnimationFrame(function () {
+            calcularTotalClosure();
+            console.log('✅ [loadClosureModal] calcularTotalClosure() ejecutado tras inyección');
+        });
 
     } catch (error) {
-        console.error('❌ [SAVE] Error:', error);
-        alert('Error al guardar el cierre: ' + error.message);
-    } finally {
-        saveBtn.innerHTML = originalBtnText;
-        saveBtn.disabled = false;
+        console.error('❌ [loadClosureModal] Error:', error);
+        showErrorContent(content);
     }
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
 
+// =============================================
+// ABRIR MODAL PRINCIPAL DE CAJA CHICA
+// =============================================
+
 async function openPettyCashModal() {
-    console.log('🔓 Abriendo modal de caja chica...');
+    var modal = document.getElementById('petty-cash-modal');
+    var content = document.getElementById('petty-cash-content');
 
-    const modal = document.getElementById('petty-cash-modal');
-    const content = document.getElementById('petty-cash-content');
-
-    if (!modal) {
+    if (!modal || !content) {
         console.error('❌ Modal de caja chica no encontrado');
+        window.location.href = '/petty-cash/index';
         return;
-    }
-
-    if (!window.routes || !window.routes.pettyCashModalContent) {
-        const baseUrl = window.location.origin;
-        window.routes = window.routes || {};
-        window.routes.pettyCashModalContent = `${baseUrl}/petty-cash/modal-content`;
     }
 
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
+    content.innerHTML = [
+        '<div class="flex items-center justify-center p-12">',
+        '  <div class="text-center">',
+        '    <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>',
+        '    <p class="text-gray-600">Verificando estado de caja chica...</p>',
+        '  </div>',
+        '</div>'
+    ].join('');
+
     try {
-        const response = await fetch(window.routes.pettyCashModalContent, {
-            method: 'GET',
+        var res = await fetch('/petty-cash/get-open', {
             headers: {
-                'Accept': 'text/html',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         });
+        var data = await res.json();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (data.success && data.petty_cash_id) {
+            await loadClosureModal(data.petty_cash_id, content);
+        } else {
+            showCreatePettyCashOption(content);
         }
-
-        const html = await response.text();
-        content.innerHTML = html;
-        initializePettyCashModal();
-
     } catch (error) {
-        console.error('❌ Error al cargar contenido:', error);
-        content.innerHTML = `
-            <div class="text-center py-12">
-                <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-                <p class="text-gray-600 mb-4">Error al cargar la información</p>
-                <button onclick="openPettyCashModal()" class="bg-[#203363] text-white px-6 py-2 rounded-lg">
-                    <i class="fas fa-redo mr-2"></i> Reintentar
-                </button>
-            </div>
-        `;
+        console.error('❌ [openPettyCashModal] Error:', error);
+        showErrorContent(content);
     }
-}
-
-function closePettyCashModal() {
-    const modal = document.getElementById('petty-cash-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-}
-
-function initializePettyCashModal() {
-    console.log('⚙️ [INIT] Inicializando modal principal...');
-
-    document.addEventListener('input', function (e) {
-        if (e.target.matches('.denomination-input2, .contar-input-closure, input[data-denominacion]')) {
-            console.log('💵 [INPUT] Denominación cambió:', e.target.value);
-            calcularTotalModal();
-        }
-    });
-
-    document.addEventListener('input', function (e) {
-        if (e.target.matches('input[name="expense_amount[]"]')) {
-            console.log('💰 [INPUT] Gasto cambió:', e.target.value);
-            calculateTotalExpensesModal();
-        }
-    });
-
-    calcularTotalModal();
-    calculateTotalExpensesModal();
-
-    console.log('✅ [INIT] Modal inicializado correctamente');
-}
-
-function calcularTotalModal() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💵 [MODAL] Calculando total de denominaciones...');
-
-    let total = 0;
-
-    const inputs = document.querySelectorAll(
-        '.denomination-input2, ' +
-        '.contar-input-closure, ' +
-        'input[data-denominacion]'
-    );
-
-    console.log(`📊 [MODAL] Inputs encontrados: ${inputs.length}`);
-
-    if (inputs.length === 0) {
-        console.warn('⚠️ [MODAL] No se encontraron inputs de denominación');
-        return 0;
-    }
-
-    inputs.forEach((input, index) => {
-        const denominacion = parseFloat(input.getAttribute('data-denominacion')) || 0;
-        const cantidad = parseFloat(input.value) || 0;
-        const subtotal = denominacion * cantidad;
-
-        if (cantidad > 0) {
-            console.log(`  ${index + 1}. Bs.${denominacion.toFixed(2)} x ${cantidad} = Bs.${subtotal.toFixed(2)}`);
-        }
-
-        const row = input.closest('tr');
-        if (row) {
-            const subtotalElement = row.querySelector('.subtotal-closure, .subtotal');
-            if (subtotalElement) {
-                subtotalElement.textContent = `Bs.${subtotal.toFixed(2)}`;
-            }
-        }
-
-        total += subtotal;
-    });
-
-    console.log(`💵 [MODAL] Total calculado: Bs.${total.toFixed(2)}`);
-
-    const totalElement = document.querySelector('#total-closure, #total-modal');
-    if (totalElement) {
-        totalElement.textContent = `Bs.${total.toFixed(2)}`;
-        console.log('✅ [MODAL] Total en tabla actualizado');
-    } else {
-        console.warn('⚠️ [MODAL] Elemento de total no encontrado');
-    }
-
-    const ventasEfectivoInput = document.querySelector(
-        '#ventas-efectivo-closure, #ventas-efectivo-modal'
-    );
-    if (ventasEfectivoInput) {
-        ventasEfectivoInput.value = total.toFixed(2);
-        console.log('✅ [MODAL] Input de ventas en efectivo actualizado');
-    } else {
-        console.warn('⚠️ [MODAL] Input de ventas en efectivo no encontrado');
-    }
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    return total;
-}
-
-function calculateTotalExpensesModal() {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💰 [MODAL] Calculando total de gastos...');
-
-    let totalGastosBD = 0;
-    let totalGastosNuevos = 0;
-
-    const totalGastosInput = document.querySelector('#total-gastos-closure, #total-gastos-modal');
-    if (totalGastosInput) {
-        totalGastosBD = parseFloat(totalGastosInput.getAttribute('data-gastos-bd')) || 0;
-        console.log(`📊 [MODAL] Gastos en BD: Bs.${totalGastosBD.toFixed(2)}`);
-    }
-
-    const expenseInputs = document.querySelectorAll('input[name="expense_amount[]"]');
-    console.log(`📊 [MODAL] Inputs de gastos encontrados: ${expenseInputs.length}`);
-
-    expenseInputs.forEach((input, index) => {
-        const amount = parseFloat(input.value) || 0;
-        if (amount > 0) {
-            totalGastosNuevos += amount;
-            console.log(`  ${index + 1}. Gasto: Bs.${amount.toFixed(2)}`);
-        }
-    });
-
-    const totalGastos = totalGastosBD + totalGastosNuevos;
-
-    console.log(`💰 [MODAL] Gastos nuevos: Bs.${totalGastosNuevos.toFixed(2)}`);
-    console.log(`💰 [MODAL] Total gastos: Bs.${totalGastos.toFixed(2)}`);
-
-    if (totalGastosInput) {
-        totalGastosInput.value = totalGastos.toFixed(2);
-        console.log('✅ [MODAL] Input de total gastos actualizado');
-    }
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    return totalGastos;
 }
 
 // =============================================
-// EVENT LISTENERS GLOBALES
+// FUNCIONES DE GASTOS — MODAL DE CIERRE
 // =============================================
 
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        const internalModal = document.getElementById('modal-closure-internal');
-        const mainModal = document.getElementById('petty-cash-modal');
+/**
+ * Agrega una nueva fila vacía al contenedor de gastos del modal de cierre.
+ */
+function addExpenseModalClosure() {
+    var container = document.getElementById('expensesContainerClosure');
+    if (!container) return;
 
-        // Verificar si el modal interno está visible
-        if (internalModal && internalModal.style.display !== 'none') {
-            closeInternalModalClosure();
-        } else if (mainModal && !mainModal.classList.contains('hidden')) {
-            closePettyCashModal();
+    var newRow = document.createElement('div');
+    newRow.className = 'expense-row expense-row--new';
+    newRow.innerHTML = [
+        '<div class="expense-cell">',
+        '  <input type="text" class="expense-input" placeholder="Nombre del gasto"',
+        '         name="expense_name[]" autocomplete="off">',
+        '</div>',
+        '<div class="expense-cell">',
+        '  <input type="text" class="expense-input" placeholder="Descripción/Categoría"',
+        '         name="expense_description[]" autocomplete="off">',
+        '</div>',
+        '<div class="expense-cell">',
+        '  <input type="number" class="expense-input" placeholder="Monto"',
+        '         step="0.01" min="0" name="expense_amount[]" autocomplete="off">',
+        '</div>',
+        '<div class="expense-cell expense-actions-cell">',
+        '  <button type="button" class="exp-btn exp-btn--save js-save-expense" title="Guardar gasto">',
+        '    <i class="fas fa-save"></i>',
+        '  </button>',
+        '  <button type="button" class="exp-btn exp-btn--del"',
+        '          onclick="removeExpenseRow(this)" title="Eliminar fila">',
+        '    <i class="fas fa-trash"></i>',
+        '  </button>',
+        '</div>'
+    ].join('');
+
+    container.appendChild(newRow);
+
+    var firstInput = newRow.querySelector('input');
+    if (firstInput) firstInput.focus();
+}
+window.addExpenseModalClosure = addExpenseModalClosure;
+
+/**
+ * Elimina la fila de gasto que contiene el botón pulsado.
+ */
+function removeExpenseRow(button) {
+    var row = button.closest('.expense-row');
+    if (row) row.remove();
+}
+window.removeExpenseRow = removeExpenseRow;
+
+// =============================================
+// CONTENIDOS DE ESTADO
+// =============================================
+
+function showCreatePettyCashOption(content) {
+    content.innerHTML = [
+        '<div class="p-8 text-center">',
+        '  <div class="mb-6">',
+        '    <i class="fas fa-info-circle text-6xl text-blue-500 mb-4"></i>',
+        '    <h3 class="text-2xl font-semibold text-gray-800 mb-2">No hay caja chica abierta</h3>',
+        '    <p class="text-gray-600 mb-6">Para realizar un cierre, primero debes tener una caja chica abierta.</p>',
+        '  </div>',
+        '  <div class="flex justify-center gap-4">',
+        '    <button onclick="createNewPettyCash()"',
+        '            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2">',
+        '      <i class="fas fa-plus-circle"></i><span>Crear Caja Chica</span>',
+        '    </button>',
+        '    <button onclick="closePettyCashModal()"',
+        '            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center gap-2">',
+        '      <i class="fas fa-times"></i><span>Cancelar</span>',
+        '    </button>',
+        '  </div>',
+        '</div>'
+    ].join('');
+}
+
+function showErrorContent(content) {
+    content.innerHTML = [
+        '<div class="p-8 text-center">',
+        '  <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>',
+        '  <h3 class="text-2xl font-semibold text-gray-800 mb-2">Error de conexión</h3>',
+        '  <p class="text-gray-600 mb-6">No se pudo cargar el contenido. Por favor, intenta de nuevo.</p>',
+        '  <div class="flex justify-center gap-4">',
+        '    <button onclick="openPettyCashModal()"',
+        '            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2">',
+        '      <i class="fas fa-redo"></i><span>Reintentar</span>',
+        '    </button>',
+        '  </div>',
+        '</div>'
+    ].join('');
+}
+
+// =============================================
+// INICIALIZACIÓN
+// =============================================
+
+window.initializeClosureModal = function (pettyCashId) {
+    console.log('🚀 [INIT] Inicializando modal de cierre para caja:', pettyCashId);
+    setTimeout(function () {
+        calcularTotalClosure();
+        console.log('✅ [INIT] Modal de cierre inicializado');
+    }, 100);
+};
+
+// =============================================
+// DEPURACIÓN
+// =============================================
+
+function debugModalStructure() {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 [DEBUG] Analizando estructura del modal...');
+    var ids = [
+        'closure-internal-overlay',
+        'petty-cash-modal',
+        'petty-cash-content',
+        'petty_cash_id_closure',
+        'ventas-efectivo-closure',
+        'total-gastos-closure',
+        'total-closure',
+    ];
+    ids.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) {
+            var cs = window.getComputedStyle(el);
+            console.log('✅ #' + id + ' → display:' + cs.display + ' / visibility:' + cs.visibility);
+        } else {
+            console.log('❌ #' + id + ' → NO ENCONTRADO');
         }
-    }
-});
+    });
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+}
 
-document.addEventListener('click', function (e) {
-    if (e.target.id === 'closure-internal-overlay') {
-        console.log('🖱️ Click en overlay detectado');
-        closeInternalModalClosure();
-    }
-});
+// =============================================
+// EVENT LISTENERS GLOBALES (delegación en document)
+// Los inputs se inyectan dinámicamente, por eso van en document.
+// =============================================
 
+// Denominaciones → actualizar subtotales y #ventas-efectivo-closure
 document.addEventListener('input', function (e) {
-    if (e.target.matches('.denomination-input2, .contar-input-closure')) {
-        console.log('💵 Input detectado vía delegation:', e.target.value);
-        calcularTotalModal();
+    if (e.target && e.target.matches('.contar-input-closure')) {
+        calcularTotalClosure();
     }
+});
+document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches('.contar-input-closure')) {
+        calcularTotalClosure();
+    }
+});
 
-    if (e.target.matches('input[name="expense_amount[]"]')) {
-        console.log('💰 Gasto detectado vía delegation:', e.target.value);
-        calculateTotalExpensesModal();
+// Contador de caracteres en textarea de notas
+document.addEventListener('input', function (e) {
+    if (e.target && e.target.id === 'closure-notes-modal') {
+        var counter = document.getElementById('notes-char-count-modal');
+        if (counter) {
+            counter.textContent = e.target.value.length;
+            counter.style.color = e.target.value.length > 450 ? '#ef4444' : '#9ca3af';
+        }
+    }
+});
+
+// Cerrar al hacer clic en el overlay interno
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'closure-internal-overlay') {
+        _closeAllModals();
+    }
+});
+
+// Cerrar con Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var mainModal = document.getElementById('petty-cash-modal');
+    if (mainModal && !mainModal.classList.contains('hidden')) {
+        _closeAllModals();
     }
 });
 
 // =============================================
-// EXPORTAR FUNCIONES AL SCOPE GLOBAL
+// EXPORTAR AL SCOPE GLOBAL
 // =============================================
 
+window.calcularTotalClosure = calcularTotalClosure;
+window.calcularTotalGastosUnificado = calcularTotalGastosUnificado;
 window.guardarCierreUnificado = guardarCierreUnificado;
 window.closeInternalModalClosure = closeInternalModalClosure;
 window.openInternalModalClosure = openInternalModalClosure;
 window.openCreatePettyCashModal = openCreatePettyCashModal;
-window.closePettyCashModal = closePettyCashModal;
-window.debugModalStructure = debugModalStructure; // ✅ Función de depuración
+window.openPettyCashModal = openPettyCashModal;
+window.loadClosureModal = loadClosureModal;
+window.debugModalStructure = debugModalStructure;
+window._closeAllModals = _closeAllModals;
 
 console.log('✅ petty-cash-modal.js inicializado correctamente');
-console.log('💡 Tip: Ejecuta debugModalStructure() en la consola para ver la estructura del modal');
+console.log('💡 Tip: Ejecuta debugModalStructure() en la consola para ver el estado del DOM');

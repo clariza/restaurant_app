@@ -193,18 +193,18 @@
                         <!-- Imagen responsiva -->
                         @php
                         $imageSrc = $item->image 
-                    ? (filter_var($item->image, FILTER_VALIDATE_URL) 
+                        ? (filter_var($item->image, FILTER_VALIDATE_URL) 
             ? $item->image 
             : asset('storage/' . ltrim($item->image, '/'))) 
         : asset('images/placeholder.png');
 @endphp
 
-<img alt="{{ $item->name }}" 
-     class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2" 
-     src="{{ $imageSrc }}" 
-     onerror="this.onerror=null; this.src='{{ asset('images/placeholder.png') }}';"
-     loading="lazy"
-     onclick="openItemModal({{ json_encode($item) }})"/>
+            <img alt="{{ $item->name }}" 
+                class="mb-4 w-full h-48 sm:h-56 md:h-40 lg:h-48 object-cover rounded-lg cursor-pointer mt-2" 
+                src="{{ $imageSrc }}" 
+                onerror="this.onerror=null; this.src='{{ asset('images/placeholder.png') }}';"
+                loading="lazy"
+                onclick="openItemModal({{ json_encode($item) }})"/>
 
                         <!-- Nombre del ítem -->
                         <p class="text-md font-semibold text-[#203363] mb-2 text-center">{{ $item->name }}</p>

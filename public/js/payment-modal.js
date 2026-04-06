@@ -5277,7 +5277,6 @@ window.prevStep = prevStep;
 // Nuevas funciones del paso 3
 window.loadStep3Summary = loadStep3Summary;
 window.loadStep3OrderSummary = loadStep3OrderSummary;
-window.loadStep3PaymentDetails = loadStep3PaymentDetails;
 window.loadStep3CustomerData = loadStep3CustomerData;
 window.validateStep1 = validateStep1;
 window.validateStep2 = validateStep2;

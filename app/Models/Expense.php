@@ -13,6 +13,7 @@ class Expense extends Model
         'date',
         'petty_cash_id',
         'user_id',
+        'source',
     ];
     protected $casts = [
         'amount' => 'decimal:2',

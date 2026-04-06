@@ -292,15 +292,36 @@ function setupPettyCashControl() {
 // Función para configurar interceptor de fetch
 function setupFetchInterceptor() {
     const originalFetch = window.fetch;
+
+    // Evitar doble wrapping
+    if (window._fetchInterceptorActive) return;
+    window._fetchInterceptorActive = true;
+
     window.fetch = async function (...args) {
-        const response = await originalFetch(...args);
-        if (response.status === 401) {
-            console.log('Sesión expirada, limpiando datos...');
-            localStorage.removeItem('order');
-            localStorage.removeItem('orderType');
-            window.location.href = '/login';
+        // Ignorar URLs externas (CDN, etc.)
+        const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+        const isExternal = url.startsWith('http') &&
+            !url.startsWith(window.location.origin);
+
+        if (isExternal) {
+            return originalFetch(...args);
         }
-        return response;
+
+        try {
+            const response = await originalFetch(...args);
+
+            if (response.status === 401) {
+                console.log('Sesión expirada, redirigiendo...');
+                localStorage.removeItem('order');
+                localStorage.removeItem('orderType');
+                window.location.href = '/login';
+            }
+
+            return response;
+        } catch (err) {
+            // No relanzar errores de URLs externas
+            throw err;
+        }
     };
 }
 window.debugPettyCash = function () {
