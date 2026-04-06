@@ -55,9 +55,7 @@ class MenuItem extends Model
             $currentUserId = auth()->id();
         }
 
-        // Usar el userId proporcionado o el usuario autenticado
-        // $currentUserId = $userId ?? (auth()->check() ? auth()->id() : null);
-        // Registrar movimiento
+
         return $this->inventoryMovements()->create([
             'user_id' => $currentUserId,
             'movement_type' => $movementType,
@@ -93,14 +91,15 @@ class MenuItem extends Model
 
         return $branchStock ? $branchStock->stock : $this->stock; // fallback al stock global
     }
-    
+
     // Actualizar stock para una sucursal específica
     public function updateStockForBranch(
         int $branchId,
         float $quantity,
         string $movementType,
         ?string $notes = null,
-        ?int $userId = null): InventoryMovement {
+        ?int $userId = null
+    ): InventoryMovement {
         $branchStock = BranchMenuItemStock::firstOrCreate(
             ['branch_id' => $branchId, 'menu_item_id' => $this->id],
             ['stock' => $this->stock, 'min_stock' => $this->min_stock]
@@ -133,7 +132,7 @@ class MenuItem extends Model
         if ($this->relationLoaded('branchStocks')) {
             $branchStock = $this->branchStocks->first();
             return $branchStock?->stock ?? $this->stock;
-            }
+        }
         // Fallback al stock global
         return $this->stock;
     }

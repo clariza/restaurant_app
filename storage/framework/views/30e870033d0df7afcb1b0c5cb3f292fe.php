@@ -138,42 +138,50 @@
     </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-
 <script>
-    // ── Modal ──────────────────────────────────────────────────
-    function openModal() {
-        document.getElementById('modal').classList.remove('hidden');
-    }
-    function closeModal() {
-        document.getElementById('modal').classList.add('hidden');
-    }
-    document.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('modal')) closeModal();
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── Modal ────────────────────────────────────────────────
+    const modal = document.getElementById('modal');
+
+    window.openModal = function () {
+        modal.classList.remove('hidden');
+    };
+
+    window.closeModal = function () {
+        modal.classList.add('hidden');
+    };
+
+    // Cerrar al hacer click fuera del contenido del modal
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
     });
 
-    // Vista previa del icono en el modal
-    document.getElementById('icon').addEventListener('input', function () {
-        const preview = document.getElementById('icon-preview');
-        preview.className = this.value || 'fas fa-question';
-    });
+    // Vista previa del icono
+    const iconInput = document.getElementById('icon');
+    if (iconInput) {
+        iconInput.addEventListener('input', function () {
+            const preview = document.getElementById('icon-preview');
+            if (preview) preview.className = this.value || 'fas fa-question';
+        });
+    }
 
-    // ── Drag & Drop con SortableJS ─────────────────────────────
+    // ── Drag & Drop con SortableJS ───────────────────────────
     const tbody = document.getElementById('sortable-categories');
+    if (tbody && typeof Sortable !== 'undefined') {
+        Sortable.create(tbody, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'bg-blue-50',
+            dragClass: 'opacity-50',
+            onEnd: function () {
+                updateOrderBadges();
+                saveOrder();
+            }
+        });
+    }
 
-    const sortable = Sortable.create(tbody, {
-        animation: 150,
-        handle: '.drag-handle',         // solo arrastrar desde el ícono grip
-        ghostClass: 'bg-blue-50',       // color del elemento fantasma
-        dragClass: 'opacity-50',
-        onEnd: function () {
-            updateOrderBadges();
-            saveOrder();
-        }
-    });
-
-    // Actualizar los números de orden visibles tras cada movimiento
     function updateOrderBadges() {
         const rows = tbody.querySelectorAll('tr');
         rows.forEach((row, index) => {
@@ -182,11 +190,10 @@
         });
     }
 
-    // Enviar el nuevo orden al servidor vía AJAX
     function saveOrder() {
-        const rows   = tbody.querySelectorAll('tr[data-id]');
-        const order  = Array.from(rows).map(row => parseInt(row.dataset.id));
-        const csrf   = document.querySelector('meta[name="csrf-token"]')?.content;
+        const rows  = tbody.querySelectorAll('tr[data-id]');
+        const order = Array.from(rows).map(row => parseInt(row.dataset.id));
+        const csrf  = document.querySelector('meta[name="csrf-token"]')?.content;
 
         fetch('<?php echo e(route("categories.reorder")); ?>', {
             method: 'POST',
@@ -199,18 +206,19 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.success) showIndicator('save-indicator');
-            else showIndicator('save-error');
+            showIndicator(data.success ? 'save-indicator' : 'save-error');
         })
         .catch(() => showIndicator('save-error'));
     }
 
-    // Mostrar notificación temporal
     function showIndicator(id) {
         const el = document.getElementById(id);
+        if (!el) return;
         el.classList.remove('hidden');
         setTimeout(() => el.classList.add('hidden'), 2500);
     }
+
+});
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/categories/index.blade.php ENDPATH**/ ?>

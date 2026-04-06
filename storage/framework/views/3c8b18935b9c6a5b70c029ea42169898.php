@@ -38,12 +38,7 @@
     <link rel="stylesheet" href="/css/app.css">
     
    <style>
-    const proformaConversionStyles = `
-/* ===================================
-   ESTILOS PARA CONVERSIÓN DE PROFORMAS
-   =================================== */
 
-/* Badge de conversión en el panel de pedidos */
 .proforma-conversion-badge {
     background: linear-gradient(135deg, #EF476F 0%, #d63a5e 100%);
     color: white;
@@ -919,59 +914,59 @@ console.log('🏢 Información de sucursal cargada:', {
 
 <script>
     // 🔥 Función principal para abrir el modal de caja chica
-    window.openPettyCashModal = async function() {
-        console.log('🔓 Abriendo modal de caja chica desde botón header...');
+    // window.openPettyCashModal = async function() {
+    //     console.log('🔓 Abriendo modal de caja chica desde botón header...');
 
-        const modal = document.getElementById('petty-cash-modal');
-        const content = document.getElementById('petty-cash-content');
+    //     const modal = document.getElementById('petty-cash-modal');
+    //     const content = document.getElementById('petty-cash-content');
 
-        if (!modal || !content) {
-            console.error('❌ Modal de caja chica no encontrado en app.blade.php');
-            // Si el modal no existe, redirigir a la página de caja chica
-            window.location.href = '<?php echo e(route("petty-cash.index")); ?>';
-            return;
-        }
+    //     if (!modal || !content) {
+    //         console.error('❌ Modal de caja chica no encontrado en app.blade.php');
+    //         // Si el modal no existe, redirigir a la página de caja chica
+    //         window.location.href = '<?php echo e(route("petty-cash.index")); ?>';
+    //         return;
+    //     }
 
-        // Mostrar modal
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+    //     // Mostrar modal
+    //     modal.classList.remove('hidden');
+    //     document.body.style.overflow = 'hidden';
 
-        // Mostrar loading
-        content.innerHTML = `
-            <div class="flex items-center justify-center p-12">
-                <div class="text-center">
-                    <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
-                    <p class="text-gray-600">Verificando estado de caja chica...</p>
-                </div>
-            </div>
-        `;
+    //     // Mostrar loading
+    //     content.innerHTML = `
+    //         <div class="flex items-center justify-center p-12">
+    //             <div class="text-center">
+    //                 <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+    //                 <p class="text-gray-600">Verificando estado de caja chica...</p>
+    //             </div>
+    //         </div>
+    //     `;
 
-        try {
-            // Verificar si hay una caja abierta
-            const checkResponse = await fetch('/petty-cash/get-open', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
-                }
-            });
+    //     try {
+    //         // Verificar si hay una caja abierta
+    //         const checkResponse = await fetch('/petty-cash/get-open', {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Accept': 'application/json',
+    //                 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+    //             }
+    //         });
 
-            const checkData = await checkResponse.json();
-            console.log('📦 Estado de caja:', checkData);
+    //         const checkData = await checkResponse.json();
+    //         console.log('📦 Estado de caja:', checkData);
 
-            if (checkData.success && checkData.petty_cash_id) {
-                // Si hay caja abierta, cargar el modal de cierre
-                await loadClosureModal(checkData.petty_cash_id, content);
-            } else {
-                // Si no hay caja abierta, preguntar si desea crear una
-                showCreatePettyCashOption(content);
-            }
+    //         if (checkData.success && checkData.petty_cash_id) {
+    //             // Si hay caja abierta, cargar el modal de cierre
+    //             await loadClosureModal(checkData.petty_cash_id, content);
+    //         } else {
+    //             // Si no hay caja abierta, preguntar si desea crear una
+    //             showCreatePettyCashOption(content);
+    //         }
 
-        } catch (error) {
-            console.error('❌ Error al verificar caja chica:', error);
-            showErrorContent(content);
-        }
-    };
+    //     } catch (error) {
+    //         console.error('❌ Error al verificar caja chica:', error);
+    //         showErrorContent(content);
+    //     }
+    // };
 
     // Función para cargar el modal de cierre con la caja específica
     async function loadClosureModal(pettyCashId, content) {
@@ -1213,14 +1208,16 @@ console.log('🏢 Información de sucursal cargada:', {
     window.dispatchEvent(new Event('pettyCashDataReady'));
 </script>
 <!-- ✅ Cargar scripts en orden correcto -->
-<script src="<?php echo e(asset('js/order-details.js')); ?>" defer></script>
-<script src="<?php echo e(asset('js/payment-modal.js')); ?>" defer></script>
+<!-- DESPUÉS — solo los que no se cargan en otro lado -->
 <script src="<?php echo e(asset('js/app.js')); ?>" defer></script>
 <script src="<?php echo e(asset('js/init.js')); ?>" defer></script>
-<script src="<?php echo e(asset('js/petty-cash-modal.js')); ?>" defer></script>
- <?php if(Request::is('petty-cash*')): ?>
-        <script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
-    <?php endif; ?>
+<script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
+<?php if(isset($showOrderDetails) && $showOrderDetails): ?>
+    
+<?php else: ?>
+    <script src="<?php echo e(asset('js/order-details.js')); ?>" defer></script>
+    <script src="<?php echo e(asset('js/payment-modal.js')); ?>" defer></script>
+<?php endif; ?>
 
 <script>
 (function() {
@@ -1339,6 +1336,118 @@ console.log('🏢 Información de sucursal cargada:', {
 </footer>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>
+<script>
+// ========================================
+// FUNCIONES GLOBALES — disponibles en todas las páginas
+// ========================================
+
+window.closePettyCashModal = function() {
+    const modal = document.getElementById('petty-cash-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+};
+
+window.openExpensesModal = async function() {
+    const modal = document.getElementById('expenses-modal');
+    if (!modal) {
+        window.location.href = '/expenses';
+        return;
+    }
+    modal.classList.remove('hidden');
+
+    // Cargar caja chica abierta
+    try {
+        const res = await fetch('/petty-cash/get-open', {  // ← ruta correcta
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' }
+        });
+        const data = await res.json();
+        if (data.success && data.petty_cash_id) {
+            window.openPettyCash = { id: data.petty_cash_id };
+        } else {
+            window.openPettyCash = null;
+        }
+    } catch(e) {
+        window.openPettyCash = null;
+    }
+
+    // Cargar gastos
+    const container = document.getElementById('expenses-table-container');
+    if (!container) return;
+    container.innerHTML = `<div class="flex justify-center py-12">
+        <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
+    try {
+        const res = await fetch('/expenses?json=1', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await res.json();
+        window.expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
+        if (typeof renderExpensesTable === 'function') renderExpensesTable();
+    } catch(e) {
+        container.innerHTML = `<div class="text-center py-12 text-red-500">${e.message}</div>`;
+    }
+};
+window.closeExpensesModal = function() {
+    const modal = document.getElementById('expenses-modal');
+    if (modal) modal.classList.add('hidden');
+};
+// Cerrar modales con Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    closePettyCashModal();
+    const expModal = document.getElementById('expenses-modal');
+    if (expModal) expModal.classList.add('hidden');
+});
+
+// Cerrar petty-cash-modal al hacer click fuera
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'petty-cash-modal') closePettyCashModal();
+});
+// ========================================
+// DENOMINACIONES → VENTAS EN EFECTIVO (tiempo real)
+// Delegación en document porque el modal se inyecta con innerHTML
+// ========================================
+document.addEventListener('input', function(e) {
+    if (!e.target.classList.contains('contar-input-closure')) return;
+ 
+    var total = 0;
+ 
+    // Recorrer todos los inputs de la tabla y acumular
+    document.querySelectorAll('.contar-input-closure').forEach(function(input) {
+        var denominacion = parseFloat(input.dataset.denominacion) || 0;
+        var cantidad     = parseInt(input.value, 10)              || 0;
+        var subtotal     = denominacion * cantidad;
+ 
+        // Actualizar el span de subtotal de la misma fila
+        var fila    = input.closest('tr');
+        var spanSub = fila ? fila.querySelector('.subtotal-closure') : null;
+        if (spanSub) spanSub.textContent = 'Bs.' + subtotal.toFixed(2);
+ 
+        total += subtotal;
+    });
+ 
+    // Actualizar el span del total general (pie de tabla)
+    var spanTotal = document.getElementById('total-closure');
+    if (spanTotal) spanTotal.textContent = 'Bs.' + total.toFixed(2);
+ 
+    // Reflejar en el input "Ventas en Efectivo"
+    var inputEfectivo = document.getElementById('ventas-efectivo-closure');
+    if (inputEfectivo) {
+        inputEfectivo.value = total.toFixed(2);
+ 
+        // Disparar animación de pulso definida en el CSS del modal
+        inputEfectivo.classList.remove('efectivo-pulse');
+        void inputEfectivo.offsetWidth; // reflow para reiniciar la animación
+        inputEfectivo.classList.add('efectivo-pulse');
+    }
+});
+console.log('✅ Funciones globales de modales configuradas');
+</script>
 </body>
 
 </html><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -180,13 +180,14 @@
 <!-- Variables globales -->
 <script>
 window.routes = {
-    tablesAvailable:      "<?php echo e(route('tables.available')); ?>",
-    salesStore:           "<?php echo e(route('sales.store')); ?>",
-    customerDetails:      "<?php echo e(route('customer.details')); ?>",
-    menuIndex:            "<?php echo e(route('menu.index')); ?>",
-    pettyCashIndex:       "<?php echo e(route('petty-cash.index')); ?>",
-    pettyCashModalContent:"<?php echo e(route('petty-cash.modal-content')); ?>",
-    deliveryServicesApi:  "<?php echo e(route('deliveries.api.active')); ?>"
+    tablesAvailable:       "<?php echo e(route('tables.available')); ?>",
+    salesStore:            "<?php echo e(route('sales.store')); ?>",
+    customerDetails:       "<?php echo e(route('customer.details')); ?>",
+    menuIndex:             "<?php echo e(route('menu.index')); ?>",
+    pettyCashIndex:        "<?php echo e(route('petty-cash.index')); ?>",
+    pettyCashCreate:       "<?php echo e(route('petty-cash.create')); ?>",
+    pettyCashModalContent: "<?php echo e(route('petty-cash.modal-content')); ?>",
+    deliveryServicesApi:   "<?php echo e(route('deliveries.api.active')); ?>"
 };
 window.csrfToken    = "<?php echo e(csrf_token()); ?>";
 window.authUserName = "<?php echo e(Auth::user()->name ?? ''); ?>";
@@ -201,22 +202,12 @@ const tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false,
 <?php endif; ?>
 
 /* ── Gastos (sin cambios) ── */
-let openPettyCash  = null; 
-let expensesData   = [];
+window.openPettyCash = null; 
+window.expensesData  = [];
 
-async function openExpensesModal() {
-    document.getElementById('expenses-modal').classList.remove('hidden');
-    
-    // ✅ Cargar primero la caja chica abierta
-    await loadOpenPettyCash();
-    
-    // Luego cargar los gastos
-    await loadExpenses();
-    checkPettyCashStatus();
-}
 async function loadOpenPettyCash() {
     try {
-        const res = await fetch('/petty-cash/open', {
+        const res = await fetch('/petty-cash/get-open', {
             headers: { 
                 'X-CSRF-TOKEN': window.csrfToken, 
                 'Accept': 'application/json' 
@@ -226,29 +217,29 @@ async function loadOpenPettyCash() {
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.petty_cash_id) {
-                openPettyCash = {
+              window.openPettyCash = {        // ← window.
                     id: data.petty_cash_id,
                     date: data.date,
                     initial_amount: data.initial_amount
                 };
                 console.log('✅ Caja chica abierta cargada:', openPettyCash);
             } else {
-                openPettyCash = null;
+                window.openPettyCash = null;
                 console.log('⚠️ No hay caja chica abierta');
             }
         } else {
-            openPettyCash = null;
+            window.openPettyCash = null;
         }
     } catch (e) {
         console.error('❌ Error al cargar caja chica:', e);
-        openPettyCash = null;
+        window.openPettyCash = null;
     }
 }
 
-function closeExpensesModal() {
-    document.getElementById('expenses-modal').classList.add('hidden');
-    hideExpenseForm();
-}
+// function closeExpensesModal() {
+//     document.getElementById('expenses-modal').classList.add('hidden');
+//     hideExpenseForm();
+// }
 async function checkPettyCashStatus() {
     try {
         const res  = await fetch('/petty-cash/check-status', {
@@ -278,36 +269,19 @@ async function loadExpenses() {
     const container = document.getElementById('expenses-table-container');
     container.innerHTML = `<div class="flex justify-center items-center py-12">
         <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
-    
     try {
-
-        const res = await fetch('/expenses/modal', {  
+        const res = await fetch('/expenses?json=1', {
             headers: {
                 'X-CSRF-TOKEN': window.csrfToken,
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-
-        const res = await fetch('/expenses?json=1', {
-            headers: { 
-                'X-CSRF-TOKEN': window.csrfToken, 
-                'Accept': 'application/json', 
-                'X-Requested-With': 'XMLHttpRequest' 
             },
             credentials: 'same-origin'
         });
-        
         if (!res.ok) throw new Error(`Error ${res.status}`);
-        
         const data = await res.json();
-
-        if (data.petty_cash_id) {
-            window._activePettyCashId = data.petty_cash_id;
-        }
-
-        expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
-        
-        console.log('📦 Gastos cargados:', expensesData.length);
-        
+        if (data.petty_cash_id) window._activePettyCashId = data.petty_cash_id;
+        window.expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
         renderExpensesTable();
     } catch(e) {
         container.innerHTML = `<div class="text-center py-12 text-red-500">${e.message}</div>`;
@@ -318,7 +292,7 @@ function renderExpensesTable() {
     const container = document.getElementById('expenses-table-container');
     
     // ✅ Filtrar gastos solo de la caja chica abierta
-    let filteredExpenses = expensesData;
+    let filteredExpenses = window.expensesData;
     
     if (openPettyCash && openPettyCash.id) {
         filteredExpenses = expensesData.filter(e => e.petty_cash_id === openPettyCash.id);
@@ -339,12 +313,7 @@ function renderExpensesTable() {
     
     // Renderizar tabla con gastos filtrados
     container.innerHTML = `
-        <div class="mb-4 px-6 py-3 bg-blue-50 border-l-4 border-blue-500 text-blue-700">
-            <p class="text-sm font-medium">
-                <i class="fas fa-filter mr-2"></i>
-                Mostrando ${filteredExpenses.length} gasto(s) de la caja chica actual (ID: ${openPettyCash.id})
-            </p>
-        </div>
+        
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-[#203363]">
                 <tr>
@@ -378,11 +347,7 @@ function renderExpensesTable() {
                 `).join('')}
             </tbody>
         </table>
-        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
-            <p class="text-sm text-gray-600">
-                <strong>Total de gastos:</strong> Bs. ${filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0).toFixed(2)}
-            </p>
-        </div>
+        
     `;
 }
 function showCreateExpenseForm() {
@@ -436,7 +401,7 @@ async function saveExpense(event) {
 }
 
 function editExpense(id) {
-    const expense = expensesData.find(e => e.id === id);
+    const expense = window.expensesData.find(e => e.id === id);
     if (!expense) return;
     
     document.getElementById('expense-id').value          = expense.id;

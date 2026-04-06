@@ -60,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/branches', [BranchController::class, 'index'])->name('branches.index');
     Route::get('/branches/{branch}', [BranchController::class, 'show'])->name('branches.show');
 
+    Route::post('/expenses/modal', [ExpenseController::class, 'storeFromModal'])->name('expenses.storeFromModal');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
     // ─── PETTY CASH (No requieren caja abierta) ───────────────────
     Route::get('/petty-cash/create', [PettyCashController::class, 'create'])
         ->name('petty-cash.create');
@@ -75,8 +78,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('petty-cash.check-status');
     Route::get('/petty-cash/check-open', [PettyCashController::class, 'checkOpen'])
         ->name('petty-cash.check-open');
-    Route::get('/petty-cash/closure-data', [PettyCashController::class, 'getClosureData'])
-        ->name('petty-cash.closure-data');
+    Route::get('/petty-cash/closure-data', [PettyCashController::class, 'closureData']);
     Route::get('/petty-cash/modal-content', [PettyCashController::class, 'modalContent'])
         ->name('petty-cash.modal-content');
     Route::get('/petty-cash/print-previous', [PettyCashController::class, 'printPrevious'])
@@ -119,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('expenses.modal');
     Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
     Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+
     // ─── ORDERS ── ESTÁTICAS PRIMERO ─────────────────────────────
     Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -201,9 +204,10 @@ Route::middleware(['auth', 'check.pettycash'])->group(function () {
 
     // ─── EXPENSES (Creación/Edición/Eliminación) ──────────────────
     Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+
     Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
-    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
 
 
     // ─── PROFORMAS (Creación y conversión) ───────────────────────

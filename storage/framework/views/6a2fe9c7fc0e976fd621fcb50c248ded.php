@@ -371,8 +371,31 @@
     }
     .expense-actions {
         flex: 0 0 auto;
-        width: 40px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: auto;
     }
+    .btn-save-expense-index {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+.btn-save-expense-index:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: scale(1.08);
+}
     .expenses-container {
         display: flex;
         flex-direction: column;
@@ -380,25 +403,29 @@
     }
     .expense-row {
         display: flex;
+        flex-wrap: nowrap;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
+        gap: 6px;
+        margin-bottom: 6px;
         width: 100%;
     }
     .expense-field {
-        flex: 1;
+        flex: 1 1 0;
         min-width: 0;
     }
+    .expense-field:nth-child(1) { flex: 3 1 0; }
+    .expense-field:nth-child(2) { flex: 2 1 0; }
+    .expense-field:nth-child(3) { flex: 1.2 1 0; min-width: 70px; }
     .expense-input-container {
         flex: 1;
         min-width: 0;
     }
     .expense-input {
         width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
+        padding: 5px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 5px;
+        font-size: 0.8rem;
         box-sizing: border-box;
     }
     .form-actions {
@@ -421,8 +448,13 @@
     }
     .expense-input:focus {
         outline: none;
-        border-color: #93c5fd;
-        box-shadow: 0 0 0 2px #bfdbfe;
+        border-color: #203363;
+        box-shadow: 0 0 0 2px rgba(32,51,99,0.1);
+    }
+    .expense-input[readonly] {
+        background: #f0fdf4;
+        border-color: #d1fae5;
+        color: #374151;
     }
     .add-expense-btn {
         background-color: #e2e8f0;
@@ -438,22 +470,36 @@
         background-color: #cbd5e1;
     }
     .remove-expense-btn {
-        background-color: #fee2e2;
-        color: #dc2626;
-        border: none;
-        border-radius: 4px;
-        padding: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 36px;
-        width: 36px;
-        transition: background-color 0.2s;
-    }
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0;
+    transition: background 0.2s, transform 0.15s;
+}
     .remove-expense-btn:hover {
-        background-color: #fecaca;
-    }
+    background: #fca5a5;
+    transform: scale(1.08);
+}
+.expense-saved-badge {
+    font-size: 10px;
+    color: #16a34a;
+    padding: 3px 6px;
+    background: #dcfce7;
+    border-radius: 9999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
     .denomination-input {
         width: 70px;
         text-align: center;
@@ -1232,12 +1278,16 @@
                         <h4 class="section-title">Resumen de Cierre</h4>
                         <div class="form-grid">
                             <div class="input-group mb-2">
-                                <label for="total-gastos" class="small">Total Gastos</label>
-                                <input type="number" id="total-gastos"
-                                    class="form-control form-control-sm"
-                                    value="<?php echo e($totalExpenses); ?>" step="0.01" readonly
-                                    data-gastos-bd="<?php echo e($totalExpenses); ?>">
-                            </div>
+    <label for="total-gastos" class="small">Total Gastos</label>
+    
+    <input type="number" id="total-gastos"
+        class="form-control form-control-sm"
+        value="0"
+        step="0.01"
+        readonly
+        data-gastos-bd="0"
+        data-gastos-form="0">
+</div>
                             <div class="input-group mb-2">
                                 <label for="total-efectivo" class="small">Total Efectivo</label>
                                 <input type="number" id="total-efectivo"
@@ -1300,38 +1350,34 @@
 </div>
 
 
-<!-- Formulario oculto para cierre -->
 <form id="closureForm" action="<?php echo e(route('petty-cash.save-closure')); ?>" method="POST" class="hidden">
     <?php echo csrf_field(); ?>
     <input type="hidden" name="petty_cash_id"   id="petty_cash_id">
     <input type="hidden" name="total_sales_cash" id="total_sales_cash"  value="0">
-    <input type="hidden" name="total_sales_qr"   id="total_sales_qr"    value="<?php echo e($totalSalesQR); ?>">
-    <input type="hidden" name="total_sales_card" id="total_sales_card"  value="<?php echo e($totalSalesCard); ?>">
-    <input type="hidden" name="total_expenses"   id="total_expenses"    value="<?php echo e($totalExpenses); ?>">
+    <input type="hidden" name="total_sales_qr"   id="total_sales_qr"    value="0">
+    <input type="hidden" name="total_sales_card" id="total_sales_card"  value="0">
+    <input type="hidden" name="total_expenses"   id="total_expenses"    value="0">
     <input type="hidden" name="closure_notes"    id="closure_notes_hidden">
 </form>
+ 
 
-<!-- ========================================
-     SCRIPTS
-     ======================================== -->
 <script>
     window.pettyCashData = {
-        totalExpenses:  <?php echo e($totalExpenses ?? 0); ?>,
-        totalSalesQR:   <?php echo e($totalSalesQR   ?? 0); ?>,
-        totalSalesCard: <?php echo e($totalSalesCard  ?? 0); ?>,
+        // Valores en 0 — openModal los sobreescribe con los de la caja seleccionada
+        totalExpenses:  0,
+        totalSalesQR:   0,
+        totalSalesCard: 0,
         saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
         csrfToken:      "<?php echo e(csrf_token()); ?>"
     };
     window.isAdmin = <?php echo e(auth()->user()->role === 'admin' ? 'true' : 'false'); ?>;
-
-    console.log('✅ pettyCashData cargado:', window.pettyCashData);
+ 
+    console.log('✅ pettyCashData cargado (valores 0 — openModal los llena por caja)');
     window.dispatchEvent(new Event('pettyCashDataReady'));
-
-    // Contador de caracteres para el textarea de notas
+ 
     document.addEventListener('DOMContentLoaded', function () {
         const notesTextarea = document.getElementById('closure-notes');
         const charCount     = document.getElementById('notes-char-count');
-
         if (notesTextarea && charCount) {
             notesTextarea.addEventListener('input', function () {
                 charCount.textContent = this.value.length;
