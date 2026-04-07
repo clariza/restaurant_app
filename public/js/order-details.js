@@ -1194,7 +1194,7 @@ function validatePayment() {
     const totalAmount = parseFloat(calcularTotal());
 
     if (totalPaid < totalAmount) {
-        alert(`❌ El total pagado ($${totalPaid.toFixed(2)}) es menor al total del pedido ($${totalAmount.toFixed(2)}).`);
+        alert(`❌ El total pagado (Bs ${totalPaid.toFixed(2)}) es menor al total del pedido (Bs ${totalAmount.toFixed(2)}).`);
         return false;
     }
 

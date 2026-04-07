@@ -297,9 +297,8 @@ async function guardarCierreUnificado(pettyCashId) {
             // ── 1. Cerrar el modal ANTES del SweetAlert ──────────────────────
             _closeAllModals();
             console.log('✅ [guardarCierreUnificado] Modal cerrado. Mostrando SweetAlert...');
-
             // ── 2. SweetAlert (el modal ya no es visible) ────────────────────
-            await Swal.fire({
+            Swal.fire({
                 icon: 'success',
                 title: '¡Cierre de Caja Exitoso!',
                 html: [
@@ -314,16 +313,24 @@ async function guardarCierreUnificado(pettyCashId) {
                         ? parseFloat(data.data.current_amount).toFixed(2)
                         : '0.00') + '</p>',
                     '  </div>',
+                    '  <p style="margin-top:20px;color:#6c757d;font-size:14px;">',
+                    '    <i class="fas fa-spinner fa-spin mr-2"></i> Redirigiendo...',
+                    '  </p>',
                     '</div>'
                 ].join(''),
-                confirmButtonText: 'Abrir Nueva Caja',
-                confirmButtonColor: '#10b981',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
+                didClose: function () {
+                    window.location.href = '/petty-cash/create';
+                }
             });
-
-            // ── 3. Redirigir tras confirmar ──────────────────────────────────
-            window.location.href = '/petty-cash/create';
+            // ── 3. Redirigir como fallback por si didClose no dispara ────────
+            setTimeout(function () {
+                window.location.href = '/petty-cash/create';
+            }, 2600);
 
         } else {
             throw new Error(data.message || 'No se pudo guardar el cierre');

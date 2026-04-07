@@ -16,4 +16,4 @@
             </button>
         </div>
     </div>
-</div><?php /**PATH C:\Users\User\Documents\laravel_clary\restaurant_app\resources\views/partials/print-preview-modal.blade.php ENDPATH**/ ?>
+</div><?php ?>

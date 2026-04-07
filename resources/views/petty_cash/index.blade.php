@@ -1254,14 +1254,14 @@
                                                 placeholder="0">
                                         </td>
                                         <td class="text-right">
-                                            <span class="subtotal">$0.00</span>
+                                            <span class="subtotal">Bs 0.00</span>
                                         </td>
                                     </tr>
                                     @endforeach
                                     <tr class="total-row">
                                         <td colspan="2" class="text-right">Total Efectivo:</td>
                                         <td class="text-right">
-                                            <span id="total">$0.00</span>
+                                            <span id="total">Bs 0.00</span>
                                         </td>
                                     </tr>
                                 </tbody>
