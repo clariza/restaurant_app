@@ -448,7 +448,7 @@
                             <p><strong>ID:</strong> PROF-${proforma.id}</p>
                             <p><strong>Cliente:</strong> ${proforma.customer_name}</p>
                             <p><strong>Items:</strong> ${proforma.items.length}</p>
-                            <p><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                            <p><strong>Total:</strong> Bs ${parseFloat(proforma.total).toFixed(2)}</p>
                         </div>
                         <p class="text-sm text-gray-600">Podrás revisar el pedido y proceder con el pago.</p>
                     </div>`,
@@ -489,7 +489,7 @@
                         <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800">
                             <p><strong>Cliente:</strong> ${proforma.customer_name}</p>
                             <p><strong>Items:</strong> ${orderItems.length}</p>
-                            <p><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                            <p><strong>Total:</strong> Bs ${parseFloat(proforma.total).toFixed(2)}</p>
                         </div>
                     </div>`,
                 icon: 'success',

@@ -280,6 +280,13 @@ async function loadExpenses() {
         <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
     
     try {
+
+        const res = await fetch('/expenses/modal', {  
+            headers: {
+                'X-CSRF-TOKEN': window.csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+
         const res = await fetch('/expenses?json=1', {
             headers: { 
                 'X-CSRF-TOKEN': window.csrfToken, 
@@ -292,6 +299,11 @@ async function loadExpenses() {
         if (!res.ok) throw new Error(`Error ${res.status}`);
         
         const data = await res.json();
+
+        if (data.petty_cash_id) {
+            window._activePettyCashId = data.petty_cash_id;
+        }
+
         expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
         
         console.log('📦 Gastos cargados:', expensesData.length);

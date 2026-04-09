@@ -1099,7 +1099,7 @@ async function convertProformaToOrder(proformaId) {
                 <p class="text-sm text-gray-600 mt-2">
                     Cliente: <strong>${proforma.customer_name}</strong><br>
                     Items: <strong>${orderItems.length}</strong><br>
-                    Total: <strong>$${parseFloat(proforma.total).toFixed(2)}</strong>
+                    Total: <strong>Bs${parseFloat(proforma.total).toFixed(2)}</strong>
                 </p>
                 <div class="bg-yellow-50 p-3 rounded-lg mt-3">
                     <p class="text-sm text-yellow-800">

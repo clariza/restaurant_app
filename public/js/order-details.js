@@ -1669,7 +1669,7 @@ async function generateTicketContentAsync(dailyOrderNumber) {
         ${order.map(item => `
             <div class="item-row">
                 <span>${item.quantity}x ${item.name.substring(0, 20)}</span>
-                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                <span>Bs ${(item.price * item.quantity).toFixed(2)}</span>
             </div>
         `).join('')}
         
@@ -2477,7 +2477,7 @@ async function saveProforma(event) {
                     <div class="bg-blue-50 p-4 rounded-lg mb-3">
                         <p class="text-sm text-blue-800"><strong>Cliente:</strong> ${proformaData.customer_name}</p>
                         <p class="text-sm text-blue-800"><strong>Items:</strong> ${order.length}</p>
-                        <p class="text-sm text-blue-800"><strong>Total:</strong> $${proformaData.total.toFixed(2)}</p>
+                        <p class="text-sm text-blue-800"><strong>Total:</strong> Bs ${proformaData.total.toFixed(2)}</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg mb-3">
                         <p class="text-sm text-yellow-800">
