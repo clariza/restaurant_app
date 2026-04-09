@@ -58,14 +58,16 @@ class MenuController extends Controller
         //     ->orderBy('order', 'asc')  // ← agregar esto
         //     ->get();
 
-        $currentBranchId = session('branch_id',
-                       Branch::where('is_main', true)->first()?->id);
+        $currentBranchId = session(
+            'branch_id',
+            Branch::where('is_main', true)->first()?->id
+        );
 
         $categories = Category::with(['menuItems' => function ($q) use ($currentBranchId) {
             $q->with(['branchStocks' => function ($sq) use ($currentBranchId) {
-            $sq->where('branch_id', $currentBranchId);
+                $sq->where('branch_id', $currentBranchId);
             }]);
-        }])->get();
+        }])->orderBy('order', 'asc')->get();
 
         $tables = Table::all();
 

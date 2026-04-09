@@ -11,7 +11,7 @@ class CategoryController extends Controller
     // Mostrar lista de categorías
     public function index()
     {
-        $categorias = Category::all();
+        $categorias = Category::orderBy('order', 'asc')->get();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
         return view('categories.index', compact('categorias', 'hasOpenPettyCash'));
     }
