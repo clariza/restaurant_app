@@ -78,6 +78,7 @@
                 <th class="text-right">Gastos</th>
                 <th class="text-right">Saldo</th>
                 <th>Estado</th>
+                <th>Notas</th>
             </tr>
         </thead>
         <tbody>
@@ -95,6 +96,7 @@
                 <td class="text-right">Bs. {{ number_format($pettyCash->total_expenses, 2) }}</td>
                 <td class="text-right">Bs. {{ number_format($saldo, 2) }}</td>
                 <td>{{ $pettyCash->status === 'open' ? 'Abierta' : 'Cerrada' }}</td>
+                <td>{{ $pettyCash->notes ?? '—' }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -106,6 +108,8 @@
         Total ventas: Bs. {{ number_format($totalSales, 2) }}<br>
         Total gastos: Bs. {{ number_format($totalExpenses, 2) }}<br>
         Saldo neto: Bs. {{ number_format($totalSales - $totalExpenses, 2) }}
+
+        
     </div>
 
     <div class="footer">

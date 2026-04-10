@@ -1132,7 +1132,9 @@
             <tbody>
                 @forelse ($pettyCashes as $pettyCash)
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 text-left">{{ $pettyCash->date }}</td>
+                    <td class="p-2 text-left">
+                        {{ \Carbon\Carbon::parse($pettyCash->created_at)->format('d/m/Y H:i') }}
+                    </td>
                     <td class="p-2 text-left">{{ $pettyCash->user->name ?? 'N/A' }}</td>
                     <td class="p-2 text-right">Bs. {{ number_format($totalSales - $totalExpenses, 2) }}</td>
                     <td class="p-2 text-left">

@@ -439,12 +439,42 @@
                         <span class="info-label">Ventas:</span>
                         <span class="info-value"><?php echo e($pettyCash->sales()->count()); ?> registradas</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Gastos:</span>
-                        <span class="info-value"><?php echo e($pettyCash->expenses()->count()); ?> registrados</span>
-                    </div>
-                </div>
+                    
+                    <?php if(!empty($pettyCash->notes)): ?>
+                    <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                        <span class="info-label">Notas de cierre:</span>
+                        <span class="info-value" style="color: #555; font-style: italic; white-space: pre-line;">
+                            <?php echo e($pettyCash->notes); ?>
 
+                        </span>
+                    </div>
+                    <?php endif; ?>
+                    
+                </div>
+                        
+        <?php if(!empty($pettyCash->notes)): ?>
+        <div class="section-title" style="margin-top: 10px;">NOTAS DE CIERRE</div>
+        <div style="
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 8px 12px;
+            border-radius: 0 4px 4px 0;
+            font-size: 10px;
+            color: #444;
+            margin-bottom: 12px;
+            white-space: pre-line;
+            line-height: 1.5;
+        ">
+            <span style="font-weight: bold; color: #92400e;">
+                <i>📝</i> Observaciones:
+            </span><br>
+            <?php echo e($pettyCash->notes); ?>
+
+        </div>
+        <?php endif; ?>
+
+        
+        <div class="signature-compact">
                 
                 <div class="summary-compact">
                     <table>

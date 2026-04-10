@@ -1132,7 +1132,10 @@
             <tbody>
                 <?php $__empty_1 = true; $__currentLoopData = $pettyCashes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pettyCash): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 text-left"><?php echo e($pettyCash->date); ?></td>
+                    <td class="p-2 text-left">
+                        <?php echo e(\Carbon\Carbon::parse($pettyCash->created_at)->format('d/m/Y H:i')); ?>
+
+                    </td>
                     <td class="p-2 text-left"><?php echo e($pettyCash->user->name ?? 'N/A'); ?></td>
                     <td class="p-2 text-right">Bs. <?php echo e(number_format($totalSales - $totalExpenses, 2)); ?></td>
                     <td class="p-2 text-left">

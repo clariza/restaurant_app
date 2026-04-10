@@ -253,7 +253,7 @@ class PettyCashController extends Controller
         }
 
         $pettyCashes = $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
-            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')  // ← cambiar 'date' por 'created_at'
             ->paginate(10);
 
         $users = User::select('id', 'name')->orderBy('name')->get();
@@ -727,6 +727,6 @@ class PettyCashController extends Controller
         if (!empty($filters['date_to']))   $query->whereDate('date', '<=', $filters['date_to']);
 
         return $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
-            ->orderBy('date', 'desc');
+            ->orderBy('created_at', 'desc');  // ← cambiar 'date' por 'created_at'
     }
 }

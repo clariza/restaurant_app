@@ -433,12 +433,40 @@
                         <span class="info-label">Ventas:</span>
                         <span class="info-value">{{ $pettyCash->sales()->count() }} registradas</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Gastos:</span>
-                        <span class="info-value">{{ $pettyCash->expenses()->count() }} registrados</span>
+                    {{-- ── NUEVO: Notas de cierre ── --}}
+                    @if(!empty($pettyCash->notes))
+                    <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                        <span class="info-label">Notas de cierre:</span>
+                        <span class="info-value" style="color: #555; font-style: italic; white-space: pre-line;">
+                            {{ $pettyCash->notes }}
+                        </span>
                     </div>
+                    @endif
+                    
                 </div>
+                        {{-- ── Notas de cierre (ancho completo) ── --}}
+        @if(!empty($pettyCash->notes))
+        <div class="section-title" style="margin-top: 10px;">NOTAS DE CIERRE</div>
+        <div style="
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 8px 12px;
+            border-radius: 0 4px 4px 0;
+            font-size: 10px;
+            color: #444;
+            margin-bottom: 12px;
+            white-space: pre-line;
+            line-height: 1.5;
+        ">
+            <span style="font-weight: bold; color: #92400e;">
+                <i>📝</i> Observaciones:
+            </span><br>
+            {{ $pettyCash->notes }}
+        </div>
+        @endif
 
+        {{-- Firmas compactas --}}
+        <div class="signature-compact">
                 {{-- Resumen compacto --}}
                 <div class="summary-compact">
                     <table>
