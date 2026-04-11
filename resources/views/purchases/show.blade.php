@@ -83,6 +83,10 @@
                     <span class="font-semibold">{{ $purchase->purchase_date->format('d/m/Y') }}</span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
+                    <span class="text-[var(--text-light)]">Sucursal:</span>
+                    <span class="font-semibold">{{ $purchase->branch->name ?? 'Sin sucursal' }}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
                     <span class="text-[var(--text-light)]">Estado:</span>
                     @php
                         $statusConfig = [

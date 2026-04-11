@@ -43,7 +43,7 @@
                         <label class="text-sm font-medium text-gray-500">Tipo de Documento</label>
                         <p class="text-gray-900">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {{ $client->document_type }}
+                                {{ $client->document_type === 'NIT' ? 'DNI' : $client->document_type }}
                             </span>
                         </p>
                     </div>

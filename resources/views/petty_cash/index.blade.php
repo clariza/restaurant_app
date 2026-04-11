@@ -1123,6 +1123,7 @@
                 <tr class="bg-gray-100">
                     <th class="p-2 text-left">Fecha</th>
                     <th class="p-2 text-left">Cajero</th>
+                    <th class="p-2 text-left">Sucursal</th>
                     <th class="p-2 text-right">Monto Actual</th>
                     <th class="p-2 text-left">Estado</th>
                     <th class="p-2 text-left">Acciones</th>
@@ -1136,6 +1137,7 @@
                         {{ \Carbon\Carbon::parse($pettyCash->created_at)->format('d/m/Y H:i') }}
                     </td>
                     <td class="p-2 text-left">{{ $pettyCash->user->name ?? 'N/A' }}</td>
+                    <td class="p-2 text-left">{{ $pettyCash->branch->name ?? 'Sin sucursal' }}</td>
                     <td class="p-2 text-right">Bs. {{ number_format($totalSales - $totalExpenses, 2) }}</td>
                     <td class="p-2 text-left">
                         <span class="px-2 py-1 rounded-full text-xs 
@@ -1180,7 +1182,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="p-4 text-center text-gray-500">
+                    <td colspan="7" class="p-4 text-center text-gray-500">
                         No se encontraron registros de caja chica
                     </td>
                 </tr>

@@ -244,7 +244,7 @@
                     <h3>Selecciona el Tipo de Pedido</h3>
                     <div class="order-type-buttons">
                         <button class="order-type-btn selected" data-type="comer-aqui">
-                            <i class="fas fa-utensils"></i>Comer aquí
+                            <i class="fas fa-utensils"></i>Para la Mesa
                         </button>
                         <button class="order-type-btn" data-type="para-llevar">
                             <i class="fas fa-shopping-bag"></i>Retiro por Delivery
@@ -271,7 +271,7 @@
             <div>
                 <p style="margin: 0; font-weight: 600;">Gestión de mesas deshabilitada</p>
                 <small style="display: block; margin-top: 4px; font-size: 0.85rem;">
-                    Los pedidos para comer aquí no requieren asignación de mesa.
+                    Los pedidos para la mesa no requieren asignación de mesa.
                 </small>
             </div>
         </div>
@@ -1487,7 +1487,7 @@ function updateStep3Summary() {
     const orderType = selectedOrderType ? selectedOrderType.dataset.type : '';
     
     let orderTypeText = '';
-    if (orderType === 'comer-aqui') orderTypeText = '🍽️ Comer aquí';
+    if (orderType === 'comer-aqui') orderTypeText = '🍽️ Para la Mesa';
     else if (orderType === 'para-llevar') orderTypeText = '🚚 Para llevar (Delivery)';
     else if (orderType === 'recoger') orderTypeText = '📦 Recoger del local';
     

@@ -52,6 +52,13 @@
                 <h2 class="text-xl font-bold text-[#ffffff]">Lista de Gastos</h2>
                 <p class="text-[#ffffff]">Revisa y gestiona los gastos</p>
             </a>
+
+            <!-- Clientes (mostrar para vendedor) -->
+            <a href="{{ route('clients.index') }}" class="bg-[#5f6fb5] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#4f5ea0] transition-colors">
+                <i class="fas fa-users text-4xl text-[#ffffff] mb-4"></i>
+                <h2 class="text-xl font-bold text-[#ffffff]">Clientes</h2>
+                <p class="text-[#ffffff]">Gestiona y crea clientes</p>
+            </a>
         @endif
     </div>
 

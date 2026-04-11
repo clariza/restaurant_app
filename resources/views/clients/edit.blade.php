@@ -63,7 +63,7 @@
                         <select name="document_type" id="document_type" required
                             class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('document_type') border-red-500 @enderror">
                             <option value="CI" {{ old('document_type', $client->document_type) == 'CI' ? 'selected' : '' }}>CI - Carnet de Identidad</option>
-                            <option value="NIT" {{ old('document_type', $client->document_type) == 'NIT' ? 'selected' : '' }}>NIT</option>
+                            <option value="DNI" {{ in_array(old('document_type', $client->document_type), ['DNI', 'NIT']) ? 'selected' : '' }}>DNI</option>
                             <option value="Pasaporte" {{ old('document_type', $client->document_type) == 'Pasaporte' ? 'selected' : '' }}>Pasaporte</option>
                         </select>
                         @error('document_type')

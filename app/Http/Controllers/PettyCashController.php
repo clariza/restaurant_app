@@ -67,7 +67,7 @@ class PettyCashController extends Controller
                 $totalSales           = $totalSalesQR + $totalSalesCard + $totalSalesCash;
             }
 
-            $query = PettyCash::with('user');
+            $query = PettyCash::with(['user', 'branch']);
             if ($branchId) $query->where('branch_id', $branchId);
 
             if ($request->filled('user_id'))   $query->where('user_id', $request->user_id);
@@ -236,7 +236,7 @@ class PettyCashController extends Controller
         $totalSalesCashFromDB = $openPettyCash ? $openPettyCash->total_sales_cash : 0;
         $totalSales           = $totalSalesQR + $totalSalesCard + $totalSalesCash;
 
-        $query = PettyCash::with('user');
+        $query = PettyCash::with(['user', 'branch']);
         if ($branchId) $query->where('branch_id', $branchId);
 
         if ($request->filled('user_id'))   $query->where('user_id', $request->user_id);
@@ -712,13 +712,14 @@ class PettyCashController extends Controller
             'status'    => $request->input('status'),
             'date_from' => $request->input('date_from'),
             'date_to'   => $request->input('date_to'),
+            'branch_id' => $this->getBranchId(),
         ];
     }
 
     private function getPettyCashesQuery($filters)
     {
         $branchId = $this->getBranchId();
-        $query    = PettyCash::with('user');
+        $query    = PettyCash::with(['user', 'branch']);
 
         if ($branchId) $query->where('branch_id', $branchId);
         if (!empty($filters['user_id']))   $query->where('user_id', $filters['user_id']);

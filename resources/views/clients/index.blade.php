@@ -89,7 +89,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm">
                                     <div class="font-medium text-gray-900">
-                                        {{ $client->document_type }}
+                                        {{ $client->document_type === 'NIT' ? 'DNI' : $client->document_type }}
                                     </div>
                                     @if($client->document_number)
                                         <div class="text-gray-500 font-mono">

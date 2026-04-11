@@ -1564,7 +1564,7 @@ function updateOrderSummary() {
     let orderTypeText = '';
     let orderTypeIcon = '';
     if (orderType === 'comer-aqui') {
-        orderTypeText = 'Comer aquí';
+        orderTypeText = 'Para la Mesa';
         orderTypeIcon = '🍽️';
     } else if (orderType === 'para-llevar') {
         orderTypeText = 'Para llevar (Delivery)';
@@ -2050,7 +2050,7 @@ async function loadStep3OrderSummary() {
 }
 function getOrderTypeLabel(type) {
     const labels = {
-        'comer-aqui': 'Comer aquí',
+        'comer-aqui': 'Para la Mesa',
         'para-llevar': 'Para llevar',
         'recoger': 'Recoger'
     };

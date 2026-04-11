@@ -21,7 +21,7 @@ class ExpenseController extends Controller
                 $q->where('branch_id', $branchId);
             }
         })
-            ->with('pettyCash')
+            ->with('pettyCash.branch')
             ->orderBy('date', 'desc')
             ->get();
 

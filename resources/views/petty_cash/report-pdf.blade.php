@@ -72,6 +72,7 @@
             <tr>
                 <th>Fecha</th>
                 <th>Cajero</th>
+                <th>Sucursal</th>
                 <th class="text-right">Ventas Efectivo</th>
                 <th class="text-right">Ventas QR</th>
                 <th class="text-right">Ventas Tarjeta</th>
@@ -90,6 +91,7 @@
             <tr>
                 <td>{{ $pettyCash->date }}</td>
                 <td>{{ $pettyCash->user->name ?? 'N/A' }}</td>
+                <td>{{ $pettyCash->branch->name ?? 'Sin sucursal' }}</td>
                 <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_cash, 2) }}</td>
                 <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_qr, 2) }}</td>
                 <td class="text-right">Bs. {{ number_format($pettyCash->total_sales_card, 2) }}</td>
