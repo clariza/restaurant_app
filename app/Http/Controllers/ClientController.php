@@ -8,20 +8,37 @@ use Illuminate\Http\Request;
 class ClientController extends Controller
 {
     public function index(Request $request)
-    {
-        $clients = Client::orderBy('created_at', 'desc')->paginate(10);
+{
+    $query = Client::orderBy('created_at', 'desc');
 
-        // Si es una petición AJAX, devolver JSON
-        if ($request->ajax() || $request->query('json')) {
-            return response()->json([
-                'success' => true,
-                'clients' => $clients
-            ]);
-        }
-
-        // Si no, devolver la vista normal
-        return view('clients.index', compact('clients'));
+    // Filtro por mes específico
+    if ($request->filled('birthday_month')) {
+        $query->whereMonth('birthdays', $request->birthday_month);
     }
+
+    // Filtros rápidos
+    if ($request->filled('birthday_filter')) {
+        $today = now();
+        match ($request->birthday_filter) {
+            'today'      => $query->whereMonth('birthdays', $today->month)
+                                  ->whereDay('birthdays', $today->day),
+            'this_week'  => $query->whereRaw('DATE_FORMAT(birthdays, "%m-%d") BETWEEN ? AND ?', [
+                                $today->format('m-d'),
+                                $today->addDays(7)->format('m-d'),
+                            ]),
+            'this_month' => $query->whereMonth('birthdays', $today->month),
+            default      => null,
+        };
+    }
+
+    $clients = $query->paginate(10)->withQueryString();
+
+    if ($request->ajax() || $request->query('json')) {
+        return response()->json(['success' => true, 'clients' => $clients]);
+    }
+
+    return view('clients.index', compact('clients'));
+}
     // public function index()
     // {
     //     $clients = Client::orderBy('created_at', 'desc')->paginate(10);

@@ -44,11 +44,6 @@
 
         
         <div class="flex space-x-2">
-            <a onclick="event.preventDefault(); openExpensesModal();"
-               class="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center"
-               title="Gastos">
-                <i class="fas fa-receipt"></i>
-            </a>
             <a href="<?php echo e(route('orders.index')); ?>"
                class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center justify-center"
                title="Historial">

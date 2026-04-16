@@ -24,7 +24,7 @@
             </button>
             <button onclick="filterOrders('Comer aquí')" class="filter-btn filter-dine-in px-4 py-2 rounded-lg bg-white text-[#203363] font-medium hover:bg-[#203363] hover:text-white transition-colors flex items-center">
                 <span class="w-6 h-6 rounded-full bg-[#FFD166] flex items-center justify-center text-[#203363] text-xs mr-2"><?php echo e($counts['dine_in']); ?></span>
-                Comer Aquí
+                Para la Mesa
             </button>
             <button onclick="filterOrders('Para llevar')" class="filter-btn filter-take-away px-4 py-2 rounded-lg bg-white text-[#203363] font-medium border hover:bg-[#203363] hover:text-white transition-colors flex items-center">
                 <span class="w-6 h-6 rounded-full bg-[#06D6A0] flex items-center justify-center text-white text-xs mr-2"><?php echo e($counts['take_away']); ?></span>
@@ -1241,19 +1241,30 @@ async function addToOrder(item, event) {
         event.stopPropagation();
         event.stopImmediatePropagation();
     }
-
-    // Verificar stock visual antes de llamar al backend
+ 
+    // ─── Verificar stock visual antes de todo ────────────────────────────────
     if (item.manage_inventory) {
         const menuItemEl = document.querySelector(`[data-item-id="${item.id}"]`);
         const currentStock = parseFloat(menuItemEl?.dataset.stock ?? 0);
+ 
         if (currentStock <= 0) {
             Swal.fire('Sin stock', `No hay stock disponible para "${item.name}"`, 'warning');
             return false;
         }
-    }
-
-    // Llamada al backend para reservar stock
-    if (item.manage_inventory) {
+ 
+        // ─── 🔥 ACTUALIZACIÓN OPTIMISTA: reducir badge ANTES del fetch ───────
+        const optimisticStock = currentStock - 1;
+        window.updateStockBadge(
+            item.id,
+            optimisticStock,
+            item.min_stock,
+            item.stock_type,
+            item.stock_unit,
+            item.manage_inventory
+        );
+        if (menuItemEl) menuItemEl.dataset.stock = optimisticStock;
+ 
+        // ─── Llamada al backend para confirmar la reserva ─────────────────────
         try {
             const branchId = <?php echo e($currentBranchId ?? 'null'); ?>;
             const response = await fetch('/cart/add', {
@@ -1269,65 +1280,55 @@ async function addToOrder(item, event) {
                     branch_id: branchId,
                 }),
             });
-
+ 
             const data = await response.json();
-
+ 
             if (!data.success) {
+                // ─── REVERTIR el badge optimista si el servidor rechaza ───────
+                window.updateStockBadge(
+                    item.id,
+                    data.new_stock ?? currentStock,   // stock real del servidor
+                    item.min_stock,
+                    item.stock_type,
+                    item.stock_unit,
+                    item.manage_inventory
+                );
+                if (menuItemEl) menuItemEl.dataset.stock = data.new_stock ?? currentStock;
+ 
                 Swal.fire('Stock insuficiente', data.message, 'warning');
-                // Actualizar badge con el stock real que devuelve el servidor
-                if (data.new_stock !== undefined && data.new_stock !== null) {
-                    window.updateStockBadge(
-                        item.id, data.new_stock, item.min_stock,
-                        item.stock_type, item.stock_unit, item.manage_inventory
-                    );
-                    const el = document.querySelector(`[data-item-id="${item.id}"]`);
-                    if (el) el.dataset.stock = data.new_stock;
-                }
                 return false;
             }
-            const safeStockUnit = item.stock_unit ?? 'UNI';
-            const safeStockType = item.stock_type ?? 'discrete';
-            const safeMinStock  = item.min_stock  ?? 0;
-            // Actualizar badge con stock real de BD
-            window.updateStockBadge(
-        item.id, 
-        data.new_stock, 
-        safeMinStock,
-        safeStockType, 
-        safeStockUnit, 
-        item.manage_inventory
-    );
-            const menuItemEl = document.querySelector(`[data-item-id="${item.id}"]`);
-            if (menuItemEl) menuItemEl.dataset.stock = data.new_stock;
-
+ 
+            // ─── Reconciliar con el valor real del servidor ───────────────────
+            // (por si hay diferencia entre optimista y BD, ej. compras simultáneas)
+            if (data.new_stock !== undefined && data.new_stock !== optimisticStock) {
+                window.updateStockBadge(
+                    item.id,
+                    data.new_stock,
+                    item.min_stock,
+                    item.stock_type,
+                    item.stock_unit,
+                    item.manage_inventory
+                );
+                if (menuItemEl) menuItemEl.dataset.stock = data.new_stock;
+            }
+ 
         } catch (e) {
-            console.error('❌ Error completo:', e);
-            console.error('❌ Error message:', e.message);
-    console.error('❌ Error stack:', e.stack);
-    // Mostrar en pantalla para debug
-    alert('Error detallado: ' + e.message + '\n\nStack: ' + e.stack);
-    return false;
+            // ─── REVERTIR si hay error de red ─────────────────────────────────
+            window.updateStockBadge(
+                item.id,
+                currentStock,
+                item.min_stock,
+                item.stock_type,
+                item.stock_unit,
+                item.manage_inventory
+            );
+            if (menuItemEl) menuItemEl.dataset.stock = currentStock;
+ 
+            console.error('❌ Error en addToOrder:', e);
+            return false;
         }
     }
-
-    // Actualizar carrito en localStorage
-    let order = JSON.parse(localStorage.getItem('order')) || [];
-    const existingIndex = order.findIndex(i => i.id === item.id);
-
-    if (existingIndex !== -1) {
-        order[existingIndex].quantity += 1;
-    } else {
-        order.push({ ...item, quantity: 1 });
-    }
-
-    localStorage.setItem('order', JSON.stringify(order));
-
-    if (typeof window.updateOrderDetails === 'function') {
-        window.updateOrderDetails();
-    }
-
-    return false;
-}
 function goBack() {
         // Aquí puedes implementar la lógica para volver atrás
         // Por ejemplo, recargar la página del menú:
@@ -1711,7 +1712,22 @@ window.updateStockBadge = function(itemId, newStock, minStock, stockType, stockU
 
     console.log(`✅ Stock actualizado para ${itemId}: ${newStock}`);
 };
-
+    // ─── Actualizar carrito en localStorage ──────────────────────────────────
+    let order = JSON.parse(localStorage.getItem('order')) || [];
+    const existingIndex = order.findIndex(i => i.id === item.id);
+    if (existingIndex !== -1) {
+        order[existingIndex].quantity += 1;
+    } else {
+        order.push({ ...item, quantity: 1 });
+    }
+    localStorage.setItem('order', JSON.stringify(order));
+ 
+    if (typeof window.updateOrderDetails === 'function') {
+        window.updateOrderDetails();
+    }
+ 
+    return false;
+}
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Inicializando sistema de menú...');
