@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Sale extends Model
 {
@@ -35,6 +36,7 @@ class Sale extends Model
         'daily_order_number',
         'order_date',
         'transaction_number_ref',
+        'order_sequence', 
     ];
 
 
@@ -115,13 +117,31 @@ class Sale extends Model
         return $this->proforma;
     }
 
-    public static function generateTransactionNumber()
+    protected static function boot()
     {
-        do {
-            $number = 'ORD-' . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
-        } while (self::where('transaction_number', $number)->exists());
+        parent::boot();
 
-        return $number;
+        // Auto-generar transaction_number antes de crear
+        static::creating(function ($sale) {
+            if (empty($sale->transaction_number)) {
+                $sale->transaction_number = static::generateTransactionNumber();
+            }
+        });
+    }
+    /**
+ * Genera un número de transacción incremental global: ORD-000001
+ * Usa lockForUpdate para evitar duplicados en ventas simultáneas.
+ */
+    public static function generateTransactionNumber(): string
+    {
+        // Obtener el último sequence con bloqueo pesimista
+        $last = DB::table('sales')
+            ->lockForUpdate()
+            ->max('order_sequence');
+
+        $next = ($last ?? 0) + 1;
+
+        return 'ORD-' . str_pad($next, 6, '0', STR_PAD_LEFT);
     }
     /**
      * Scope para filtrar por sucursal

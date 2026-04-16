@@ -1,16 +1,3 @@
-{{--
-    order-details.blade.php
-    ──────────────────────────────────────────────────────────────
-    CAMBIO: El botón de "Caja Chica" ya no abre #petty-cash-modal
-    (que estaba en este archivo). Ahora llama a openUnifiedModal()
-    que está definido en petty-cash-index.blade.php y vive en el
-    layout global.
-
-    Si esta vista se usa dentro de un layout que ya incluye
-    petty-cash-index.blade.php (o el modal unificado vía @include),
-    todo funcionará sin cambios adicionales en los JS.
-    ──────────────────────────────────────────────────────────────
---}}
 <div id="order-panel" class="w-full md:w-1/5 bg-white p-4 rounded-lg shadow-lg fixed right-0 top-16 h-[calc(100vh-4rem)] flex flex-col z-40">
 
     <div class="scroll-container flex-1">
