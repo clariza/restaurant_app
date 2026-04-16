@@ -268,3 +268,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::get('/api/items/stock', [InventoryController::class, 'getItemsStock'])
     ->middleware('auth')
     ->name('api.items.stock');
+
+Route::get('/caja-chica/{pettyCash}/ticket-pdf', [PettyCashController::class, 'ticketPdf'])
+    ->name('petty-cash.ticket-pdf');

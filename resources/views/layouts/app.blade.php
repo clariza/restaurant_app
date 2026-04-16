@@ -747,6 +747,13 @@
                         <i class="fas fa-table mr-3"></i>
                         <span>Gastos</span>
                     </a>
+                    @if(auth()->user()->role === 'vendedor')
+                         <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
+           href="{{ route('clients.index') }}">
+            <i class="fas fa-users mr-3"></i>
+            <span>Clientes</span>
+        </a>
+                    @endif
                     @if(auth()->user()->role === 'admin')
                     <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="{{ route('petty-cash.index') }}">
                         <i class="fas fa-cash-register mr-3"></i>

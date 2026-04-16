@@ -33,7 +33,7 @@
     <!-- Filtros y Búsqueda -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)] p-6 mb-6">
         <form method="GET" action="<?php echo e(route('purchases.index')); ?>" id="filterForm">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Búsqueda -->
                 <div>
                     <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
@@ -57,6 +57,22 @@
                             <option value="<?php echo e($supplier->id); ?>" 
                                 <?php echo e(request('supplier_id') == $supplier->id ? 'selected' : ''); ?>>
                                 <?php echo e($supplier->name); ?>
+
+                            </option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+
+                <!-- Filtro por Sucursal -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                        <i class="fas fa-store mr-1"></i>Sucursal
+                    </label>
+                    <select name="branch_id" class="w-full border border-[var(--gray-light)] rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)]">
+                        <option value="">Todas las sucursales</option>
+                        <?php $__currentLoopData = $branches ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch_id') == $branch->id ? 'selected' : ''); ?>>
+                                <?php echo e($branch->name); ?>
 
                             </option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -115,6 +131,7 @@
                     <tr class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] text-white">
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Referencia</th>
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Proveedor</th>
+                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Sucursal</th>
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Fecha</th>
                         <th class="px-4 py-3 text-right font-semibold border-r border-white/20">Monto Total</th>
                         <th class="px-4 py-3 text-center font-semibold border-r border-white/20">Estado</th>
@@ -143,6 +160,13 @@
 
                                         </small>
                                     </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 border-r border-[var(--gray-light)]">
+                                <div class="flex items-center text-[var(--text-color)]">
+                                    <i class="fas fa-store text-[var(--text-light)] mr-2"></i>
+                                    <?php echo e($purchase->branch->name ?? 'Sin sucursal'); ?>
+
                                 </div>
                             </td>
                             <td class="px-4 py-3 border-r border-[var(--gray-light)]">
@@ -208,7 +232,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center">
+                            <td colspan="7" class="px-4 py-12 text-center">
                                 <div class="text-[var(--text-light)]">
                                     <i class="fas fa-inbox text-5xl mb-4 opacity-50"></i>
                                     <p class="text-lg">No se encontraron compras registradas</p>

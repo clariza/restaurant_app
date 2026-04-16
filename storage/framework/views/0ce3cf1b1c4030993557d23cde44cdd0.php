@@ -89,7 +89,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm">
                                     <div class="font-medium text-gray-900">
-                                        <?php echo e($client->document_type); ?>
+                                        <?php echo e($client->document_type === 'NIT' ? 'DNI' : $client->document_type); ?>
 
                                     </div>
                                     <?php if($client->document_number): ?>

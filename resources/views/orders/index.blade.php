@@ -44,7 +44,7 @@
                     <select name="type"
                             class="border rounded-lg w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#203363]">
                         <option value="all"        {{ request('type') == 'all'        ? 'selected' : '' }}>Todos</option>
-                        <option value="Comer aquí" {{ request('type') == 'Comer aquí' ? 'selected' : '' }}>Comer aquí</option>
+                        <option value="Comer aquí" {{ request('type') == 'Comer aquí' ? 'selected' : '' }}>Para la Mesa</option>
                         <option value="Para llevar"{{ request('type') == 'Para llevar'? 'selected' : '' }}>Para llevar</option>
                         <option value="Recoger"    {{ request('type') == 'Recoger'    ? 'selected' : '' }}>Recoger</option>
                         <option value="proforma"   {{ request('type') == 'proforma'   ? 'selected' : '' }}>Proformas Pendientes</option>
@@ -136,7 +136,8 @@
         </div>
 
         {{-- Filas --}}
-        @forelse($orders->merge($proformas)->sortBy('created_at') as $record)
+        @forelse($orders->merge($proformas)->sortByDesc('created_at') as $record)
+
             @php
                 $isProforma = $record instanceof \App\Models\Proforma;
 
@@ -146,6 +147,7 @@
                         || (isset($record->is_converted) && $record->is_converted == 1)
                         || (!empty($record->converted_order_id));
                     if ($isConverted) { continue; }
+                    if ($record->status === 'cancelled') { continue; }
                 }
 
                 $badgeColor = $isProforma ? 'bg-[#EF476F]' : 'bg-[#203363]';
@@ -185,7 +187,7 @@
                 {{-- Tipo --}}
                 <div class="col-span-3 md:col-span-2">
                     <span class="px-2 py-1 rounded-full text-xs {{ $typeColor }}">
-                        {{ $isProforma ? 'Proforma' : $record->order_type }}
+                        {{ $isProforma ? 'Proforma' : ($record->order_type === 'Comer aquí' ? 'Para la Mesa' : $record->order_type) }}
                         @if(!$isProforma && ($record->order_type ?? '') === 'Comer aquí' && $record->table_number)
                             (Mesa {{ $record->table_number }})
                         @endif
@@ -199,7 +201,7 @@
 
                 {{-- Total --}}
                 <div class="col-span-3 md:col-span-{{ ($isAdmin ?? false) ? '1' : '2' }} font-bold">
-                    ${{ number_format($record->total, 2) }}
+                    Bs {{ number_format($record->total, 2) }}
                 </div>
 
                 {{-- Sucursal --}}
@@ -388,11 +390,20 @@
             .then(r => r.ok ? r.json() : r.json().then(e => { throw e; }))
             .catch(error => Swal.showValidationMessage(`Error: ${error.message || 'Error al eliminar'}`))
         }).then(result => {
-            if (result.isConfirmed && result.value?.success) {
-                Swal.fire('¡Eliminada!', result.value.message, 'success')
-                    .then(() => window.location.reload());
-            } else if (result.isConfirmed) {
-                Swal.fire('Error', result.value?.message || 'Error desconocido', 'error');
+           if (result.isConfirmed && result.value?.success) {
+                const data = result.value.data;
+                const proformasMsg = data.cancelled_proformas > 0
+                ? `<p class="mt-2 text-sm text-yellow-700">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Se cancelaron <strong>${data.cancelled_proformas}</strong> proforma(s) pendiente(s)
+                    y se restauró su stock automáticamente.
+                 </p>`: '';
+
+                Swal.fire({
+                title: '¡Caja Cerrada!',
+                html: `${result.value.message}${proformasMsg}`,
+                icon: 'success',
+                }).then(() => window.location.reload());
             }
         });
     }

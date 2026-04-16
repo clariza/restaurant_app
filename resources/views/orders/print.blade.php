@@ -394,12 +394,12 @@
                 <label>Tipo de Orden</label>
                 <div class="value">
                     <span class="badge 
-                        @if($order->order_type == 'Comer aquí') badge-comer
-                        @elseif($order->order_type == 'Para llevar') badge-llevar
-                        @else badge-recoger
-                        @endif">
-                        {{ $order->order_type }}
-                    </span>
+    @if($order->order_type == 'Comer aquí') badge-comer
+    @elseif($order->order_type == 'Para llevar') badge-llevar
+    @else badge-recoger
+    @endif">
+    {{ $order->order_type === 'Comer aquí' ? 'Para la Mesa' : $order->order_type }}
+</span>
                 </div>
             </div>
             
