@@ -139,7 +139,8 @@
         </div>
 
         
-        <?php $__empty_1 = true; $__currentLoopData = $orders->merge($proformas)->sortBy('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <?php $__empty_1 = true; $__currentLoopData = $orders->merge($proformas)->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+
             <?php
                 $isProforma = $record instanceof \App\Models\Proforma;
 
@@ -149,6 +150,7 @@
                         || (isset($record->is_converted) && $record->is_converted == 1)
                         || (!empty($record->converted_order_id));
                     if ($isConverted) { continue; }
+                    if ($record->status === 'cancelled') { continue; }
                 }
 
                 $badgeColor = $isProforma ? 'bg-[#EF476F]' : 'bg-[#203363]';
@@ -207,7 +209,7 @@
 
                 
                 <div class="col-span-3 md:col-span-<?php echo e(($isAdmin ?? false) ? '1' : '2'); ?> font-bold">
-                    $<?php echo e(number_format($record->total, 2)); ?>
+                    Bs <?php echo e(number_format($record->total, 2)); ?>
 
                 </div>
 
@@ -400,11 +402,20 @@
             .then(r => r.ok ? r.json() : r.json().then(e => { throw e; }))
             .catch(error => Swal.showValidationMessage(`Error: ${error.message || 'Error al eliminar'}`))
         }).then(result => {
-            if (result.isConfirmed && result.value?.success) {
-                Swal.fire('¡Eliminada!', result.value.message, 'success')
-                    .then(() => window.location.reload());
-            } else if (result.isConfirmed) {
-                Swal.fire('Error', result.value?.message || 'Error desconocido', 'error');
+           if (result.isConfirmed && result.value?.success) {
+                const data = result.value.data;
+                const proformasMsg = data.cancelled_proformas > 0
+                ? `<p class="mt-2 text-sm text-yellow-700">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Se cancelaron <strong>${data.cancelled_proformas}</strong> proforma(s) pendiente(s)
+                    y se restauró su stock automáticamente.
+                 </p>`: '';
+
+                Swal.fire({
+                title: '¡Caja Cerrada!',
+                html: `${result.value.message}${proformasMsg}`,
+                icon: 'success',
+                }).then(() => window.location.reload());
             }
         });
     }
@@ -460,7 +471,7 @@
                             <p><strong>ID:</strong> PROF-${proforma.id}</p>
                             <p><strong>Cliente:</strong> ${proforma.customer_name}</p>
                             <p><strong>Items:</strong> ${proforma.items.length}</p>
-                            <p><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                            <p><strong>Total:</strong> Bs ${parseFloat(proforma.total).toFixed(2)}</p>
                         </div>
                         <p class="text-sm text-gray-600">Podrás revisar el pedido y proceder con el pago.</p>
                     </div>`,
@@ -501,7 +512,7 @@
                         <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800">
                             <p><strong>Cliente:</strong> ${proforma.customer_name}</p>
                             <p><strong>Items:</strong> ${orderItems.length}</p>
-                            <p><strong>Total:</strong> $${parseFloat(proforma.total).toFixed(2)}</p>
+                            <p><strong>Total:</strong> Bs ${parseFloat(proforma.total).toFixed(2)}</p>
                         </div>
                     </div>`,
                 icon: 'success',

@@ -76,7 +76,7 @@
                         <option value="">Seleccione</option>
                         <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($branch->id); ?>" 
-                                    <?php echo e($branch->is_main ? 'selected' : ''); ?>
+                                    <?php echo e((isset($activeBranchId) && (int) $activeBranchId === (int) $branch->id) || (!isset($activeBranchId) && $branch->is_main) ? 'selected' : ''); ?>
 
                                     data-city="<?php echo e($branch->city); ?>" 
                                     data-address="<?php echo e($branch->address); ?>">
@@ -92,7 +92,7 @@
                     <?php endif; ?>
                 </div>
                 <p class="mt-4 text-xs font-semibold text-[var(--text-light)]">
-                    Ciudad: <span id="branch-city" class="font-normal text-[var(--text-color)]"><?php echo e($branches->where('is_main', true)->first()->city ?? '-'); ?></span>
+                    Ciudad: <span id="branch-city" class="font-normal text-[var(--text-color)]"><?php echo e(optional($branches->firstWhere('id', $activeBranchId ?? null) ?? $branches->where('is_main', true)->first())->city ?? '-'); ?></span>
                 </p>
             </div>
 
@@ -374,6 +374,9 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
             <td class="px-3 py-3 text-center">
                 <div class="flex items-center justify-center gap-2">
+                    <button type="button" class="text-[var(--primary-color)] hover:text-white hover:bg-[var(--primary-color)] p-2 rounded transition-all duration-150 add-row-below" title="Agregar producto debajo">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
                   
                     <button type="button" class="text-[var(--red)] hover:text-white hover:bg-[var(--red)] p-2 rounded transition-all duration-150 remove-product" title="Eliminar producto">
                         <i class="fas fa-trash-alt"></i>
@@ -413,6 +416,41 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTotals();
     }
 
+    function addEmptyProductRowAfter(referenceRow) {
+        addEmptyProductRow();
+
+        const rows = Array.from(productsTableBody.querySelectorAll('tr:not(#empty-table-message)'));
+        const newRow = rows[rows.length - 1];
+
+        if (referenceRow && newRow && referenceRow !== newRow) {
+            referenceRow.insertAdjacentElement('afterend', newRow);
+            newRow.querySelector('.product-name-input')?.focus();
+        }
+    }
+
+    function extractErrorMessage(payload, fallbackMessage) {
+        if (!payload) {
+            return fallbackMessage;
+        }
+
+        if (typeof payload === 'string') {
+            return payload;
+        }
+
+        if (payload.message) {
+            return payload.message;
+        }
+
+        if (payload.errors) {
+            const validationErrors = Object.values(payload.errors).flat();
+            if (validationErrors.length > 0) {
+                return validationErrors.join('\n');
+            }
+        }
+
+        return fallbackMessage;
+    }
+
     // Configurar búsqueda inline de productos
     function setupInlineProductSearch(row) {
         const searchInput = row.querySelector('.product-name-input');
@@ -430,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             clearTimeout(searchTimeout);
             
-            if (searchTerm.length > 2) {
+            if (searchTerm.length > 0) {
                 dropdown.innerHTML = '<div class="p-3 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Buscando...</div>';
                 dropdown.classList.remove('hidden');
                 
@@ -443,7 +481,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         }
                     })
-                    .then(response => response.json())
+                    .then(async response => {
+                        const payload = await response.json().catch(() => null);
+                        if (!response.ok) {
+                            throw new Error(extractErrorMessage(payload, 'Error al buscar productos'));
+                        }
+
+                        return payload;
+                    })
                     .then(products => {
                         if (products && products.length > 0) {
                             let html = '';
@@ -576,16 +621,36 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => {
+        .then(async response => {
+            const payload = await response.json().catch(() => null);
+
             if (!response.ok) {
-                throw new Error('Error en la respuesta del servidor');
+                throw new Error(extractErrorMessage(payload, 'Error en la respuesta del servidor'));
             }
-            return response.json();
+
+            return payload;
         })
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                window.location.href = data.redirect_url || "<?php echo e(route('purchases.index')); ?>";
+                const redirectUrl = data.redirect_url || "<?php echo e(route('purchases.index')); ?>";
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Compra registrada exitosamente',
+                        text: data.message || 'La compra se guardo correctamente.',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#203363',
+                        allowOutsideClick: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = redirectUrl;
+                    });
+                } else {
+                    alert('Compra registrada exitosamente');
+                    window.location.href = redirectUrl;
+                }
             } else {
                 throw new Error(data.message || 'Error al guardar la compra');
             }
@@ -880,11 +945,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchTerm = e.target.value.trim();
         const searchResults = document.getElementById('search-results');
         
-        if (searchTerm.length > 2) {
+        if (searchTerm.length > 0) {
             fetch(`<?php echo e(route('purchases.searchProducts')); ?>?search=${encodeURIComponent(searchTerm)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                    return response.json();
+                .then(async response => {
+                    const payload = await response.json().catch(() => null);
+
+                    if (!response.ok) {
+                        throw new Error(extractErrorMessage(payload, 'Error en la respuesta del servidor'));
+                    }
+
+                    return payload;
                 })
                 .then(products => {
                     if (products && products.length > 0) {

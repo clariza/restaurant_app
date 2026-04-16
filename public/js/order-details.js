@@ -1416,11 +1416,14 @@ function generateTicketContent(dailyOrderNumber) {
         <div class="divider"></div>
         
         ${orderType ? `
-            <div class="item-row">
-                <span>Tipo:</span>
-                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
-            </div>
-        ` : ''}
+<div class="item-row">
+  <span>Tipo:</span>
+  <span>${orderType === 'Comer aquí'
+                ? `Para la Mesa${tableDisplayText ? ' ' + tableDisplayText : ''}`
+                : `${orderType}${deliveryService ? ' - ' + deliveryService : ''}`
+            }</span>
+</div>
+` : ''}
         
         ${customerName ? `
             <div class="item-row">
@@ -1651,11 +1654,14 @@ async function generateTicketContentAsync(dailyOrderNumber) {
         <div class="divider"></div>
         
         ${orderType ? `
-            <div class="item-row">
-                <span>Tipo:</span>
-                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
-            </div>
-        ` : ''}
+    <div class="item-row">
+        <span>Tipo:</span>
+        <span>${orderType === 'Comer aquí'
+                ? `Para la Mesa${tableDisplayText ? ' ' + tableDisplayText : ''}`
+                : `${orderType}${deliveryService ? ' - ' + deliveryService : ''}`
+            }</span>
+    </div>
+` : ''}
         
         ${customerName ? `
             <div class="item-row">
@@ -1854,6 +1860,28 @@ function updateNotesCounter() {
     if (textarea && counter) {
         counter.textContent = textarea.value.length;
         counter.style.color = textarea.value.length > 200 ? '#e53e3e' : '#718096';
+    }
+}
+async function clearProformaIfNoPettyCash() {
+    const isConverting = localStorage.getItem('convertingProforma') === 'true';
+    if (!isConverting) return;
+
+    try {
+        const response = await fetch('/petty-cash/check-status', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.csrfToken }
+        });
+        const data = await response.json();
+
+        if (!data.open) {
+            console.warn('⚠️ Caja cerrada — limpiando conversión de proforma en curso');
+            clearProformaConversionFlags();
+            localStorage.removeItem('order');
+            if (typeof window.updateOrderDetails === 'function') {
+                window.updateOrderDetails();
+            }
+        }
+    } catch (e) {
+        console.error('Error verificando caja al cargar:', e);
     }
 }
 // Función para insertar ejemplos
@@ -3660,7 +3688,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (document.getElementById('order-panel')) {
         // 🔥 PRIMERO: Sincronizar estado de mesas
         await syncInitialTablesState();
-
+        await clearProformaIfNoPettyCash();
         // LUEGO: Inicializar todo lo demás
         initializeOrderSystem();
         setupEventListeners();

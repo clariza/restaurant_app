@@ -1123,6 +1123,7 @@
                 <tr class="bg-gray-100">
                     <th class="p-2 text-left">Fecha</th>
                     <th class="p-2 text-left">Cajero</th>
+                    <th class="p-2 text-left">Sucursal</th>
                     <th class="p-2 text-right">Monto Actual</th>
                     <th class="p-2 text-left">Estado</th>
                     <th class="p-2 text-left">Acciones</th>
@@ -1137,6 +1138,7 @@
 
                     </td>
                     <td class="p-2 text-left"><?php echo e($pettyCash->user->name ?? 'N/A'); ?></td>
+                    <td class="p-2 text-left"><?php echo e($pettyCash->branch->name ?? 'Sin sucursal'); ?></td>
                     <td class="p-2 text-right">Bs. <?php echo e(number_format($totalSales - $totalExpenses, 2)); ?></td>
                     <td class="p-2 text-left">
                         <span class="px-2 py-1 rounded-full text-xs 
@@ -1172,17 +1174,17 @@
                     </td>
                     <td class="p-2 text-left">
                         <?php if($pettyCash->status === 'closed'): ?>
-                        <a href="<?php echo e(route('petty-cash.print', $pettyCash)); ?>"
+                        <a href="<?php echo e(route('petty-cash.ticket-pdf', $pettyCash)); ?>"
                             target="_blank"
                             class="btn-action btn-print">
-                            <i class="fas fa-print"></i> PDF
+                            <i class="fas fa-file-pdf"></i> PDF
                         </a>
                         <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
-                    <td colspan="6" class="p-4 text-center text-gray-500">
+                    <td colspan="7" class="p-4 text-center text-gray-500">
                         No se encontraron registros de caja chica
                     </td>
                 </tr>

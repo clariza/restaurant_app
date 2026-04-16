@@ -12,9 +12,41 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PettyCashExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Proforma;
+use App\Models\InventoryMovement;
+use Illuminate\Support\Facades\Auth;
+
 
 class PettyCashController extends Controller
 {
+    public function ticketPdf(PettyCash $pettyCash)
+    {
+        $user          = $pettyCash->user;
+        $date          = \Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y');
+        $totalExpenses = $pettyCash->expenses->sum('amount');
+
+        $widthPt  = 80  * 2.8346;  // 226.77 pt
+        $heightPt = 500 * 2.8346;  // alto generoso, dompdf corta al contenido
+
+        $pdf = Pdf::loadView('petty_cash.ticket-pdf', compact(
+            'pettyCash',
+            'user',
+            'date',
+            'totalExpenses'
+        ))
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,    // margen izquierdo en mm
+                'margin_right'    => 6,    // margen derecho en mm
+            ]);
+
+        return $pdf->stream("ticket-caja-{$pettyCash->id}.pdf");
+    }
     private function getBranchId()
     {
         return session('branch_id');
@@ -320,7 +352,8 @@ class PettyCashController extends Controller
             'initial_amount' => 0,
             'current_amount' => 0,
             'date'           => now()->toDateString(),
-            'notes'          => $request->notes,
+            'date'           => now()->toDateString(),
+            'opening_notes'  => $request->notes,
             'status'         => 'open',
             'user_id'        => auth()->id(),
             'branch_id'      => $branchId,
@@ -364,10 +397,6 @@ class PettyCashController extends Controller
     public function saveClosure(Request $request)
     {
         try {
-            // ── 1. Normalizar nombres del frontend al contrato interno ──────────
-            // payment-modal.js envía: total_gastos, ventas_efectivo, ventas_qr,
-            // ventas_tarjeta, gastos_nuevos[].
-            // Si ya llegan con el nombre canónico se respeta; si no, se mapea.
             $raw = array_merge($request->all(), [
                 'total_expenses'   => $request->input('total_expenses',   $request->input('total_gastos',    0)),
                 'total_sales_cash' => $request->input('total_sales_cash', $request->input('ventas_efectivo', 0)),
@@ -375,7 +404,6 @@ class PettyCashController extends Controller
                 'total_sales_card' => $request->input('total_sales_card', $request->input('ventas_tarjeta',  0)),
             ]);
 
-            // gastos_nuevos → expenses (normalizar claves internas)
             if (empty($raw['expenses']) && !empty($raw['gastos_nuevos'])) {
                 $raw['expenses'] = array_map(fn($g) => [
                     'name'        => $g['nombre']      ?? ($g['name']        ?? ''),
@@ -384,7 +412,6 @@ class PettyCashController extends Controller
                 ], (array) $raw['gastos_nuevos']);
             }
 
-            // ── 2. Validar con los nombres canónicos ─────────────────────────
             $validated = Validator::make($raw, [
                 'petty_cash_id'          => 'required|integer',
                 'total_expenses'         => 'required|numeric|min:0',
@@ -398,7 +425,6 @@ class PettyCashController extends Controller
                 'expenses.*.amount'      => 'required_with:expenses|numeric|min:0.01',
             ])->validate();
 
-            // ── 3. Lógica de negocio (sin cambios) ──────────────────────────
             DB::beginTransaction();
 
             $pettyCash = PettyCash::find($validated['petty_cash_id']);
@@ -415,7 +441,6 @@ class PettyCashController extends Controller
             $newExpensesCount = 0;
             if (!empty($validated['expenses'])) {
                 foreach ($validated['expenses'] as $expense) {
-                    // Ignorar filas completamente vacías
                     if (empty(trim($expense['name'] ?? '')) || ($expense['amount'] ?? 0) <= 0) {
                         continue;
                     }
@@ -432,7 +457,6 @@ class PettyCashController extends Controller
                 }
             }
 
-            // Recalcular sobre la BD (no confiar en el valor que envió el cliente)
             $totalExpenses = Expense::where('petty_cash_id', $pettyCash->id)->sum('amount');
             $totalGeneral  = $validated['total_sales_cash']
                 + ($validated['total_sales_qr']  ?? 0)
@@ -453,17 +477,35 @@ class PettyCashController extends Controller
                 'notes'            => $validated['closure_notes'] ?? null,
             ]);
 
+            // ✅ Cancelar proformas pendientes de la sucursal y restaurar su stock
+            $cancelledProformas = \App\Models\Proforma::where('branch_id', $pettyCash->branch_id)
+                ->where('status', '!=', 'cancelled')
+                ->where('converted_to_order', false)
+                ->with('items.menuItem')
+                ->get();
+
+            foreach ($cancelledProformas as $proforma) {
+                foreach ($proforma->items as $proformaItem) {
+                    $menuItem = $proformaItem->menuItem;
+                    if ($menuItem && $menuItem->manage_inventory) {
+                        $menuItem->increment('stock', $proformaItem->quantity);
+                    }
+                }
+                $proforma->update(['status' => 'cancelled']);
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Cierre de caja guardado exitosamente',
                 'data'    => [
-                    'petty_cash_id'      => $pettyCash->id,
-                    'total_expenses'     => $totalExpenses,
-                    'total_general'      => $totalGeneral,
-                    'current_amount'     => $currentAmount,
-                    'new_expenses_count' => $newExpensesCount,
+                    'petty_cash_id'       => $pettyCash->id,
+                    'total_expenses'      => $totalExpenses,
+                    'total_general'       => $totalGeneral,
+                    'current_amount'      => $currentAmount,
+                    'new_expenses_count'  => $newExpensesCount,
+                    'cancelled_proformas' => $cancelledProformas->count(),
                 ],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {

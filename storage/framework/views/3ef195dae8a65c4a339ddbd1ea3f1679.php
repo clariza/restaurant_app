@@ -31,6 +31,7 @@
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Descripción</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Monto</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Sucursal</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Fecha</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -41,6 +42,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]"><?php echo e($expense->expense_name); ?></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]"><?php echo e($expense->description); ?></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">Bs. <?php echo e(number_format($expense->amount, 2)); ?></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]"><?php echo e($expense->pettyCash?->branch?->name ?? 'Sin sucursal'); ?></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-light)]"><?php echo e(\Carbon\Carbon::parse($expense->date)->format('d/m/Y')); ?></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="<?php echo e(route('expenses.edit', $expense->id)); ?>" 

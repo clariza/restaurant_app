@@ -1172,10 +1172,10 @@
                     </td>
                     <td class="p-2 text-left">
                         @if ($pettyCash->status === 'closed')
-                        <a href="{{ route('petty-cash.print', $pettyCash) }}"
+                        <a href="{{ route('petty-cash.ticket-pdf', $pettyCash) }}"
                             target="_blank"
                             class="btn-action btn-print">
-                            <i class="fas fa-print"></i> PDF
+                            <i class="fas fa-file-pdf"></i> PDF
                         </a>
                         @endif
                     </td>
