@@ -123,7 +123,7 @@
 
         {{-- Header --}}
         <div class="grid grid-cols-12 bg-[#203363] text-white p-4 font-bold text-sm">
-            <div class="col-span-2  md:col-span-1">ID</div>
+            <div class="col-span-2  md:col-span-[1.5]">ID</div>
             <div class="col-span-4  md:col-span-2">Fecha/Hora</div>
             <div class="hidden md:block md:col-span-2">Cliente</div>
             <div class="col-span-3  md:col-span-2">Tipo</div>

@@ -592,29 +592,6 @@
             </div>
         </div>
      
-        <!-- Botones de Acciones Rápidas - Minimalistas con Color -->
-        <div class="hidden md:flex items-center gap-2 ml-4 mr-20 pr-5">
-            <!-- Botón Historial - Azul -->
-            <a 
-                href="{{ route('orders.index') }}" 
-                class="action-btn-minimal action-btn-history
-                       w-10 h-10 rounded-full flex items-center justify-center 
-                       transition-all duration-200 hover:shadow-lg group"
-                title="Historial de Órdenes"
-            >
-                <i class="fas fa-history text-base transition-transform duration-200 group-hover:scale-110"></i>
-            </a>
-            
-            <!-- Botón Caja Chica - Rosa/Rojo -->
-           <button 
-                onclick="openPettyCashModal()" 
-                class="action-btn-minimal action-btn-cash
-                        w-10 h-10 rounded-full flex items-center justify-center 
-                        transition-all duration-200 hover:shadow-lg group"
-                title="Gestión de Caja Chica">
-    <i class="fas fa-cash-register text-base transition-transform duration-200 group-hover:scale-110"></i>
-</button>
-        </div>
     </div>
     @else
     <!-- Espacio vacío cuando no hay búsqueda -->

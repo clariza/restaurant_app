@@ -18,54 +18,45 @@
         gap: 4px;
         transition: all 0.2s ease;
     }
-
     .btn-view {
         background-color: #3b82f6;
         color: white;
         border: 1px solid #2563eb;
     }
-
     .btn-edit {
         background-color: #10b981;
         color: white;
         border: 1px solid #059669;
     }
-
     .btn-delete {
         background-color: #ef4444;
         color: white;
         border: 1px solid #dc2626;
     }
-
     .btn-close {
         background-color: #8b5cf6;
         color: white;
         border: 1px solid #7c3aed;
     }
-
     .btn-print {
         background-color: #6b7280;
         color: white;
         border: 1px solid #4b5563;
     }
-
     .btn-excel {
         background-color: #10b981;
         color: white;
         border: 1px solid #059669;
     }
-
     .btn-pdf {
         background-color: #ef4444;
         color: white;
         border: 1px solid #dc2626;
     }
-
     .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
     .reports-section {
         background: #ffffff;
         border: 1px solid #e5e7eb;
@@ -77,11 +68,9 @@
         overflow: hidden;
         transition: box-shadow 0.3s ease;
     }
-
     .reports-section:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
     .reports-section::before {
         content: '';
         position: absolute;
@@ -93,7 +82,6 @@
         border-radius: 50%;
         transform: translate(30px, -30px);
     }
-
     .reports-header {
         display: flex;
         align-items: center;
@@ -102,7 +90,6 @@
         position: relative;
         z-index: 2;
     }
-
     .reports-header i {
         font-size: 1.5rem;
         color: #6b7280;
@@ -111,12 +98,10 @@
         border-radius: 8px;
         transition: all 0.3s ease;
     }
-
     .reports-section:hover .reports-header i {
         background: #e5e7eb;
         color: #374151;
     }
-
     .reports-header h3 {
         font-size: 1.125rem;
         font-weight: 600;
@@ -124,8 +109,6 @@
         margin: 0;
         letter-spacing: -0.01em;
     }
-
-
     .reports-description {
         color: #6b7280;
         font-size: 0.875rem;
@@ -135,9 +118,6 @@
         z-index: 2;
         padding-left: 3rem;
     }
-
-
-
     .btn-report {
         padding: 0.625rem 1.25rem;
         border-radius: 0.5rem;
@@ -153,7 +133,6 @@
         position: relative;
         overflow: hidden;
     }
-
     .btn-report::before {
         content: '';
         position: absolute;
@@ -164,17 +143,14 @@
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transition: left 0.5s ease;
     }
-
     .btn-report:hover::before {
         left: 100%;
     }
-
     .btn-report-excel {
         background: #10b981;
         color: white;
         border-color: #10b981;
     }
-
     .btn-report-excel:hover {
         background: #059669;
         border-color: #059669;
@@ -182,19 +158,15 @@
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         color: white;
     }
-
     .btn-report-excel:hover,
     .btn-report-pdf:hover {
         border-color: rgba(255, 255, 255, 0.3);
     }
-
-
     .btn-report-pdf {
         background: #ef4444;
         color: white;
         border-color: #ef4444;
     }
-
     .btn-report-pdf:hover {
         background: #dc2626;
         border-color: #dc2626;
@@ -202,45 +174,37 @@
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
         color: white;
     }
-
     .btn-report i {
         font-size: 1rem;
         transition: transform 0.3s ease;
         position: relative;
         z-index: 1;
     }
-
     .btn-report:hover i {
         transform: scale(1.1);
     }
-
     .btn-report-alt {
         background: #f9fafb;
         color: #374151;
         border-color: #e5e7eb;
     }
-
     .btn-report:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-
     .btn-report:active {
         transform: translateY(0);
     }
-
     .btn-report-alt:hover {
         background: #f3f4f6;
         border-color: #d1d5db;
         color: #111827;
     }
-
     .input-group {
         display: flex;
         flex-direction: column;
         gap: 0.375rem;
     }
-
     .input-group label {
         font-size: 0.875rem;
         font-weight: 500;
@@ -251,17 +215,16 @@
         gap: 0.25rem;
     }
     .label-hint {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 400;
-}
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-weight: 400;
+    }
     .input-group input {
         padding: 0.75rem;
         border: 1px solid #cbd5e1;
         border-radius: 0.25rem;
         font-size: 0.875rem;
     }
-
     /* Estilos mejorados para el modal */
     .modal-overlay {
         position: fixed;
@@ -279,12 +242,10 @@
         visibility: hidden;
         transition: all 0.3s ease;
     }
-
     .modal-overlay.active {
         opacity: 1;
         visibility: visible;
     }
-
     .modal-container {
         background-color: white;
         border-radius: 0.75rem;
@@ -298,11 +259,9 @@
         transform: translateY(20px);
         transition: transform 0.3s ease;
     }
-
     .modal-overlay.active .modal-container {
         transform: translateY(0);
     }
-
     .modal-header {
         padding: 1.5rem;
         border-bottom: 1px solid #e5e7eb;
@@ -312,13 +271,11 @@
         background-color: #203363;
         flex-shrink: 0;
     }
-
     .modal-title {
         font-size: 1.5rem;
         font-weight: 600;
         color: white;
     }
-
     .modal-close {
         background: none;
         border: none;
@@ -329,11 +286,9 @@
         padding: 0.5rem;
         margin-left: 1rem;
     }
-
     .modal-close:hover {
         color: #d1d5db;
     }
-
     .modal-content {
         display: flex;
         flex-direction: column;
@@ -343,25 +298,20 @@
         overflow-y: auto;
         padding: 1.5rem;
     }
-
-
     .section-container {
-    padding: 1.25rem;
-    background: linear-gradient(to bottom, #f8fafc, #ffffff);
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-
+        padding: 1.25rem;
+        background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
     .denominations-section {
         display: flex;
         flex-direction: column;
     }
-
     .denomination-input {
         width: 100%;
         padding: 0.5rem;
@@ -369,17 +319,14 @@
         border-radius: 0.25rem;
         text-align: center;
     }
-
     .total-row {
         background-color: #f1f5f9;
         font-weight: 500;
     }
-
     .table-container {
         overflow-x: auto;
         flex: 1;
     }
-
     .denominations-table {
         width: 100%;
         border-collapse: collapse;
@@ -391,89 +338,101 @@
         font-weight: 500;
         color: #334155;
     }
-
     .denominations-table td {
         padding: 0.75rem;
         border-bottom: 1px solid #e2e8f0;
     }
-
     .denominations-table tr:last-child td {
         border-bottom: none;
     }
-
     .closure-form-section {
         display: flex;
         flex-direction: column;
     }
-
     .form-grid {
         display: grid;
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-
     .modal-grid {
         display: grid;
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-
     /* Estilos mejorados para la sección de gastos */
     .expenses-section {
         margin-bottom: 1.5rem;
     }
-
     .expenses-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 0.5rem;
     }
-
     .expense-actions {
         flex: 0 0 auto;
-        width: 40px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: auto;
     }
-
+    .btn-save-expense-index {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+.btn-save-expense-index:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: scale(1.08);
+}
     .expenses-container {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
     }
-
     .expense-row {
         display: flex;
+        flex-wrap: nowrap;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
+        gap: 6px;
+        margin-bottom: 6px;
         width: 100%;
     }
-
     .expense-field {
-        flex: 1;
+        flex: 1 1 0;
         min-width: 0;
     }
-
+    .expense-field:nth-child(1) { flex: 3 1 0; }
+    .expense-field:nth-child(2) { flex: 2 1 0; }
+    .expense-field:nth-child(3) { flex: 1.2 1 0; min-width: 70px; }
     .expense-input-container {
         flex: 1;
         min-width: 0;
     }
-
     .expense-input {
         width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
+        padding: 5px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 5px;
+        font-size: 0.8rem;
         box-sizing: border-box;
     }
-
     .form-actions {
         margin-top: 1rem;
         display: flex;
         justify-content: flex-end;
     }
-
     .save-btn {
         background-color: #10b981;
         color: white;
@@ -484,17 +443,19 @@
         cursor: pointer;
         transition: background-color 0.2s;
     }
-
     .save-btn:hover {
         background-color: #059669;
     }
-
     .expense-input:focus {
         outline: none;
-        border-color: #93c5fd;
-        box-shadow: 0 0 0 2px #bfdbfe;
+        border-color: #203363;
+        box-shadow: 0 0 0 2px rgba(32,51,99,0.1);
     }
-
+    .expense-input[readonly] {
+        background: #f0fdf4;
+        border-color: #d1fae5;
+        color: #374151;
+    }
     .add-expense-btn {
         background-color: #e2e8f0;
         color: #475569;
@@ -505,60 +466,65 @@
         font-size: 0.875rem;
         transition: background-color 0.2s;
     }
-
     .add-expense-btn:hover {
         background-color: #cbd5e1;
     }
-
     .remove-expense-btn {
-        background-color: #fee2e2;
-        color: #dc2626;
-        border: none;
-        border-radius: 4px;
-        padding: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 36px;
-        width: 36px;
-        transition: background-color 0.2s;
-    }
-
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0;
+    transition: background 0.2s, transform 0.15s;
+}
     .remove-expense-btn:hover {
-        background-color: #fecaca;
-    }
-
+    background: #fca5a5;
+    transform: scale(1.08);
+}
+.expense-saved-badge {
+    font-size: 10px;
+    color: #16a34a;
+    padding: 3px 6px;
+    background: #dcfce7;
+    border-radius: 9999px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
     .denomination-input {
         width: 70px;
         text-align: center;
     }
-
     .expense-row {
         display: flex;
         gap: 0.5rem;
         margin-bottom: 0.5rem;
         align-items: center;
     }
-
     .expense-input,
     .denomination-input {
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
         height: calc(1.5em + 0.5rem + 2px);
     }
-
     .denominations-section .table-container {
         margin-top: 0.5rem;
     }
-
     .denominations-table {
         width: 100%;
         font-size: 0.875rem;
         border-collapse: separate;
         border-spacing: 0;
     }
-
     .denominations-table th {
         background-color: #f8f9fa;
         padding: 0.375rem 0.5rem;
@@ -566,13 +532,11 @@
         text-align: left;
         border-bottom: 1px solid #dee2e6;
     }
-
     .denominations-table td {
         padding: 0.375rem 0.5rem;
         vertical-align: middle;
         border-bottom: 1px solid #dee2e6;
     }
-
     .denomination-input {
         width: 70px;
         padding: 0.25rem 0.5rem;
@@ -582,20 +546,16 @@
         border: 1px solid #ced4da;
         border-radius: 0.2rem;
     }
-
     .denominations-table .text-right {
         text-align: right;
     }
-
     .total-row {
         background-color: #f8f9fa;
         font-weight: 500;
     }
-
     .closure-form-section .input-group {
         margin-bottom: 0.75rem;
     }
-
     .closure-form-section label {
         font-size: 0.875rem;
         color: #6c757d;
@@ -603,186 +563,201 @@
         display: block;
     }
     .form-control {
-    width: 100%;
-    padding: 0.625rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-    background: white;
-}
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+    }
     .form-control:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     .form-control[readonly] {
-    background-color: #f9fafb;
-    color: #6b7280;
-    cursor: not-allowed;
-    border-style: dashed;
-}
-.closure-internal-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
-    background: white;
-    z-index: 10002;
-    display: none;
-    flex-direction: column;
-    border-radius: 0.75rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 60vw;
-    height: 60vh;
-    overflow: hidden;
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.closure-internal-modal.active {
-    display: flex;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-.closure-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 10001;
-    backdrop-filter: blur(2px);
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.closure-overlay.active {
-    display: block !important;
-    opacity: 1;
-}
-.closure-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: linear-gradient(to bottom, #f8fafc, #ffffff);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-.closure-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.closure-title::before {
-    content: '💰';
-    font-size: 1.75rem;
-}
-.closure-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-}
-.closure-close-btn:hover {
-    background: #fee2e2;
-    color: #dc2626;
-    transform: rotate(90deg);
-}
-.closure-scroll-content::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-}
-.closure-scroll-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-}
-.closure-scroll-content::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-.closure-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    align-items: start;
-}
-.closure-scroll-content {
-    padding: 1.5rem;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: calc(85vh - 90px);
-}
-.closure-scroll-content::-webkit-scrollbar {
-    width: 8px;
-}
+        background-color: #f9fafb;
+        color: #6b7280;
+        cursor: not-allowed;
+        border-style: dashed;
+    }
+    .closure-internal-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.95);
+        background: white;
+        z-index: 10002;
+        display: none;
+        flex-direction: column;
+        border-radius: 0.75rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        width: 60vw;
+        height: 60vh;
+        overflow: hidden;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .closure-internal-modal.active {
+        display: flex;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .closure-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10001;
+        backdrop-filter: blur(2px);
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .closure-overlay.active {
+        display: block !important;
+        opacity: 1;
+    }
+    .closure-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .closure-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .closure-title::before {
+        content: '💰';
+        font-size: 1.75rem;
+    }
+    .closure-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+    }
+    .closure-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        transform: rotate(90deg);
+    }
+    .closure-scroll-content::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .closure-scroll-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .closure-scroll-content::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    .closure-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .closure-scroll-content {
+        padding: 1.5rem;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: calc(85vh - 90px);
+    }
+    .closure-scroll-content::-webkit-scrollbar {
+        width: 8px;
+    }
     .closure-form-section .form-control {
         font-size: 0.875rem;
         padding: 0.25rem 0.5rem;
         height: calc(1.5em + 0.5rem + 2px);
     }
-
     .closure-form-section .form-control[readonly] {
         background-color: #f8f9fa;
     }
-
     .form-actions {
         margin-top: 1rem;
         display: flex;
         justify-content: flex-end;
     }
-
     .save-btn {
         padding: 0.25rem 0.75rem;
         font-size: 0.875rem;
     }
-
+    /* Sección de notas de cierre */
+    .closure-notes-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    .closure-notes-section label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.375rem;
+    }
+    .closure-notes-section textarea.form-control {
+        height: auto;
+        resize: none;
+        font-size: 0.875rem;
+    }
+    .closure-notes-section .char-counter {
+        text-align: right;
+        margin-top: 2px;
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
     @media (max-width: 768px) {
         .denomination-input {
             width: 60px;
         }
-
         .denominations-table th,
         .denominations-table td {
             padding: 0.25rem 0.375rem;
         }
-
         .filters-panel {
             padding: 1rem;
         }
-
         .filters-grid {
             grid-template-columns: 1fr;
             gap: 0.875rem;
         }
-
         .filters-actions {
             flex-direction: column;
             width: 100%;
             gap: 0.625rem;
         }
-
         .btn-filter,
         .btn-clear {
             width: 100%;
             justify-content: center;
         }
-
-
         .reports-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -791,67 +766,56 @@
             z-index: 2;
             padding-left: 3rem;
         }
-
+        .closure-grid {
+            grid-template-columns: 1fr;
+        }
     }
-
     @media (max-width: 768px) {
         .reports-section {
             padding: 1.5rem;
         }
-
         .reports-description,
         .reports-buttons {
             padding-left: 0;
         }
-
         .reports-buttons {
             flex-direction: column;
             width: 100%;
         }
-
         .btn-report {
             width: 100%;
             justify-content: center;
         }
-
         .reports-header h3 {
             font-size: 1rem;
         }
-
         .reports-description {
             font-size: 0.8125rem;
             margin-bottom: 1rem;
         }
     }
-
-
     @media (max-width: 480px) {
         .filters-panel {
             padding: 0.75rem;
             margin-bottom: 1rem;
         }
-
         .filters-grid {
             gap: 0.75rem;
         }
-
         .filter-group label {
             font-size: 0.75rem;
         }
-
         .filter-group select,
         .filter-group input {
             padding: 0.4rem 0.625rem;
             font-size: 0.8125rem;
         }
-
         .btn-filter,
         .btn-clear {
             padding: 0.625rem 1rem;
             font-size: 0.8125rem;
         }
     }
-
     .filters-panel {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -861,28 +825,23 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         animation: slideDown 0.3s ease-out;
     }
-
     @keyframes slideDown {
         from {
             opacity: 0;
             transform: translateY(-10px);
         }
-
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-
     .filter-group input:invalid {
         border-color: #f87171;
     }
-
     .btn-filter.loading {
         position: relative;
         pointer-events: none;
     }
-
     .btn-filter.loading::after {
         content: '';
         position: absolute;
@@ -897,45 +856,38 @@
         border-top-color: transparent;
         animation: spin 0.6s linear infinite;
     }
-
     @keyframes spin {
         to {
             transform: rotate(360deg);
         }
     }
-
     .btn-filter:disabled,
     .btn-clear:disabled {
         opacity: 0.5;
         cursor: not-allowed;
         transform: none;
     }
-
     .filters-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         align-items: end;
     }
-
     .filter-group {
         display: flex;
         flex-direction: column;
         gap: 0.375rem;
     }
-
     .filter-group label {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         max-width: 100%;
     }
-
     .filter-group select {
         max-width: 100%;
         overflow: hidden;
     }
-
     .filter-group select,
     .filter-group input {
         width: 100%;
@@ -947,21 +899,18 @@
         transition: border-color 0.2s, box-shadow 0.2s;
         box-sizing: border-box;
     }
-
     .filter-group select:focus,
     .filter-group input:focus {
         outline: none;
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-
     .filters-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
         align-items: center;
     }
-
     .btn-filter,
     .btn-clear {
         padding: 0.5rem 1rem;
@@ -979,63 +928,52 @@
         text-decoration: none;
         box-sizing: border-box;
     }
-
     .btn-filter {
         background-color: #3b82f6;
         color: white;
     }
-
     .btn-filter:hover {
         background-color: #2563eb;
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
     }
-
     .btn-clear {
         background-color: #6b7280;
         color: white;
     }
-
     .btn-clear:hover {
         background-color: #4b5563;
         color: white;
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
     }
-
     @media (max-width: 1200px) {
         .filters-grid {
             grid-template-columns: repeat(3, 1fr);
         }
-
         .filters-actions {
             grid-column: 1 / -1;
             justify-content: flex-start;
         }
     }
-
     @media (max-width: 1024px) {
         .filters-grid {
             grid-template-columns: repeat(2, 1fr);
         }
     }
-
     @media (max-width: 768px) {
         .filters-grid {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
-
         .filters-actions {
             justify-content: stretch;
         }
-
         .btn-filter,
         .btn-clear {
             flex: 1;
             justify-content: center;
         }
-
         .btn-report {
             padding: 0.625rem 1.25rem;
             border-radius: 8px;
@@ -1051,7 +989,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .btn-report::after {
             content: '';
             position: absolute;
@@ -1064,14 +1001,10 @@
             transform: translate(-50%, -50%);
             transition: width 0.4s ease, height 0.4s ease;
         }
-
         .btn-report:hover::after {
             width: 300px;
             height: 300px;
         }
-
-
-
     }
 </style>
 
@@ -1121,7 +1054,6 @@
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="status">Estado</label>
                     <select id="status" name="status">
@@ -1134,7 +1066,6 @@
                         </option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="date_from">Fecha desde</label>
                     <input type="date"
@@ -1143,7 +1074,6 @@
                         value="<?php echo e(request('date_from')); ?>"
                         max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
-
                 <div class="filter-group">
                     <label for="date_to">Fecha hasta</label>
                     <input type="date"
@@ -1152,7 +1082,6 @@
                         value="<?php echo e(request('date_to')); ?>"
                         max="<?php echo e(date('Y-m-d')); ?>">
                 </div>
-
                 <div class="filters-actions">
                     <button type="submit" class="btn-filter" id="btnFilter">
                         <i class="fas fa-filter"></i>
@@ -1176,13 +1105,11 @@
         </button>
     </div>
     <?php endif; ?>
-
     <?php if(session('error')): ?>
     <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
         <span class="block sm:inline"><?php echo e(session('error')); ?></span>
     </div>
     <?php endif; ?>
-
     <?php if(session('success')): ?>
     <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
         <span class="block sm:inline"><?php echo e(session('success')); ?></span>
@@ -1196,6 +1123,7 @@
                 <tr class="bg-gray-100">
                     <th class="p-2 text-left">Fecha</th>
                     <th class="p-2 text-left">Cajero</th>
+                    <th class="p-2 text-left">Sucursal</th>
                     <th class="p-2 text-right">Monto Actual</th>
                     <th class="p-2 text-left">Estado</th>
                     <th class="p-2 text-left">Acciones</th>
@@ -1205,8 +1133,12 @@
             <tbody>
                 <?php $__empty_1 = true; $__currentLoopData = $pettyCashes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pettyCash): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 text-left"><?php echo e($pettyCash->date); ?></td>
+                    <td class="p-2 text-left">
+                        <?php echo e(\Carbon\Carbon::parse($pettyCash->created_at)->format('d/m/Y H:i')); ?>
+
+                    </td>
                     <td class="p-2 text-left"><?php echo e($pettyCash->user->name ?? 'N/A'); ?></td>
+                    <td class="p-2 text-left"><?php echo e($pettyCash->branch->name ?? 'Sin sucursal'); ?></td>
                     <td class="p-2 text-right">Bs. <?php echo e(number_format($totalSales - $totalExpenses, 2)); ?></td>
                     <td class="p-2 text-left">
                         <span class="px-2 py-1 rounded-full text-xs 
@@ -1242,17 +1174,17 @@
                     </td>
                     <td class="p-2 text-left">
                         <?php if($pettyCash->status === 'closed'): ?>
-                        <a href="<?php echo e(route('petty-cash.print', $pettyCash)); ?>"
+                        <a href="<?php echo e(route('petty-cash.ticket-pdf', $pettyCash)); ?>"
                             target="_blank"
                             class="btn-action btn-print">
-                            <i class="fas fa-print"></i> PDF
+                            <i class="fas fa-file-pdf"></i> PDF
                         </a>
                         <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
-                    <td colspan="6" class="p-4 text-center text-gray-500">
+                    <td colspan="7" class="p-4 text-center text-gray-500">
                         No se encontraron registros de caja chica
                     </td>
                 </tr>
@@ -1270,18 +1202,26 @@
     <?php endif; ?>
 </div>
 
-<!-- Modal de cierre -->
+<!-- ============================================================
+     MODAL DE CIERRE
+     ============================================================ -->
 <div id="modal" class="modal-overlay">
     <div class="modal-container">
+
+        <!-- Header del modal -->
         <div class="modal-header">
-            <h3 class="modal-title"><i class="fas fa-cash-register mr-3"></i>Cierre de Caja Chica</h3>
+            <h3 class="modal-title">
+                <i class="fas fa-cash-register mr-3"></i>Cierre de Caja Chica
+            </h3>
             <button onclick="closeModal()" class="modal-close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
+        <!-- Contenido del modal -->
         <div class="modal-content">
-            <!-- Sección de Gastos -->
+
+            <!-- ── Sección de Gastos ── -->
             <div class="expenses-section">
                 <div class="expenses-header">
                     <h4 class="font-medium">Registro de Gastos</h4>
@@ -1290,12 +1230,13 @@
                     </button>
                 </div>
                 <div class="expenses-container" id="expensesContainer">
-                    <!-- Las filas de gastos se agregarán dinámicamente -->
+                    <!-- Las filas de gastos se agregan dinámicamente -->
                 </div>
             </div>
 
-            <!-- Sección de Cierre -->
+            <!-- ── Grid: Conteo de Efectivo | Resumen de Cierre ── -->
             <div class="closure-grid">
+
                 <!-- Tabla de denominaciones -->
                 <div class="denominations-section">
                     <div class="section-container">
@@ -1314,18 +1255,20 @@
                                     <tr>
                                         <td class="text-left">Bs. <?php echo e(number_format($denominacion, 2)); ?></td>
                                         <td>
-                                            <input type="number" min="0" class="form-control form-control-sm denomination-input"
-                                                data-denominacion="<?php echo e($denominacion); ?>" placeholder="0">
+                                            <input type="number" min="0"
+                                                class="form-control form-control-sm denomination-input"
+                                                data-denominacion="<?php echo e($denominacion); ?>"
+                                                placeholder="0">
                                         </td>
                                         <td class="text-right">
-                                            <span class="subtotal">$0.00</span>
+                                            <span class="subtotal">Bs 0.00</span>
                                         </td>
                                     </tr>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     <tr class="total-row">
                                         <td colspan="2" class="text-right">Total Efectivo:</td>
                                         <td class="text-right">
-                                            <span id="total">$0.00</span>
+                                            <span id="total">Bs 0.00</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1334,63 +1277,121 @@
                     </div>
                 </div>
 
-                <!-- Formulario de cierre -->
+                <!-- Formulario de resumen -->
                 <div class="closure-form-section">
                     <div class="section-container">
                         <h4 class="section-title">Resumen de Cierre</h4>
                         <div class="form-grid">
                             <div class="input-group mb-2">
-                                <label for="total-gastos" class="small">Total Gastos</label>
-                                <input type="number" id="total-gastos" class="form-control form-control-sm"
-                                    value="<?php echo e($totalExpenses); ?>" step="0.01" readonly 
-                                    data-gastos-bd="<?php echo e($totalExpenses); ?>">
-                            </div>
+    <label for="total-gastos" class="small">Total Gastos</label>
+    
+    <input type="number" id="total-gastos"
+        class="form-control form-control-sm"
+        value="0"
+        step="0.01"
+        readonly
+        data-gastos-bd="0"
+        data-gastos-form="0">
+</div>
                             <div class="input-group mb-2">
                                 <label for="total-efectivo" class="small">Total Efectivo</label>
-                                <input type="number" id="total-efectivo" class="form-control form-control-sm"
+                                <input type="number" id="total-efectivo"
+                                    class="form-control form-control-sm"
                                     value="0" step="0.01" readonly>
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-qr" class="small">Ventas QR</label>
-                                <input type="number" id="ventas-qr" class="form-control form-control-sm"
+                                <input type="number" id="ventas-qr"
+                                    class="form-control form-control-sm"
                                     value="<?php echo e($totalSalesQR); ?>" step="0.01">
                             </div>
                             <div class="input-group mb-2">
                                 <label for="ventas-tarjeta" class="small">Ventas Tarjeta</label>
-                                <input type="number" id="ventas-tarjeta" class="form-control form-control-sm"
+                                <input type="number" id="ventas-tarjeta"
+                                    class="form-control form-control-sm"
                                     value="<?php echo e($totalSalesCard); ?>" step="0.01">
-                            </div>
-                            <div class="form-actions">
-                               <button type="button" 
-                                    class="btn btn-primary btn-sm save-btn" 
-                                    onclick="saveClosure()"
-                                    id="btn-save-closure">
-                                <i class="fas fa-save mr-1"></i> Guardar Cierre
-                                </button>
                             </div>
                         </div>
                     </div>
+                    <div class="closure-notes-section">
+                <label for="closure-notes">
+                    <i class="fas fa-sticky-note" style="color:#6b7280;"></i>
+                    Notas de cierre
+                    <span class="label-hint">(opcional)</span>
+                </label>
+                <textarea
+                    id="closure-notes"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="Observaciones, incidencias, comentarios del cierre..."
+                    class="form-control"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="notes-char-count">0</span>/500
                 </div>
             </div>
+            </div>
+
+            </div>
+            
+
+            <!-- ── Notas de cierre (ancho completo, debajo de ambas secciones) ── -->
+            
+
+            <!-- ── Botón Guardar ── -->
+            <div class="form-actions">
+                <button type="button"
+                    class="btn btn-primary btn-sm save-btn"
+                    onclick="saveClosure()"
+                    id="btn-save-closure">
+                    <i class="fas fa-save mr-1"></i> Guardar Cierre
+                </button>
+            </div>
+
         </div>
+        
+
     </div>
 </div>
 
-<!-- Formulario oculto para cierre -->
+
 <form id="closureForm" action="<?php echo e(route('petty-cash.save-closure')); ?>" method="POST" class="hidden">
     <?php echo csrf_field(); ?>
-    <input type="hidden" name="petty_cash_id" id="petty_cash_id">
-    <input type="hidden" name="total_sales_cash" id="total_sales_cash" value="0">
-    <input type="hidden" name="total_sales_qr" id="total_sales_qr" value="<?php echo e($totalSalesQR); ?>">
-    <input type="hidden" name="total_sales_card" id="total_sales_card" value="<?php echo e($totalSalesCard); ?>">
-    <input type="hidden" name="total_expenses" id="total_expenses" value="<?php echo e($totalExpenses); ?>">
+    <input type="hidden" name="petty_cash_id"   id="petty_cash_id">
+    <input type="hidden" name="total_sales_cash" id="total_sales_cash"  value="0">
+    <input type="hidden" name="total_sales_qr"   id="total_sales_qr"    value="0">
+    <input type="hidden" name="total_sales_card" id="total_sales_card"  value="0">
+    <input type="hidden" name="total_expenses"   id="total_expenses"    value="0">
+    <input type="hidden" name="closure_notes"    id="closure_notes_hidden">
 </form>
+ 
 
-<!-- ========================================
-     SCRIPTS - IMPORTANTE: Solo configuración
-     ======================================== -->
+<script>
+    window.pettyCashData = {
+        // Valores en 0 — openModal los sobreescribe con los de la caja seleccionada
+        totalExpenses:  0,
+        totalSalesQR:   0,
+        totalSalesCard: 0,
+        saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
+        csrfToken:      "<?php echo e(csrf_token()); ?>"
+    };
+    window.isAdmin = <?php echo e(auth()->user()->role === 'admin' ? 'true' : 'false'); ?>;
+ 
+    console.log('✅ pettyCashData cargado (valores 0 — openModal los llena por caja)');
+    window.dispatchEvent(new Event('pettyCashDataReady'));
+ 
+    document.addEventListener('DOMContentLoaded', function () {
+        const notesTextarea = document.getElementById('closure-notes');
+        const charCount     = document.getElementById('notes-char-count');
+        if (notesTextarea && charCount) {
+            notesTextarea.addEventListener('input', function () {
+                charCount.textContent = this.value.length;
+                charCount.style.color = this.value.length > 450 ? '#ef4444' : '#9ca3af';
+            });
+        }
+    });
+</script>
 <script src="<?php echo e(asset('js/petty-cash-index.js')); ?>"></script>
-
 
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Proyecto Clarisa\restaurant_app\resources\views/petty_cash/index.blade.php ENDPATH**/ ?>
