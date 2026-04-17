@@ -70,8 +70,8 @@ class PurchaseController extends Controller
             $query->whereDate('purchase_date', $request->date);
         }
 
-        // Ordenar por fecha más reciente
-        $query->orderBy('purchase_date', 'desc');
+        // Ordenar por fecha y hora de creación más reciente
+        $query->orderByDesc('created_at')->orderByDesc('id');
 
         // Paginación
         $purchases = $query->paginate(15)->appends($request->except('page'));

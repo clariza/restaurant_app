@@ -38,12 +38,7 @@
     <link rel="stylesheet" href="/css/app.css">
     
    <style>
-    const proformaConversionStyles = `
-/* ===================================
-   ESTILOS PARA CONVERSIÓN DE PROFORMAS
-   =================================== */
 
-/* Badge de conversión en el panel de pedidos */
 .proforma-conversion-badge {
     background: linear-gradient(135deg, #EF476F 0%, #d63a5e 100%);
     color: white;
@@ -597,39 +592,6 @@
             </div>
         </div>
      
-        <!-- Botones de Acciones Rápidas - Minimalistas con Color -->
-        <div class="hidden md:flex items-center gap-2 ml-4 mr-20 pr-5">
-            <!-- Botón Gastos - Naranja -->
-            <button 
-                onclick="openExpensesModal()" 
-                class="action-btn-minimal action-btn-expenses
-                       w-10 h-10 rounded-full flex items-center justify-center 
-                       transition-all duration-200 hover:shadow-lg group"
-                title="Gestión de Gastos">
-                <i class="fas fa-receipt text-base transition-transform duration-200 group-hover:scale-110"></i>
-            </button>
-            
-            <!-- Botón Historial - Azul -->
-            <a 
-                href="<?php echo e(route('orders.index')); ?>" 
-                class="action-btn-minimal action-btn-history
-                       w-10 h-10 rounded-full flex items-center justify-center 
-                       transition-all duration-200 hover:shadow-lg group"
-                title="Historial de Órdenes"
-            >
-                <i class="fas fa-history text-base transition-transform duration-200 group-hover:scale-110"></i>
-            </a>
-            
-            <!-- Botón Caja Chica - Rosa/Rojo -->
-           <button 
-                onclick="openPettyCashModal()" 
-                class="action-btn-minimal action-btn-cash
-                        w-10 h-10 rounded-full flex items-center justify-center 
-                        transition-all duration-200 hover:shadow-lg group"
-                title="Gestión de Caja Chica">
-    <i class="fas fa-cash-register text-base transition-transform duration-200 group-hover:scale-110"></i>
-</button>
-        </div>
     </div>
     <?php else: ?>
     <!-- Espacio vacío cuando no hay búsqueda -->
@@ -764,10 +726,19 @@
                         <i class="fas fa-table mr-3"></i>
                         <span>Gastos</span>
                     </a>
+                    <?php if(auth()->user()->role === 'vendedor'): ?>
+                         <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
+           href="<?php echo e(route('clients.index')); ?>">
+            <i class="fas fa-users mr-3"></i>
+            <span>Clientes</span>
+        </a>
+                    <?php endif; ?>
+                    <?php if(auth()->user()->role === 'admin'): ?>
                     <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('petty-cash.index')); ?>">
                         <i class="fas fa-cash-register mr-3"></i>
                         <span>Cierre de Caja</span>
                     </a>
+                    <?php endif; ?>
 
                     <?php if (! (auth()->user()->role === 'vendedor')): ?>
                     <!-- Configuración - Solo visible para no vendedores -->
@@ -823,38 +794,6 @@
         <div id="mobile-overlay" class="mobile-overlay"></div>
         <!-- Main Content -->
         <div class="flex-1 p-6 pb-24 sm:pb-6 main-content" id="main-content"> <!-- Ajustar padding-bottom para móviles -->
-            <!-- <header class="flex items-center justify-between">
-             
-                <div class="flex items-center sm:hidden">
-                    <button id="menu-toggle" class="text-gray-500 focus:outline-none">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
-                </div>
-              
-                <div class="flex items-center ml-auto"> 
-                    <div class="relative">
-                      
-                        <div class="relative">
-                            <button id="user-menu-button" class="flex items-center focus:outline-none">
-                                
-                                <img alt="User Avatar" class="w-10 h-10 rounded-full mr-2" height="40" src="https://www.gravatar.com/avatar/default?s=200&d=mp" width="40"/>
-                               
-                                <span class="text-gray-700">Hola, <?php echo e(Auth::user()->name); ?></span>
-                            </button>
-                           
-                            <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden">
-                             
-                                <form action="<?php echo e(route('logout')); ?>" method="POST" class="w-full">
-                               
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none">
-                                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header> -->
             <div class="flex-1 p-6 pb-24 sm:pb-6 <?php if(isset($showOrderDetails) && $showOrderDetails): ?> mr-0 md:mr-[25%] <?php endif; ?>" id="main-content">
                 <?php echo $__env->yieldContent('content'); ?>
             </div>
@@ -895,7 +834,6 @@
     window.isAdmin = <?php echo e(auth()->user()->role === 'admin' ? 'true' : 'false'); ?>;
     window.tablesEnabled = <?php echo json_encode($settings->tables_enabled ?? false, 15, 512) ?>;
     console.log('🌍 Variables globales configuradas');
-    console.log('📦 Estado caja chica:', window.pettyCashData);
 </script>
 <script>
 // 🔥 Variables globales de sucursal
@@ -903,7 +841,6 @@ window.branchId = <?php echo e(session('branch_id') ?? 'null'); ?>;
 window.branchName = "<?php echo e(session('branch_name') ?? 'Sin sucursal'); ?>";
 window.branchCode = "<?php echo e(session('branch_code') ?? ''); ?>";
 
-// También guardar en sessionStorage para persistencia
 if (window.branchId) {
     sessionStorage.setItem('branch_id', window.branchId);
     sessionStorage.setItem('branch_name', window.branchName);
@@ -918,25 +855,25 @@ console.log('🏢 Información de sucursal cargada:', {
 </script>
 
 <script>
-    // 🔥 Función principal para abrir el modal de caja chica
-    window.openPettyCashModal = async function() {
-        console.log('🔓 Abriendo modal de caja chica desde botón header...');
+    // =============================================
+    // MODAL DE CAJA CHICA — lógica de apertura y carga
+    // closePettyCashModal vive más abajo (último <script>).
+    // =============================================
 
-        const modal = document.getElementById('petty-cash-modal');
+    window.openPettyCashModal = async function() {
+        console.log('🔓 Abriendo modal de caja chica...');
+
+        const modal   = document.getElementById('petty-cash-modal');
         const content = document.getElementById('petty-cash-content');
 
         if (!modal || !content) {
-            console.error('❌ Modal de caja chica no encontrado en app.blade.php');
-            // Si el modal no existe, redirigir a la página de caja chica
             window.location.href = '<?php echo e(route("petty-cash.index")); ?>';
             return;
         }
 
-        // Mostrar modal
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        // Mostrar loading
         content.innerHTML = `
             <div class="flex items-center justify-center p-12">
                 <div class="text-center">
@@ -947,7 +884,6 @@ console.log('🏢 Información de sucursal cargada:', {
         `;
 
         try {
-            // Verificar si hay una caja abierta
             const checkResponse = await fetch('/petty-cash/get-open', {
                 method: 'GET',
                 headers: {
@@ -957,13 +893,10 @@ console.log('🏢 Información de sucursal cargada:', {
             });
 
             const checkData = await checkResponse.json();
-            console.log('📦 Estado de caja:', checkData);
 
             if (checkData.success && checkData.petty_cash_id) {
-                // Si hay caja abierta, cargar el modal de cierre
                 await loadClosureModal(checkData.petty_cash_id, content);
             } else {
-                // Si no hay caja abierta, preguntar si desea crear una
                 showCreatePettyCashOption(content);
             }
 
@@ -973,10 +906,8 @@ console.log('🏢 Información de sucursal cargada:', {
         }
     };
 
-    // Función para cargar el modal de cierre con la caja específica
+    // Carga el HTML del modal de cierre e inicializa los cálculos
     async function loadClosureModal(pettyCashId, content) {
-        console.log('📥 Cargando modal de cierre para caja:', pettyCashId);
-        
         content.innerHTML = `
             <div class="flex items-center justify-center p-12">
                 <div class="text-center">
@@ -987,7 +918,6 @@ console.log('🏢 Información de sucursal cargada:', {
         `;
 
         try {
-            // Cargar el contenido del modal de cierre
             const response = await fetch(`/petty-cash/modal-closure/${pettyCashId}`, {
                 method: 'GET',
                 headers: {
@@ -997,19 +927,17 @@ console.log('🏢 Información de sucursal cargada:', {
                 }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const html = await response.text();
             content.innerHTML = html;
 
-            // Inicializar funciones del modal (si están en el HTML cargado)
+            // petty-cash-modal.js expone initializeClosureModal via defer,
+            // si ya cargó lo llamamos; si no, calcularTotalClosure se encargará
+            // cuando el usuario empiece a escribir (listener de delegación).
             if (typeof window.initializeClosureModal === 'function') {
                 window.initializeClosureModal(pettyCashId);
             }
-
-            console.log('✅ Modal de cierre cargado correctamente');
 
         } catch (error) {
             console.error('❌ Error al cargar modal de cierre:', error);
@@ -1017,51 +945,38 @@ console.log('🏢 Información de sucursal cargada:', {
         }
     }
 
-    // Función para mostrar opción de crear caja chica
+    // Exponer para que petty-cash-modal.js también pueda llamarla
+    window.loadClosureModal = loadClosureModal;
+
     function showCreatePettyCashOption(content) {
         content.innerHTML = `
             <div class="p-8 text-center">
                 <div class="mb-6">
                     <i class="fas fa-info-circle text-6xl text-blue-500 mb-4"></i>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">
-                        No hay caja chica abierta
-                    </h3>
-                    <p class="text-gray-600 mb-6">
-                        Para realizar un cierre, primero debes tener una caja chica abierta.
-                    </p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">No hay caja chica abierta</h3>
+                    <p class="text-gray-600 mb-6">Para realizar un cierre, primero debes tener una caja chica abierta.</p>
                 </div>
-                
                 <div class="flex justify-center gap-4">
                     <button onclick="createNewPettyCash()" 
-                            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 
-                                   transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Crear Caja Chica</span>
+                            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2">
+                        <i class="fas fa-plus-circle"></i><span>Crear Caja Chica</span>
                     </button>
-                    
                     <button onclick="closePettyCashModal()" 
-                            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 
-                                   transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-times"></i>
-                        <span>Cancelar</span>
+                            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center gap-2">
+                        <i class="fas fa-times"></i><span>Cancelar</span>
                     </button>
                 </div>
-                
                 <div class="mt-6">
-                    <a href="<?php echo e(route('petty-cash.index')); ?>" 
-                       class="text-blue-500 hover:text-blue-700 underline">
-                        <i class="fas fa-list"></i>
-                        Ver lista de cajas chicas
+                    <a href="<?php echo e(route('petty-cash.index')); ?>" class="text-blue-500 hover:text-blue-700 underline">
+                        <i class="fas fa-list"></i> Ver lista de cajas chicas
                     </a>
                 </div>
             </div>
         `;
     }
 
-    // Función para crear una nueva caja chica
     window.createNewPettyCash = async function() {
         const content = document.getElementById('petty-cash-content');
-        
         content.innerHTML = `
             <div class="flex items-center justify-center p-12">
                 <div class="text-center">
@@ -1079,35 +994,20 @@ console.log('🏢 Información de sucursal cargada:', {
                     'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    date: new Date().toISOString().split('T')[0],
-                    initial_amount: 0
-                })
+                body: JSON.stringify({ date: new Date().toISOString().split('T')[0], initial_amount: 0 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                console.log('✅ Caja chica creada:', data.petty_cash_id);
-                
-                // Mostrar mensaje de éxito
                 content.innerHTML = `
                     <div class="p-8 text-center">
                         <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
-                        <h3 class="text-2xl font-semibold text-gray-800 mb-2">
-                            ¡Caja chica creada!
-                        </h3>
-                        <p class="text-gray-600 mb-6">
-                            La caja chica ha sido creada correctamente. Cargando modal de cierre...
-                        </p>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-2">¡Caja chica creada!</h3>
+                        <p class="text-gray-600 mb-6">La caja chica ha sido creada correctamente. Cargando modal de cierre...</p>
                     </div>
                 `;
-                
-                // Esperar 1 segundo y cargar el modal de cierre
-                setTimeout(() => {
-                    loadClosureModal(data.petty_cash_id, content);
-                }, 1000);
-                
+                setTimeout(() => loadClosureModal(data.petty_cash_id, content), 1000);
             } else {
                 throw new Error(data.message || 'Error al crear la caja chica');
             }
@@ -1117,148 +1017,84 @@ console.log('🏢 Información de sucursal cargada:', {
             content.innerHTML = `
                 <div class="p-8 text-center">
                     <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">
-                        Error al crear caja chica
-                    </h3>
-                    <p class="text-gray-600 mb-6">
-                        ${error.message}
-                    </p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">Error al crear caja chica</h3>
+                    <p class="text-gray-600 mb-6">${error.message}</p>
                     <button onclick="openPettyCashModal()" 
-                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-                                   transition-colors duration-200">
-                        <i class="fas fa-redo"></i>
-                        Reintentar
+                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                        <i class="fas fa-redo"></i> Reintentar
                     </button>
                 </div>
             `;
         }
     };
 
-    // Función para mostrar error
     function showErrorContent(content) {
         content.innerHTML = `
             <div class="p-8 text-center">
                 <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-gray-800 mb-2">
-                    Error de conexión
-                </h3>
-                <p class="text-gray-600 mb-6">
-                    No se pudo cargar el contenido. Por favor, intenta de nuevo.
-                </p>
+                <h3 class="text-2xl font-semibold text-gray-800 mb-2">Error de conexión</h3>
+                <p class="text-gray-600 mb-6">No se pudo cargar el contenido. Por favor, intenta de nuevo.</p>
                 <div class="flex justify-center gap-4">
                     <button onclick="openPettyCashModal()" 
-                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-                                   transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-redo"></i>
-                        <span>Reintentar</span>
+                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2">
+                        <i class="fas fa-redo"></i><span>Reintentar</span>
                     </button>
-                    
                     <a href="<?php echo e(route('petty-cash.index')); ?>" 
-                       class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 
-                              transition-colors duration-200 flex items-center gap-2">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span>Ir a Lista de Cajas</span>
+                       class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center gap-2">
+                        <i class="fas fa-external-link-alt"></i><span>Ir a Lista de Cajas</span>
                     </a>
                 </div>
             </div>
         `;
     }
 
-    // 🔥 Función placeholder para abrir modal de gastos
-    // window.openExpensesModal = function() {
-    //     alert('Funcionalidad de gastos en desarrollo');
-    // };
-
     console.log('✅ Sistema de modal de caja chica configurado desde app.blade.php');
 </script>
 <script>
-    // ========================================
-    // CONFIGURACIÓN GLOBAL UNIFICADA
-    // ========================================
     window.pettyCashData = {
-        // 🔐 Datos de control de acceso (para app.js)
         hasOpenPettyCash: <?php echo json_encode($hasOpenPettyCash ?? false, 15, 512) ?>,
         currentRoute: "<?php echo e(Route::currentRouteName()); ?>",
-        
-        // 💰 Datos de cierre (para petty-cash-index.js)
         totalExpenses: <?php echo json_encode($totalExpenses ?? 0, 15, 512) ?>,
         totalSalesQR: <?php echo json_encode($totalSalesQR ?? 0, 15, 512) ?>,
         totalSalesCard: <?php echo json_encode($totalSalesCard ?? 0, 15, 512) ?>,
-        
-        // 🌐 URLs y tokens
         saveClosureUrl: "<?php echo e(route('petty-cash.save-closure')); ?>",
         csrfToken: "<?php echo e(csrf_token()); ?>",
-        
-        // 🛠️ Metadatos
         initialized: true,
         version: '1.0.0'
     };
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🌍 pettyCashData UNIFICADO configurado');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔐 Control de Acceso:');
-    console.log('   - hasOpenPettyCash:', window.pettyCashData.hasOpenPettyCash);
-    console.log('   - currentRoute:', window.pettyCashData.currentRoute);
-    console.log('💰 Datos de Cierre:');
-    console.log('   - totalExpenses:', window.pettyCashData.totalExpenses);
-    console.log('   - totalSalesQR:', window.pettyCashData.totalSalesQR);
-    console.log('   - totalSalesCard:', window.pettyCashData.totalSalesCard);
-    console.log('🌐 Configuración:');
-    console.log('   - saveClosureUrl:', window.pettyCashData.saveClosureUrl);
-    console.log('   - csrfToken:', window.pettyCashData.csrfToken ? '✓ Presente' : '✗ Faltante');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    // Disparar evento para notificar que los datos están listos
     window.dispatchEvent(new Event('pettyCashDataReady'));
 </script>
-<!-- ✅ Cargar scripts en orden correcto -->
-<script src="<?php echo e(asset('js/order-details.js')); ?>" defer></script>
-<script src="<?php echo e(asset('js/payment-modal.js')); ?>" defer></script>
+
+<!-- ✅ Scripts externos — petty-cash-modal.js incluido -->
 <script src="<?php echo e(asset('js/app.js')); ?>" defer></script>
 <script src="<?php echo e(asset('js/init.js')); ?>" defer></script>
+<script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
 <script src="<?php echo e(asset('js/petty-cash-modal.js')); ?>" defer></script>
- <?php if(Request::is('petty-cash*')): ?>
-        <script src="<?php echo e(asset('js/petty-cash-index.js')); ?>" defer></script>
-    <?php endif; ?>
+<?php if(isset($showOrderDetails) && $showOrderDetails): ?>
+    
+<?php else: ?>
+    <script src="<?php echo e(asset('js/order-details.js')); ?>" defer></script>
+    <script src="<?php echo e(asset('js/payment-modal.js')); ?>" defer></script>
+<?php endif; ?>
 
 <script>
 (function() {
-    console.log('🚀 Inicializando sistema de logout...');
-    
     function initLogout() {
         const logoutForm = document.getElementById('logout-form');
-        
-        if (!logoutForm) {
-            console.warn('⚠️ Formulario de logout no encontrado');
-            return;
-        }
-        
-        console.log('✅ Formulario de logout encontrado');
-        
-        // Prevenir múltiples listeners
+        if (!logoutForm) return;
         logoutForm.removeEventListener('submit', handleLogoutSubmit);
         logoutForm.addEventListener('submit', handleLogoutSubmit);
     }
-    
     function handleLogoutSubmit(e) {
-        console.log('🔴 Logout submit detectado');
-        
-        // Limpiar datos locales
         try {
             localStorage.removeItem('order');
             localStorage.removeItem('orderType');
-            console.log('✅ localStorage limpiado');
         } catch (error) {
             console.warn('⚠️ Error al limpiar localStorage:', error);
         }
-        
-        // Permitir que el formulario se envíe normalmente
-        console.log('📤 Enviando formulario de logout...');
-        // No hacer e.preventDefault() - dejar que el form se envíe
     }
-    
-    // Inicializar cuando el DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initLogout);
     } else {
@@ -1266,58 +1102,52 @@ console.log('🏢 Información de sucursal cargada:', {
     }
 })();
 </script>
-<!-- ✅ Inicialización sin recargas -->
+
 <script>
     let initAttempts = 0;
     const MAX_ATTEMPTS = 3;
 
     function ensureOrderSystemReady() {
-        console.log('🔍 Verificando sistema de pedidos... Intento:', initAttempts + 1);
-        
         if (typeof window.updateOrderDetails === 'function') {
-            console.log('✅ updateOrderDetails está disponible');
             window.updateOrderDetails();
             return true;
         } else {
             initAttempts++;
-            
             if (initAttempts < MAX_ATTEMPTS) {
-                console.warn('⚠️ updateOrderDetails NO disponible, reintentando...');
                 setTimeout(ensureOrderSystemReady, 500);
             } else {
                 console.error('❌ Sistema de pedidos no disponible después de', MAX_ATTEMPTS, 'intentos');
-                // NO recargar - solo mostrar error
-                console.error('Por favor, verifica que order-details.js esté cargado correctamente');
             }
             return false;
         }
     }
 
-    // Inicializar cuando el DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', ensureOrderSystemReady);
     } else {
         ensureOrderSystemReady();
     }
 </script>
+
 <div id="petty-cash-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background: rgba(0, 0, 0, 0.5);">
     <div class="flex items-start justify-center min-h-screen px-4 py-2">
         <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[92vh] overflow-hidden flex flex-col">
-            <!-- Header del Modal -->
-            <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-xl font-semibold text-gray-800">
-                    <i class="fas fa-cash-register mr-2"></i>
-                    Gestión de Caja Chica
-                </h2>
-                <button onclick="closePettyCashModal()" 
-                        class="text-gray-500 hover:text-gray-700 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
+
+           <!-- Header del Modal -->
+        <div class="flex items-center justify-between" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; background-color: #203363; flex-shrink: 0;">
+            <h2 class="text-xl font-semibold" style="color: #b6e0f6;">
+                <i class="fas fa-cash-register mr-2"></i>
+                    Gestión de Caja Chica 
+            </h2>
+        <button onclick="closePettyCashModal()" 
+            style="color: #b6e0f6;"
+            class="hover:text-white transition-colors">
+            <i class="fas fa-times text-2xl"></i>
+        </button>
+    </div>
 
             <!-- Contenido del Modal -->
             <div id="petty-cash-content" class="overflow-y-auto flex-1">
-                <!-- El contenido se cargará aquí dinámicamente -->
                 <div class="flex items-center justify-center p-12">
                     <div class="text-center">
                         <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
@@ -1337,6 +1167,131 @@ console.log('🏢 Información de sucursal cargada:', {
 </footer>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>
+<script>
+// ========================================
+// FUNCIONES GLOBALES — disponibles en todas las páginas
+// ========================================
+
+/**
+ * Cierra el modal de caja chica limpiando TODOS los elementos:
+ *   - #petty-cash-modal  (contenedor exterior)
+ *   - #closure-internal-overlay  (overlay interno de modal-content.blade.php)
+ *   - document.body.style.overflow
+ *
+ * guardarCierreUnificado() en petty-cash-modal.js llama a esta misma
+ * función antes de mostrar el SweetAlert de éxito.
+ */
+window.closePettyCashModal = function() {
+    // 1. Ocultar el contenedor principal
+    var modal = document.getElementById('petty-cash-modal');
+    if (modal) modal.classList.add('hidden');
+
+    // 2. Limpiar el overlay interno (inyectado por modal-content.blade.php)
+    var overlay = document.getElementById('closure-internal-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        overlay.style.display = 'none';
+    }
+
+    // 3. Restaurar scroll del body
+    document.body.style.overflow = '';
+    document.body.classList.remove('overflow-hidden');
+};
+
+window.openExpensesModal = async function() {
+    const modal = document.getElementById('expenses-modal');
+    if (!modal) {
+        window.location.href = '/expenses';
+        return;
+    }
+    modal.classList.remove('hidden');
+
+    try {
+        const res = await fetch('/petty-cash/get-open', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' }
+        });
+        const data = await res.json();
+        window.openPettyCash = (data.success && data.petty_cash_id)
+            ? { id: data.petty_cash_id }
+            : null;
+    } catch(e) {
+        window.openPettyCash = null;
+    }
+
+    const container = document.getElementById('expenses-table-container');
+    if (!container) return;
+    container.innerHTML = `<div class="flex justify-center py-12">
+        <i class="fas fa-spinner fa-spin text-4xl text-[#203363]"></i></div>`;
+    try {
+        const res = await fetch('/expenses?json=1', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await res.json();
+        window.expensesData = Array.isArray(data) ? data : (data.expenses ?? []);
+        if (typeof renderExpensesTable === 'function') renderExpensesTable();
+    } catch(e) {
+        container.innerHTML = `<div class="text-center py-12 text-red-500">${e.message}</div>`;
+    }
+};
+
+window.closeExpensesModal = function() {
+    const modal = document.getElementById('expenses-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+// Cerrar modales con Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    window.closePettyCashModal();
+    const expModal = document.getElementById('expenses-modal');
+    if (expModal) expModal.classList.add('hidden');
+});
+
+// Cerrar petty-cash-modal al hacer click en el fondo oscuro
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'petty-cash-modal') window.closePettyCashModal();
+});
+
+// ========================================
+// DENOMINACIONES → VENTAS EN EFECTIVO (tiempo real)
+// Delegación en document porque el modal se inyecta con innerHTML.
+// petty-cash-modal.js registra el mismo evento pero no hay conflicto:
+// ambos leen el mismo DOM y escriben el mismo resultado.
+// ========================================
+document.addEventListener('input', function(e) {
+    if (!e.target.classList.contains('contar-input-closure')) return;
+
+    var total = 0;
+    document.querySelectorAll('.contar-input-closure').forEach(function(input) {
+        var denominacion = parseFloat(input.dataset.denominacion) || 0;
+        var cantidad     = parseInt(input.value, 10)              || 0;
+        var subtotal     = denominacion * cantidad;
+
+        var fila    = input.closest('tr');
+        var spanSub = fila ? fila.querySelector('.subtotal-closure') : null;
+        if (spanSub) spanSub.textContent = 'Bs.' + subtotal.toFixed(2);
+
+        total += subtotal;
+    });
+
+    var spanTotal = document.getElementById('total-closure');
+    if (spanTotal) spanTotal.textContent = 'Bs.' + total.toFixed(2);
+
+    var inputEfectivo = document.getElementById('ventas-efectivo-closure');
+    if (inputEfectivo) {
+        inputEfectivo.value = total.toFixed(2);
+        inputEfectivo.classList.remove('efectivo-pulse');
+        void inputEfectivo.offsetWidth;
+        inputEfectivo.classList.add('efectivo-pulse');
+    }
+});
+
+console.log('✅ Funciones globales de modales configuradas');
+</script>
 </body>
 
 </html><?php /**PATH D:\Proyecto Clarisa\restaurant_app\resources\views/layouts/app.blade.php ENDPATH**/ ?>

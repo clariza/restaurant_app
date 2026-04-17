@@ -7,7 +7,7 @@
         color: #1f2937;
         margin: 0 0 1rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e5e7eb;
+        /* border-bottom: 2px solid #e5e7eb; */
     }
     /* Estilos mejorados para botones */
     .btn-action {

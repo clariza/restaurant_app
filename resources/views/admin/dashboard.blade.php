@@ -25,12 +25,6 @@
                 <p class="text-[#ffffff]">Revisa las compras realizadas</p>
             </a>
 
-            <!-- Lista de Gastos (mostrar para admin) -->
-            <a href="#" class="bg-[#47517c] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#3a4266] transition-colors">
-                <i class="fas fa-money-bill-wave text-4xl text-[#ffffff] mb-4"></i>
-                <h2 class="text-xl font-bold text-[#ffffff]">Lista de Gastos</h2>
-                <p class="text-[#ffffff]">Revisa y gestiona los gastos</p>
-            </a>
         @else
             <!-- Menú (mostrar para vendedor) -->
             <a href="{{ route('menu.index') }}" class="bg-[#b6e0f6] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#a4c8e0] transition-colors">
@@ -44,13 +38,6 @@
                 <i class="fas fa-list text-4xl text-[#203363] mb-4"></i>
                 <h2 class="text-xl font-bold text-[#203363]">Lista de Ventas</h2>
                 <p class="text-[#203363]">Revisa y gestiona los pedidos</p>
-            </a>
-
-            <!-- Lista de Gastos (mostrar para vendedor) -->
-            <a href="#" class="bg-[#47517c] p-6 rounded-lg shadow-md flex flex-col items-center justify-center text-center hover:bg-[#3a4266] transition-colors">
-                <i class="fas fa-money-bill-wave text-4xl text-[#ffffff] mb-4"></i>
-                <h2 class="text-xl font-bold text-[#ffffff]">Lista de Gastos</h2>
-                <p class="text-[#ffffff]">Revisa y gestiona los gastos</p>
             </a>
 
             <!-- Clientes (mostrar para vendedor) -->

@@ -42,21 +42,6 @@
             Realizar Pago
         </button>
 
-        {{-- Accesos rápidos (descomentados y limpios) --}}
-        <div class="flex space-x-2">
-            <a href="{{ route('orders.index') }}"
-               class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center justify-center"
-               title="Historial">
-                <i class="fas fa-history"></i>
-            </a>
-
-            {{-- ✅ CAMBIO: abre el modal UNIFICADO en la pestaña 'list' --}}
-            <button onclick="openUnifiedModal(null, 'list')"
-                class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-accent-dark transition-colors text-sm flex items-center justify-center"
-                title="Caja Chica">
-                <i class="fas fa-cash-register"></i>
-            </button>
-        </div>
     </div>
 
     <!-- Input oculto para el tipo de pedido -->
