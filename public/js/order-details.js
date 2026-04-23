@@ -1359,7 +1359,10 @@ function generateTicketContent(dailyOrderNumber) {
     if (!customerName) {
         customerName = localStorage.getItem('customerName') || '';
     }
-
+    // Después de obtener customerName, agregar:
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim()
+        || localStorage.getItem('customerNotes')
+        || '';
     const sellerName = window.authUserName || 'Usuario';
 
     // Calcular totales
@@ -1484,7 +1487,10 @@ ${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
             <div class="divider"></div>
             <div class="notes">${allNotes}</div>
         ` : ''}
-        
+        ${customerNotes ? `
+    <div class="divider"></div>
+    <div class="notes">Notas del cliente: ${customerNotes}</div>
+` : ''}
         <div class="divider"></div>
         <div class="footer">
             ¡Gracias por su preferencia!
@@ -1599,7 +1605,9 @@ async function generateTicketContentAsync(dailyOrderNumber) {
 
     // Opción 1: Desde el modal (Paso 3)
     customerName = document.getElementById('modal-customer-name')?.value?.trim();
-
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim()
+        || localStorage.getItem('customerNotes')
+        || '';
     // Opción 2: Desde la vista customer-details
     if (!customerName) {
         customerName = document.getElementById('customer-name')?.value?.trim();
@@ -1722,6 +1730,10 @@ ${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
             <div class="divider"></div>
             <div class="notes">${allNotes}</div>
         ` : ''}
+        ${customerNotes ? `
+    <div class="divider"></div>
+    <div class="notes">Notas del cliente: ${customerNotes}</div>
+` : ''}
         
         <div class="divider"></div>
         <div class="footer">

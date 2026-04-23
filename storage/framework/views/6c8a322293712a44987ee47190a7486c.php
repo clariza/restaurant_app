@@ -95,7 +95,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
                             <option value="CI" <?php echo e(old('document_type') == 'CI' ? 'selected' : ''); ?>>CI - Carnet de Identidad</option>
-                            <option value="NIT" <?php echo e(old('document_type') == 'NIT' ? 'selected' : ''); ?>>NIT</option>
+                            <option value="DNI" <?php echo e(old('document_type') == 'DNI' || old('document_type') == 'NIT' ? 'selected' : ''); ?>>DNI</option>
                             <option value="Pasaporte" <?php echo e(old('document_type') == 'Pasaporte' ? 'selected' : ''); ?>>Pasaporte</option>
                         </select>
                         <?php $__errorArgs = ['document_type'];

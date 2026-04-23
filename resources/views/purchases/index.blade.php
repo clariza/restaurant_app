@@ -132,7 +132,16 @@
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Referencia</th>
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Proveedor</th>
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Sucursal</th>
-                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Fecha</th>
+                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">
+                        <div class="flex items-center gap-1">
+                            Fecha
+                            <span class="flex flex-col" title="Ordenado por fecha: más reciente primero">
+                                <i class="fas fa-caret-up text-white/40 text-xs leading-none"></i>
+                                <i class="fas fa-caret-down text-white text-xs leading-none"></i>
+                            </span>
+                            <span class="text-white/70 text-xs font-normal ml-1">↓</span>
+                            </div>
+                            </th>
                         <th class="px-4 py-3 text-right font-semibold border-r border-white/20">Monto Total</th>
                         <th class="px-4 py-3 text-center font-semibold border-r border-white/20">Estado</th>
                         <th class="px-4 py-3 text-center font-semibold">Acciones</th>
@@ -168,7 +177,7 @@
                             <td class="px-4 py-3 border-r border-[var(--gray-light)]">
                                 <div class="flex items-center text-[var(--text-color)]">
                                     <i class="fas fa-calendar-alt text-[var(--text-light)] mr-2"></i>
-                                    {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}
+                                    {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y H:i') }}
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-right border-r border-[var(--gray-light)]">

@@ -118,8 +118,8 @@
         <?php if($isAdmin ?? false): ?>
         <div class="hidden md:grid md:grid-cols-12 bg-[#203363] text-white px-4 py-3 font-bold text-sm">
             <div class="col-span-2">ID</div>
-            <div class="col-span-2">Fecha/Hora</div>
-            <div class="col-span-1">Cliente</div>
+            <div class="col-span-1">Fecha/Hora</div>
+            <div class="col-span-2 text-left">Cliente</div>
             <div class="col-span-2">Tipo</div>
             <div class="col-span-1">Total</div>
             <div class="col-span-2">Sucursal</div>
@@ -128,8 +128,8 @@
         <?php else: ?>
         <div class="hidden md:grid md:grid-cols-12 bg-[#203363] text-white px-4 py-3 font-bold text-sm">
             <div class="col-span-2">ID</div>
-            <div class="col-span-2">Fecha/Hora</div>
-            <div class="col-span-3">Cliente</div>
+            <div class="col-span-1">Fecha/Hora</div>
+            <div class="col-span-4 text-left">Cliente</div>
             <div class="col-span-2">Tipo</div>
             <div class="col-span-1">Total</div>
             <div class="col-span-2">Acciones</div>
@@ -179,18 +179,18 @@
 
                         </span>
                         <span class="truncate text-xs">
-                            <?php echo e($isProforma ? 'PROF-'.$record->id : $record->transaction_number); ?>
+                           <?php echo e($isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number)); ?>
 
                         </span>
                     </div>
                 </div>
                 
-                <div class="col-span-2">
+                <div class="col-span-1">
                     <div><?php echo e($record->created_at->format('d/m/Y')); ?></div>
                     <div class="text-xs text-gray-500"><?php echo e($record->created_at->format('H:i')); ?></div>
                 </div>
                 
-                <div class="col-span-1 truncate text-gray-700">
+                <div class="col-span-2 truncate text-gray-700 text-left">
                     <?php echo e($record->customer_name ?? 'N/A'); ?>
 
                 </div>
@@ -211,7 +211,7 @@
                     <?php if($record->branch): ?>
                         <span class="flex items-center gap-1 min-w-0">
                             <i class="fas fa-building text-gray-400 flex-shrink-0"></i>
-                            <span class="truncate"><?php echo e(Str::limit($record->branch->name, 25)); ?></span>
+                            <span class="truncate"><?php echo e(Str::limit($record->branch->name, 30)); ?></span>
                         </span>
                     
                     <?php endif; ?>
@@ -261,18 +261,18 @@
 
                         </span>
                         <span class="truncate text-xs">
-                            <?php echo e($isProforma ? 'PROF-'.$record->id : $record->transaction_number); ?>
+                            <?php echo e($isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number)); ?>
 
                         </span>
                     </div>
                 </div>
                 
-                <div class="col-span-2">
+                <div class="col-span-1">
                     <div><?php echo e($record->created_at->format('d/m/Y')); ?></div>
                     <div class="text-xs text-gray-500"><?php echo e($record->created_at->format('H:i')); ?></div>
                 </div>
                 
-                <div class="col-span-3 truncate text-gray-700">
+                <div class="col-span-4 truncate text-gray-700 text-left">
                     <?php echo e($record->customer_name ?? 'N/A'); ?>
 
                 </div>
@@ -333,7 +333,7 @@
 
                         </span>
                         <span class="truncate text-xs">
-                            <?php echo e($isProforma ? $record->id : $record->transaction_number); ?>
+                            <?php echo e($isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number)); ?>
 
                         </span>
                     </div>

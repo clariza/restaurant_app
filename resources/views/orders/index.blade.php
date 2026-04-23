@@ -119,8 +119,8 @@
         @if($isAdmin ?? false)
         <div class="hidden md:grid md:grid-cols-12 bg-[#203363] text-white px-4 py-3 font-bold text-sm">
             <div class="col-span-2">ID</div>
-            <div class="col-span-2">Fecha/Hora</div>
-            <div class="col-span-1">Cliente</div>
+            <div class="col-span-1">Fecha/Hora</div>
+            <div class="col-span-2 text-left">Cliente</div>
             <div class="col-span-2">Tipo</div>
             <div class="col-span-1">Total</div>
             <div class="col-span-2">Sucursal</div>
@@ -129,8 +129,8 @@
         @else
         <div class="hidden md:grid md:grid-cols-12 bg-[#203363] text-white px-4 py-3 font-bold text-sm">
             <div class="col-span-2">ID</div>
-            <div class="col-span-2">Fecha/Hora</div>
-            <div class="col-span-3">Cliente</div>
+            <div class="col-span-1">Fecha/Hora</div>
+            <div class="col-span-4 text-left">Cliente</div>
             <div class="col-span-2">Tipo</div>
             <div class="col-span-1">Total</div>
             <div class="col-span-2">Acciones</div>
@@ -179,17 +179,17 @@
                             {{ $isProforma ? 'P' : 'O' }}
                         </span>
                         <span class="truncate text-xs">
-                            {{ $isProforma ? 'PROF-'.$record->id : $record->transaction_number }}
+                           {{ $isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number) }}
                         </span>
                     </div>
                 </div>
                 {{-- Fecha (2) --}}
-                <div class="col-span-2">
+                <div class="col-span-1">
                     <div>{{ $record->created_at->format('d/m/Y') }}</div>
                     <div class="text-xs text-gray-500">{{ $record->created_at->format('H:i') }}</div>
                 </div>
                 {{-- Cliente (1) --}}
-                <div class="col-span-1 truncate text-gray-700">
+                <div class="col-span-2 truncate text-gray-700 text-left">
                     {{ $record->customer_name ?? 'N/A' }}
                 </div>
                 {{-- Tipo (2) --}}
@@ -257,17 +257,17 @@
                             {{ $isProforma ? 'P' : 'O' }}
                         </span>
                         <span class="truncate text-xs">
-                            {{ $isProforma ? 'PROF-'.$record->id : $record->transaction_number }}
+                            {{ $isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number) }}
                         </span>
                     </div>
                 </div>
                 {{-- Fecha (2) --}}
-                <div class="col-span-2">
+                <div class="col-span-1">
                     <div>{{ $record->created_at->format('d/m/Y') }}</div>
                     <div class="text-xs text-gray-500">{{ $record->created_at->format('H:i') }}</div>
                 </div>
                 {{-- Cliente (3) --}}
-                <div class="col-span-3 truncate text-gray-700">
+                <div class="col-span-4 truncate text-gray-700 text-left">
                     {{ $record->customer_name ?? 'N/A' }}
                 </div>
                 {{-- Tipo (2) --}}
@@ -324,7 +324,7 @@
                             {{ $isProforma ? 'P' : 'O' }}
                         </span>
                         <span class="truncate text-xs">
-                            {{ $isProforma ? $record->id : $record->transaction_number }}
+                            {{ $isProforma ? 'PROF-'.$record->id : str_replace('PED-', '', $record->daily_order_number) }}
                         </span>
                     </div>
                 </div>

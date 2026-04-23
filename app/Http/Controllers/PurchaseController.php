@@ -71,7 +71,7 @@ class PurchaseController extends Controller
         }
 
         // Ordenar por fecha y hora de creación más reciente
-        $query->orderByDesc('created_at')->orderByDesc('id');
+        $query->orderByDesc('purchase_date')->orderByDesc('created_at')->orderByDesc('id');
 
         // Paginación
         $purchases = $query->paginate(15)->appends($request->except('page'));
@@ -141,13 +141,13 @@ class PurchaseController extends Controller
                     'message' => 'Debe seleccionar una sucursal para registrar la compra.'
                 ], 422);
             }
-
+            // $purchaseDate = Carbon::parse($validated['purchase_date']);
             // Crear la compra
             $purchase = Purchase::create($this->buildPurchaseAttributes([
                 'supplier_id' => $validated['supplier_id'],
                 'branch_id' => $branchId,
                 'reference_number' => $validated['reference_number'],
-                'purchase_date' => $validated['purchase_date'],
+                'purchase_date' => now(),
                 'total_amount' => 0,
                 'status' => 'completed',
             ]));

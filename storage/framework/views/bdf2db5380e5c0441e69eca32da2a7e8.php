@@ -360,7 +360,7 @@ unset($__errorArgs, $__bag); ?>
 
     <div class="info-text">
         <i class="fas fa-shield-alt me-1"></i>
-        © 2026 MIQUNA. Todos los derechos reservados. v.1.0
+        © 2026 MIQUNA. Todos los derechos reservados. v.1.1
     </div>
 
 </div>

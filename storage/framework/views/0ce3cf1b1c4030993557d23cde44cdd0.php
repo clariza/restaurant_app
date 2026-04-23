@@ -35,6 +35,77 @@
         </div>
     <?php endif; ?>
 
+    <!-- ===================== FILTROS DE CUMPLEAÑOS ===================== -->
+    <div class="bg-white rounded-lg shadow-md p-5 mb-6 border-l-4 border-[#203363]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+            <i class="fas fa-birthday-cake mr-2 text-[#203363]"></i>
+            Filtrar por Cumpleaños
+        </h2>
+        <form method="GET" action="<?php echo e(route('clients.index')); ?>" class="flex flex-wrap gap-4 items-end">
+            <!-- Filtro: Mes -->
+            <div class="flex flex-col min-w-[160px]">
+                <label for="birthday_month" class="text-sm font-medium text-gray-600 mb-1">
+                    <i class="fas fa-calendar-alt mr-1 text-gray-400"></i> Mes
+                </label>
+                <select name="birthday_month" id="birthday_month"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#203363] focus:border-transparent">
+                    <option value="">Todos los meses</option>
+                    <option value="1"  <?php echo e(request('birthday_month') == '1'  ? 'selected' : ''); ?>>Enero</option>
+                    <option value="2"  <?php echo e(request('birthday_month') == '2'  ? 'selected' : ''); ?>>Febrero</option>
+                    <option value="3"  <?php echo e(request('birthday_month') == '3'  ? 'selected' : ''); ?>>Marzo</option>
+                    <option value="4"  <?php echo e(request('birthday_month') == '4'  ? 'selected' : ''); ?>>Abril</option>
+                    <option value="5"  <?php echo e(request('birthday_month') == '5'  ? 'selected' : ''); ?>>Mayo</option>
+                    <option value="6"  <?php echo e(request('birthday_month') == '6'  ? 'selected' : ''); ?>>Junio</option>
+                    <option value="7"  <?php echo e(request('birthday_month') == '7'  ? 'selected' : ''); ?>>Julio</option>
+                    <option value="8"  <?php echo e(request('birthday_month') == '8'  ? 'selected' : ''); ?>>Agosto</option>
+                    <option value="9"  <?php echo e(request('birthday_month') == '9'  ? 'selected' : ''); ?>>Septiembre</option>
+                    <option value="10" <?php echo e(request('birthday_month') == '10' ? 'selected' : ''); ?>>Octubre</option>
+                    <option value="11" <?php echo e(request('birthday_month') == '11' ? 'selected' : ''); ?>>Noviembre</option>
+                    <option value="12" <?php echo e(request('birthday_month') == '12' ? 'selected' : ''); ?>>Diciembre</option>
+                </select>
+            </div>
+
+            <!-- Filtro acceso rápido: hoy / esta semana / este mes -->
+            <div class="flex flex-col min-w-[180px]">
+                <label for="birthday_filter" class="text-sm font-medium text-gray-600 mb-1">
+                    <i class="fas fa-filter mr-1 text-gray-400"></i> Acceso Rápido
+                </label>
+                <select name="birthday_filter" id="birthday_filter"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#203363] focus:border-transparent">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="today"      <?php echo e(request('birthday_filter') == 'today'      ? 'selected' : ''); ?>>🎂 Hoy</option>
+                    <option value="this_week"  <?php echo e(request('birthday_filter') == 'this_week'  ? 'selected' : ''); ?>>📅 Esta semana</option>
+                    <option value="this_month" <?php echo e(request('birthday_filter') == 'this_month' ? 'selected' : ''); ?>>🗓️ Este mes</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="bg-[#203363] text-white px-5 py-2 rounded-lg hover:bg-[#1a2850] transition duration-200 flex items-center text-sm shadow">
+                    <i class="fas fa-search mr-2"></i> Filtrar
+                </button>
+                <?php if(request('birthday_month') || request('birthday_filter')): ?>
+                    <a href="<?php echo e(route('clients.index')); ?>"
+                       class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 flex items-center text-sm">
+                        <i class="fas fa-times mr-2"></i> Limpiar
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <!-- Indicador de resultados activos -->
+            <?php if(request('birthday_month') || request('birthday_filter')): ?>
+                <div class="flex items-center ml-2">
+                    <span class="bg-[#203363] text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                        <i class="fas fa-birthday-cake"></i>
+                        Filtrando cumpleaños
+                    </span>
+                </div>
+            <?php endif; ?>
+        </form>
+    </div>
+    <!-- ================================================================ -->
+
     <!-- Tabla de Clientes -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="overflow-x-auto">
@@ -44,8 +115,9 @@
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
                             <i class="fas fa-user mr-1"></i> Cliente
                         </th>
+                        <!-- COLUMNA CAMBIADA: Documento → Cumpleaños -->
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                            <i class="fas fa-id-card mr-1"></i> Documento
+                            <i class="fas fa-birthday-cake mr-1"></i> Cumpleaños
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
                             <i class="fas fa-phone mr-1"></i> Contacto
@@ -63,12 +135,19 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <?php $__empty_1 = true; $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 transition duration-150">
+                        <tr class="hover:bg-gray-50 transition duration-150
+                            
+                            <?php echo e($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'bg-yellow-50' : ''); ?>">
+
                             <!-- Cliente -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-[#203363] rounded-full flex items-center justify-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-[#203363] rounded-full flex items-center justify-center relative">
                                         <i class="fas fa-user text-white"></i>
+                                        
+                                        <?php if($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d')): ?>
+                                            <span class="absolute -top-1 -right-1 text-xs">🎂</span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">
@@ -85,22 +164,44 @@
                                 </div>
                             </td>
 
-                            <!-- Documento -->
+                            <!-- CELDA CAMBIADA: Cumpleaños en lugar de Documento -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm">
-                                    <div class="font-medium text-gray-900">
-                                        <?php echo e($client->document_type === 'NIT' ? 'DNI' : $client->document_type); ?>
-
-                                    </div>
-                                    <?php if($client->document_number): ?>
-                                        <div class="text-gray-500 font-mono">
-                                            <?php echo e($client->document_number); ?>
+                                <?php if($client->birthdays): ?>
+                                    <div class="text-sm">
+                                        <div class="font-medium text-gray-900 flex items-center gap-1">
+                                            <i class="fas fa-calendar text-gray-400 w-4"></i>
+                                            <?php echo e($client->birthdays->format('d/m/Y')); ?>
 
                                         </div>
-                                    <?php else: ?>
-                                        <span class="text-gray-400 italic">Sin documento</span>
-                                    <?php endif; ?>
-                                </div>
+                                        <div class="text-gray-500 text-xs mt-0.5">
+                                            <?php
+                                                $today     = now();
+                                                $birthday  = $client->birthdays->setYear($today->year);
+                                                if ($birthday->isPast() && !$birthday->isToday()) {
+                                                    $birthday->addYear();
+                                                }
+                                                $daysLeft = (int) $today->diffInDays($birthday, false);
+                                            ?>
+
+                                            <?php if($client->birthdays->format('m-d') === $today->format('m-d')): ?>
+                                                <span class="text-yellow-600 font-semibold flex items-center gap-1">
+                                                    🎉 ¡Hoy es su cumpleaños!
+                                                </span>
+                                            <?php elseif($daysLeft <= 7): ?>
+                                                <span class="text-orange-500 font-medium">
+                                                    En <?php echo e($daysLeft); ?> día<?php echo e($daysLeft !== 1 ? 's' : ''); ?>
+
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400">
+                                                    En <?php echo e($daysLeft); ?> días
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-gray-400 italic text-sm">Sin fecha</span>
+                                <?php endif; ?>
                             </td>
 
                             <!-- Contacto -->
@@ -265,7 +366,6 @@ function showNotification(message, type) {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
