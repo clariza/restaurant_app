@@ -150,10 +150,10 @@
                            autocomplete="off">
                     <div id="search-results" class="absolute z-20 top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md hidden max-h-60 overflow-y-auto border border-gray-200"></div>
                 </div>
-                <a href="{{ route('items.create') }}" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] text-sm font-normal flex items-center space-x-1 transition duration-200">
-                    <i class="fas fa-plus"></i>
-                    <span>Agregar nuevo producto</span>
-                </a>
+                <button type="button" id="open-product-modal-btn" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] text-sm font-normal flex items-center space-x-1 transition duration-200">
+    <i class="fas fa-plus"></i>
+    <span>Agregar nuevo producto</span>
+</button>
             </div>
 
             <!-- Tabla actualizada con nuevas columnas -->
@@ -250,6 +250,173 @@
             </button>
         </div>
     </form>
+    <!-- ===================== MODAL: CREAR PRODUCTO ===================== -->
+<div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <!-- Backdrop -->
+    <div id="product-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Modal panel -->
+    <div id="product-modal-panel" 
+         class="relative z-10 w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 max-h-[90vh] overflow-y-auto">
+        
+        <!-- Header -->
+        <div class="sticky top-0 bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-2 rounded-lg">
+                    <i class="fas fa-box text-white text-lg"></i>
+                </div>
+                <h2 class="text-white text-lg font-bold tracking-wide">Crear Nuevo Producto</h2>
+            </div>
+            <button type="button" id="close-product-modal" 
+                    class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all duration-200">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Body: Formulario -->
+        <form id="modal-product-form" class="p-6 space-y-5">
+            @csrf
+
+            <!-- Nombre -->
+            <div>
+                <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                    Nombre <span class="text-[var(--red)]">*</span>
+                </label>
+                <input type="text" name="name" id="modal-product-name"
+                       class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition"
+                       placeholder="Nombre del producto" required>
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">Descripción</label>
+                <textarea name="description" id="modal-product-description" rows="2"
+                          class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition resize-none"
+                          placeholder="Descripción opcional"></textarea>
+            </div>
+
+            <!-- Precio y Categoría -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                        Precio <span class="text-[var(--red)]">*</span>
+                    </label>
+                    <div class="flex items-center border border-[var(--gray-light)] rounded-lg text-sm overflow-hidden focus-within:ring-2 focus-within:ring-[var(--primary-color)] transition">
+                        <span class="px-3 py-2 bg-gray-50 border-r border-[var(--gray-light)] text-[var(--text-light)] font-semibold">Bs.</span>
+                        <input type="number" step="0.01" min="0" name="price" id="modal-product-price"
+                               class="flex-grow px-3 py-2 focus:outline-none bg-transparent"
+                               placeholder="0.00" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                        Categoría <span class="text-[var(--red)]">*</span>
+                    </label>
+                    <select name="category_id" id="modal-product-category"
+                            class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition bg-white" required>
+                        <option value="">Seleccionar categoría</option>
+                        @foreach($categorias as $categoria)
+                            <option value="{{ $categoria->id }}">{{ $categoria->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Imagen -->
+            <div class="border border-[var(--gray-light)] rounded-xl p-4 bg-gray-50">
+                <p class="text-xs font-semibold text-[var(--text-light)] mb-3 flex items-center gap-2">
+                    <i class="fas fa-image text-[var(--primary-color)]"></i> Imagen del Producto
+                </p>
+                <!-- Tabs método -->
+                <div class="flex gap-3 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-[var(--text-color)]">
+                        <input type="radio" name="modal_image_method" value="upload" checked
+                               class="accent-[var(--primary-color)]" id="modal-method-upload">
+                        <span>Subir archivo</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-[var(--text-color)]">
+                        <input type="radio" name="modal_image_method" value="url"
+                               class="accent-[var(--primary-color)]" id="modal-method-url">
+                        <span>URL</span>
+                    </label>
+                </div>
+                <!-- Upload -->
+                <div id="modal-upload-section">
+                    <label for="modal-image-file"
+                           class="inline-flex items-center gap-2 cursor-pointer bg-white border border-[var(--gray-light)] rounded-lg px-4 py-2 text-xs text-[var(--text-color)] hover:bg-gray-100 transition">
+                        <i class="fas fa-upload text-[var(--primary-color)]"></i> Elegir imagen
+                    </label>
+                    <input type="file" name="image_file" id="modal-image-file" accept="image/*" class="hidden">
+                    <span id="modal-file-name" class="ml-2 text-xs text-gray-400">Sin archivo</span>
+                </div>
+                <!-- URL -->
+                <div id="modal-url-section" class="hidden">
+                    <input type="text" name="image_url" id="modal-image-url"
+                           class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition"
+                           placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+                <!-- Preview -->
+                <div id="modal-image-preview" class="mt-3 hidden">
+                    <img id="modal-preview-img" src="" alt="Vista previa"
+                         class="max-h-32 rounded-lg border border-[var(--gray-light)] mx-auto">
+                </div>
+            </div>
+
+            <!-- Inventario -->
+            <div class="border border-[var(--gray-light)] rounded-xl p-4 bg-gray-50">
+                <label class="flex items-center gap-2 cursor-pointer mb-1">
+                    <input type="checkbox" name="manage_inventory" id="modal-manage-inventory" value="1"
+                           class="accent-[var(--primary-color)] h-4 w-4 rounded">
+                    <span class="text-xs font-semibold text-[var(--text-color)]">Gestionar inventario para este producto</span>
+                </label>
+                <p class="text-xs text-gray-400 mb-3">Si está marcado, podrás realizar movimientos de inventario</p>
+
+                <div id="modal-inventory-fields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">Stock Inicial</label>
+                        <input type="number" step="0.01" name="stock" id="modal-stock" value="0" min="0"
+                               class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">Stock Mínimo</label>
+                        <input type="number" step="0.01" name="min_stock" id="modal-min-stock" value="5" min="0"
+                               class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">Tipo de Stock</label>
+                        <select name="stock_type" id="modal-stock-type"
+                                class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition bg-white">
+                            <option value="discrete">Discreto (unidades)</option>
+                            <option value="continuous">Continuo (peso/volumen)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">Unidad de Medida</label>
+                        <input type="text" name="stock_unit" id="modal-stock-unit" value="unidades"
+                               class="w-full border border-[var(--gray-light)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Errores de validación -->
+            <div id="modal-errors" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg p-3 text-xs space-y-1"></div>
+
+            <!-- Footer botones -->
+            <div class="flex justify-end gap-3 pt-2 border-t border-[var(--gray-light)]">
+                <button type="button" id="cancel-product-modal"
+                        class="px-5 py-2 rounded-lg border border-[var(--gray-light)] text-sm text-[var(--text-color)] hover:bg-gray-100 transition">
+                    Cancelar
+                </button>
+                <button type="submit" id="modal-submit-btn"
+                        class="px-6 py-2 rounded-lg bg-[var(--primary-color)] hover:bg-[var(--primary-light)] text-white text-sm font-semibold transition flex items-center gap-2 shadow-md">
+                    <i class="fas fa-save"></i>
+                    <span>Guardar Producto</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- ===================== FIN MODAL ===================== -->
 </div>
 
 @push('scripts')
@@ -796,7 +963,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateTotals();
 }
     // Actualizar totales
-    function updateTotals() {
+function updateTotals() {
         const rows = productsTableBody.querySelectorAll('tr:not(#empty-table-message)');
         let totalProducts = 0;
         let totalAmount = 0;
@@ -1012,6 +1179,195 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('search-results').classList.add('hidden');
     };
 });
+// ===================== MODAL: CREAR PRODUCTO =====================
+(function () {
+    const modal        = document.getElementById('product-modal');
+    const backdrop     = document.getElementById('product-modal-backdrop');
+    const panel        = document.getElementById('product-modal-panel');
+    const openBtn      = document.getElementById('open-product-modal-btn');
+    const closeBtn     = document.getElementById('close-product-modal');
+    const cancelBtn    = document.getElementById('cancel-product-modal');
+    const form         = document.getElementById('modal-product-form');
+    const submitBtn    = document.getElementById('modal-submit-btn');
+    const errorsBox    = document.getElementById('modal-errors');
+
+    // Imagen
+    const methodUpload   = document.getElementById('modal-method-upload');
+    const methodUrl      = document.getElementById('modal-method-url');
+    const uploadSection  = document.getElementById('modal-upload-section');
+    const urlSection     = document.getElementById('modal-url-section');
+    const imageFile      = document.getElementById('modal-image-file');
+    const imageUrl       = document.getElementById('modal-image-url');
+    const fileName       = document.getElementById('modal-file-name');
+    const imagePreview   = document.getElementById('modal-image-preview');
+    const previewImg     = document.getElementById('modal-preview-img');
+
+    // Inventario
+    const manageInv      = document.getElementById('modal-manage-inventory');
+    const invFields      = document.getElementById('modal-inventory-fields');
+    const stockType      = document.getElementById('modal-stock-type');
+    const stockUnit      = document.getElementById('modal-stock-unit');
+
+    function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        requestAnimationFrame(() => {
+            backdrop.classList.add('opacity-100');
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('scale-95', 'opacity-0');
+            panel.classList.add('scale-100', 'opacity-100');
+        });
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('scale-95', 'opacity-0');
+        panel.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+            resetForm();
+        }, 300);
+    }
+
+    function resetForm() {
+        form.reset();
+        errorsBox.classList.add('hidden');
+        errorsBox.innerHTML = '';
+        imagePreview.classList.add('hidden');
+        fileName.textContent = 'Sin archivo';
+        uploadSection.classList.remove('hidden');
+        urlSection.classList.add('hidden');
+        invFields.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-save"></i><span>Guardar Producto</span>';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Imagen: cambiar método
+    methodUpload.addEventListener('change', function () {
+        uploadSection.classList.remove('hidden');
+        urlSection.classList.add('hidden');
+        imageUrl.value = '';
+        imagePreview.classList.add('hidden');
+    });
+    methodUrl.addEventListener('change', function () {
+        uploadSection.classList.add('hidden');
+        urlSection.classList.remove('hidden');
+        imageFile.value = '';
+        fileName.textContent = 'Sin archivo';
+        imagePreview.classList.add('hidden');
+    });
+    imageFile.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            fileName.textContent = this.files[0].name;
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewImg.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    imageUrl.addEventListener('blur', function () {
+        if (this.value) {
+            previewImg.src = this.value;
+            imagePreview.classList.remove('hidden');
+            previewImg.onerror = () => imagePreview.classList.add('hidden');
+        }
+    });
+
+    // Inventario toggle
+    manageInv.addEventListener('change', function () {
+        invFields.classList.toggle('hidden', !this.checked);
+    });
+    stockType.addEventListener('change', function () {
+        stockUnit.value = this.value === 'discrete' ? 'unidades' : 'gr/ml';
+    });
+
+    // Submit con FormData (soporta archivos)
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorsBox.classList.add('hidden');
+        errorsBox.innerHTML = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Guardando...</span>';
+
+        const formData = new FormData();
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        formData.append('name',        document.getElementById('modal-product-name').value);
+        formData.append('description', document.getElementById('modal-product-description').value);
+        formData.append('price',       document.getElementById('modal-product-price').value);
+        formData.append('category_id', document.getElementById('modal-product-category').value);
+
+        if (methodUpload.checked && imageFile.files[0]) {
+            formData.append('image_file', imageFile.files[0]);
+        } else if (methodUrl.checked && imageUrl.value) {
+            formData.append('image_url', imageUrl.value);
+        }
+
+        if (manageInv.checked) {
+            formData.append('manage_inventory', '1');
+            formData.append('stock',      document.getElementById('modal-stock').value);
+            formData.append('min_stock',  document.getElementById('modal-min-stock').value);
+            formData.append('stock_type', document.getElementById('modal-stock-type').value);
+            formData.append('stock_unit', document.getElementById('modal-stock-unit').value);
+        }
+
+        fetch("{{ route('items.store') }}", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData
+        })
+        .then(async response => {
+            const payload = await response.json().catch(() => null);
+            if (!response.ok) {
+                // Errores de validación Laravel (422)
+                if (response.status === 422 && payload?.errors) {
+                    const msgs = Object.values(payload.errors).flat();
+                    errorsBox.innerHTML = msgs.map(m => `<p>• ${m}</p>`).join('');
+                    errorsBox.classList.remove('hidden');
+                } else {
+                    throw new Error(payload?.message || 'Error al guardar el producto');
+                }
+                return;
+            }
+            // Éxito: cerrar modal y mostrar alerta
+            closeModal();
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Producto creado',
+                    text: 'El producto fue creado correctamente.',
+                    confirmButtonColor: '#203363',
+                    timer: 2500,
+                    timerProgressBar: true
+                });
+            } else {
+                alert('Producto creado correctamente.');
+            }
+        })
+        .catch(error => {
+            errorsBox.innerHTML = `<p>• ${error.message}</p>`;
+            errorsBox.classList.remove('hidden');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i><span>Guardar Producto</span>';
+        });
+    });
+})();
+// ===================== FIN MODAL =====================
 </script>
 @endpush
 @endsection

@@ -313,15 +313,15 @@ class PettyCashController extends Controller
     {
         $branchId = $this->getBranchId();
 
-        // ✅ Verificar caja abierta solo para el usuario actual (no por sucursal global)
+        // ✅ CORREGIDO — también filtra por sucursal
         $hasOpenPettyCash = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->where('branch_id', $branchId)  // ← esta línea faltaba
             ->exists();
 
         if ($hasOpenPettyCash) {
             return redirect()->route('menu.index')
-                ->with('info', 'Ya tienes una caja chica abierta.');
+                ->with('info', 'Ya tienes una caja chica abierta en esta sucursal.');
         }
 
         return view('petty_cash.create', compact('hasOpenPettyCash'));
@@ -341,7 +341,8 @@ class PettyCashController extends Controller
         // ✅ Verificar por usuario — no por sucursal
         $existing = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
-            ->first();  // sin filtro de branch, un usuario = una caja
+            ->where('branch_id', $branchId)  // ← esta línea faltaba
+            ->first();
 
         if ($existing) {
             return redirect()->route('menu.index')
@@ -351,7 +352,6 @@ class PettyCashController extends Controller
         PettyCash::create([
             'initial_amount' => 0,
             'current_amount' => 0,
-            'date'           => now()->toDateString(),
             'date'           => now()->toDateString(),
             'opening_notes'  => $request->notes,
             'status'         => 'open',

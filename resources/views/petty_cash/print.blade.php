@@ -16,23 +16,23 @@
             background: white;
             color: #000;
             font-size: 10px;
-            width: 80mm;
-            margin: 0 auto;
-            padding: 3mm 4mm;
+            width: 72mm;
+            margin: 0;
+            padding: 2mm 3mm;
         }
 
         /* ── Encabezado ────────────────────────────────── */
         .header {
             text-align: center;
-            margin-bottom: 4mm;
-            padding-bottom: 3mm;
+            margin-bottom: 3mm;
+            padding-bottom: 2mm;
             border-bottom: 1px dashed #000;
         }
         .header h1 {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .header .subtitle {
             font-size: 8px;
@@ -41,7 +41,7 @@
         .header .caja-id {
             font-size: 9px;
             font-weight: bold;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         /* ── Sección título ────────────────────────────── */
@@ -50,8 +50,8 @@
             font-weight: bold;
             letter-spacing: 1px;
             text-align: center;
-            margin: 3mm 0 1.5mm 0;
-            padding: 1.5mm 0;
+            margin: 2mm 0 1mm 0;
+            padding: 1mm 0;
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
         }
@@ -60,9 +60,9 @@
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 1.2mm 0;
+            padding: 1mm 0;
             border-bottom: 1px dotted #ccc;
-            font-size: 9px;
+            font-size: 8.5px;
         }
         .info-row:last-child {
             border-bottom: none;
@@ -77,15 +77,15 @@
         /* ── Tabla de comparación ──────────────────────── */
         .cmp-header {
             display: flex;
-            font-size: 7.5px;
+            font-size: 7px;
             font-weight: bold;
             border-bottom: 1px solid #000;
             padding: 1mm 0;
         }
         .cmp-row {
             display: flex;
-            font-size: 8px;
-            padding: 1mm 0;
+            font-size: 7.5px;
+            padding: 0.8mm 0;
             border-bottom: 1px dotted #bbb;
         }
         .cmp-row.total {
@@ -95,18 +95,18 @@
             margin-top: 1mm;
             padding-top: 1.5mm;
         }
-        .col-method { flex: 2; }
+        .col-method { flex: 2.5; }
         .col-sys    { flex: 2; text-align: right; }
         .col-box    { flex: 2; text-align: right; }
-        .col-diff   { flex: 1.5; text-align: right; }
+        .col-diff   { flex: 1.8; text-align: right; }
 
         /* ── Alerta de diferencias ─────────────────────── */
         .alert {
             text-align: center;
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: bold;
-            padding: 2mm;
-            margin: 2mm 0;
+            padding: 1.5mm;
+            margin: 1.5mm 0;
             border: 1px solid #000;
         }
         .alert.success { border-style: solid; }
@@ -122,23 +122,23 @@
         .summary-row {
             display: flex;
             justify-content: space-between;
-            font-size: 9px;
-            padding: 1mm 0;
+            font-size: 8.5px;
+            padding: 0.8mm 0;
             border-bottom: 1px dotted #999;
         }
         .summary-row:last-child {
             border-bottom: none;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            padding-top: 2mm;
+            padding-top: 1.5mm;
             border-top: 1px solid #000;
             margin-top: 1mm;
         }
 
         /* ── Gastos ────────────────────────────────────── */
         .expense-row {
-            font-size: 8.5px;
-            padding: 1.2mm 0;
+            font-size: 8px;
+            padding: 1mm 0;
             border-bottom: 1px dotted #bbb;
         }
         .expense-row .exp-top {
@@ -146,7 +146,7 @@
             justify-content: space-between;
         }
         .expense-row .exp-desc {
-            font-size: 7.5px;
+            font-size: 7px;
             color: #555;
             padding-left: 3mm;
             margin-top: 0.5mm;
@@ -155,8 +155,8 @@
             display: flex;
             justify-content: space-between;
             font-weight: bold;
-            font-size: 9px;
-            padding: 1.5mm 0;
+            font-size: 8.5px;
+            padding: 1mm 0;
             border-top: 1px solid #000;
             margin-top: 1mm;
         }
@@ -164,17 +164,16 @@
         /* ── Notas ─────────────────────────────────────── */
         .note-box {
             border-left: 2px solid #000;
-            padding: 1.5mm 2mm;
-            margin: 2mm 0;
-            font-size: 8px;
-            line-height: 1.5;
-            background: #f5f5f5;
+            padding: 1mm 2mm;
+            margin: 1.5mm 0;
+            font-size: 7.5px;
+            line-height: 1.4;
         }
         .note-box .note-label {
             font-weight: bold;
-            font-size: 7.5px;
+            font-size: 7px;
             text-transform: uppercase;
-            margin-bottom: 1mm;
+            margin-bottom: 0.5mm;
         }
 
         /* ── Firmas ────────────────────────────────────── */
@@ -189,12 +188,12 @@
         }
         .sig-line {
             border-top: 1px solid #000;
-            padding-top: 1.5mm;
-            font-size: 7.5px;
+            padding-top: 1mm;
+            font-size: 7px;
             font-weight: bold;
         }
         .sig-name {
-            font-size: 7px;
+            font-size: 6.5px;
             margin-top: 0.5mm;
             color: #333;
         }
@@ -203,7 +202,7 @@
         .dashed-sep {
             border: none;
             border-top: 1px dashed #000;
-            margin: 3mm 0;
+            margin: 2mm 0;
         }
         .dotted-sep {
             border: none;
@@ -216,15 +215,15 @@
             text-align: center;
             font-size: 7px;
             color: #555;
-            margin-top: 4mm;
-            padding-top: 3mm;
+            margin-top: 3mm;
+            padding-top: 2mm;
             border-top: 1px dashed #000;
         }
         .cut-line {
             text-align: center;
-            font-size: 8px;
+            font-size: 7.5px;
             color: #999;
-            margin-top: 4mm;
+            margin-top: 3mm;
             letter-spacing: 2px;
         }
 
@@ -236,30 +235,30 @@
         /* ── Botón de impresión (oculto al imprimir) ───── */
         .print-button {
             display: block;
-            margin: 0 auto 4mm auto;
+            margin: 0 auto 3mm auto;
             background: #203363;
             color: white;
             border: none;
-            padding: 6px 18px;
+            padding: 5px 14px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
         }
         .print-button:hover { background: #152546; }
 
         /* ── Media print ───────────────────────────────── */
         @media print {
            body {
-        width: 80mm;
+        width: 72mm;
         margin: 0;
-        padding: 2mm 3mm;
+        padding: 1mm 3mm;
     }
     .no-print { display: none !important; }
            
         }
         @page {
             size: 80mm auto;
-            margin: 0;
+            margin: 2mm 0;
         }
     </style>
 </head>
@@ -283,7 +282,7 @@
         $diffCash  = $salesCashBox  - $salesCashSystem;
         $diffQR    = $salesQRBox    - $salesQRSystem;
         $diffCard  = $salesCardBox  - $salesCardSystem;
-        $diffTotal = $totalSalesBox - $totalSalesSystem;
+        $diffTotal = $salesCashBox - $salesCashSystem;
 
         $hasInconsistencies = abs($diffCash) > 0.01 || abs($diffQR) > 0.01 || abs($diffCard) > 0.01;
 
@@ -388,8 +387,8 @@
     {{-- Total --}}
     <div class="cmp-row total">
         <span class="col-method">TOTAL</span>
-        <span class="col-sys">{{ number_format($totalSalesSystem, 2) }}</span>
-        <span class="col-box">{{ number_format($totalSalesBox, 2) }}</span>
+        <span class="col-sys">{{ number_format($salesCashSystem, 2) }}</span>
+        <span class="col-box">{{ number_format($salesCashBox, 2) }}</span>
         <span class="col-diff {{ $diffClass($diffTotal) }}">
             {{ $diffSign($diffTotal) }}{{ number_format($diffTotal, 2) }}
         </span>

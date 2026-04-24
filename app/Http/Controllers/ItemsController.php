@@ -90,8 +90,20 @@ class ItemsController extends Controller
             $data['stock_unit'] = 'unidades';
         }
 
-        MenuItem::create($data);
+        $item = MenuItem::create($data);
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto creado correctamente.',
+                'product' => [
+                    'id'       => $item->id,
+                    'name'     => $item->name,
+                    'price'    => (float) $item->price,
+                    'category' => $item->category?->name ?? 'Sin categoría',
+                ]
+            ]);
+        }
         return redirect()->route('items.index')->with('success', 'Producto creado correctamente.');
     }
 
