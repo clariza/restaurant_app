@@ -5,13 +5,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        @page {
+            size: 80mm auto;   /* ancho físico real de la impresora térmica */
+            margin: 3mm 5mm;   /* @page maneja los márgenes — body NO agrega padding lateral */
+        }
+
         body {
             font-family: 'Courier New', Courier, monospace;
             font-size: 10px;
             color: #000;
-            width: 226px;        /* 80mm exactos en px a 96dpi: 80 * 2.8346 = ~226 */
-            margin: 0 auto;
-            padding: 0 6px;      /* margen lateral pequeño */
+            width: 100%;       /* ocupa el 100% del área útil que deja @page */
+            margin: 0;
+            padding: 0;        /* sin padding lateral — ya lo maneja @page */
+        }
+
+        @media print {
+            body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
         }
 
         /* Encabezado */
@@ -39,11 +52,15 @@
 
         /* Tablas generales */
         table {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    word-wrap: break-word;
-}
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            word-wrap: break-word;
+        }
+        td, th {
+            overflow: hidden;
+            word-break: break-word;
+        }
 
         /* Filas de info clave-valor */
         .info-table td {
@@ -165,10 +182,6 @@
             margin-top: 4mm;
             letter-spacing: 2px;
         }
-        td, th {
-    overflow: hidden;
-    word-break: break-word;
-}
     </style>
 </head>
 <body>
@@ -205,7 +218,7 @@
 <table class="info-table">
     <tr>
         <td class="label">Apertura:</td>
-        <td class="value">{{ \Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y H:i') }}</td>
+        <td class="value">{{ \Carbon\Carbon::parse($pettyCash->created_at)->format('d/m/Y H:i') }}</td>
     </tr>
     @if($pettyCash->closed_at)
     <tr>

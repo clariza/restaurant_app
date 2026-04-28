@@ -251,6 +251,13 @@
                             <!-- Acciones -->
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                 <div class="flex items-center justify-center space-x-2">
+                                    <?php if(($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d')) || $client->is_active): ?>
+        <button onclick="openCoupon(<?php echo e($client->id); ?>)"
+        class="transition duration-200 <?php echo e($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'text-red-500 hover:text-red-700' : 'text-amber-500 hover:text-amber-700'); ?>"
+        title="<?php echo e($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'Cupón cumpleaños' : 'Cupón descuento'); ?>">
+        <i class="fas fa-ticket-alt"></i>
+        </button>
+        <?php endif; ?>
                                     <a href="<?php echo e(route('clients.show', $client)); ?>" 
                                        class="text-blue-600 hover:text-blue-800 transition duration-200"
                                        title="Ver detalles">
@@ -302,6 +309,11 @@
             </div>
         <?php endif; ?>
     </div>
+
+    
+<?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php echo $__env->make('clients.partials.coupon', ['client' => $client], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </div>
 
 <script>
@@ -359,9 +371,146 @@ function showNotification(message, type) {
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
+function openCoupon(id) {
+    document.getElementById('coupon-' + id).classList.remove('hidden');
+}
+function closeCoupon(id) {
+    document.getElementById('coupon-' + id).classList.add('hidden');
+}
+// Cerrar al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('coupon-modal-overlay')) {
+        e.target.classList.add('hidden');
+    }
+});
 </script>
 
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+.coupon-modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.coupon-modal-overlay.hidden { display: none; }
+.coupon-modal-box {
+    background: #fff; border-radius: 16px;
+    padding: 1.5rem; max-width: 580px; width: 100%;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.coupon-close {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 22px; color: #888; background: none;
+    border: none; cursor: pointer; line-height: 1;
+}
+.coupon-strip {
+    display: flex; border-radius: 12px; overflow: hidden;
+}
+.coupon-premium { background: #1a1a1a; }
+.coupon-birthday { background: #c0392b; }
+
+.coupon-left {
+    flex: 1; padding: 1.25rem; display: flex;
+    flex-direction: column; gap: 0.4rem;
+}
+.coupon-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; width: fit-content;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.coupon-premium .coupon-badge   { background: #2e2e2e; color: #aaa; }
+.coupon-birthday .coupon-badge { background: #fff; color: #c0392b; }
+.coupon-premium .coupon-client  { color: #e0e0e0; }
+.coupon-premium .coupon-stamp   { border-color: #333; }
+.coupon-premium .coupon-stamp-pct{ color: #f5f5f5; }
+.coupon-premium .coupon-stamp-off{ color: #666; }
+.coupon-premium .coupon-code-label{ color: #555; }
+.coupon-birthday .coupon-code   { background: #e8d8c8; color: #5c3d24; border-color: #c8b8a8; }
+.coupon-premium .coupon-bar     { background: #333; }
+.coupon-premium .coupon-notch   { background: #fff; }
+.coupon-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px; line-height: 1;
+}
+.coupon-premium .coupon-headline{ color: #f5f5f5; }
+.coupon-birthday .coupon-headline { color: #fff; }
+
+.coupon-sub { font-size: 12px; line-height: 1.4; }
+.coupon-premium .coupon-sub     { color: #777; }
+.coupon-birthday .coupon-sub { color: rgba(255,255,255,0.85); }
+
+.coupon-client { font-size: 14px; font-weight: 700; color: #fff; }
+.coupon-validity { font-size: 10px; margin-top: auto; }
+.coupon-premium .coupon-validity{ color: #555; }
+.coupon-birthday .coupon-validity { color: rgba(255,255,255,0.55); }
+
+.coupon-divider {
+    width: 2px; margin: 1rem 0; flex-shrink: 0;
+    background: repeating-linear-gradient(
+        to bottom, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 12px
+    );
+    position: relative;
+}
+.coupon-divider::before, .coupon-divider::after {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; background: #fff;
+    border-radius: 50%; left: 50%; transform: translateX(-50%); z-index: 2;
+}
+.coupon-divider::before { top: -9px; }
+.coupon-divider::after  { bottom: -9px; }
+
+.coupon-right {
+    width: 130px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.6rem; padding: 1rem 0.75rem;
+}
+.coupon-premium .coupon-right { background: #141414; }
+.coupon-birthday .coupon-right { background: #a93226; }
+.coupon-premium .coupon-divider { border-right: 1px dashed rgba(255,255,255,0.12); }
+
+.coupon-stamp {
+    width: 50px; height: 50px; border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,0.4);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+}
+.coupon-stamp-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; color: #f5a623; line-height: 1;
+}
+.coupon-stamp-off {
+    font-size: 9px; color: rgba(255,255,255,0.6);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.coupon-code-label {
+    font-size: 10px; color: rgba(255,255,255,0.5);
+    text-transform: uppercase; letter-spacing: 0.1em;
+}
+.coupon-code {
+    font-family: monospace; font-size: 15px;
+    color: #f5a623; letter-spacing: 0.1em;
+    background: rgba(245,166,35,0.12);
+    padding: 3px 8px; border-radius: 5px;
+    border: 1px dashed rgba(245,166,35,0.4);
+}
+.coupon-birthday .coupon-code {
+    color: #fff; background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+}
+.coupon-barcode { display: flex; gap: 2px; align-items: flex-end; }
+.coupon-bar { background: rgba(255,255,255,0.55); border-radius: 1px; }
+
+.coupon-print-btn {
+    background: #203363; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 8px 20px; font-size: 13px;
+    cursor: pointer; transition: background 0.2s;
+}
+.coupon-print-btn:hover { background: #1a2850; }
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }

@@ -8,37 +8,37 @@ use Illuminate\Http\Request;
 class ClientController extends Controller
 {
     public function index(Request $request)
-{
-    $query = Client::orderBy('created_at', 'desc');
+    {
+        $query = Client::orderBy('created_at', 'desc');
 
-    // Filtro por mes específico
-    if ($request->filled('birthday_month')) {
-        $query->whereMonth('birthdays', $request->birthday_month);
+        // Filtro por mes específico
+        if ($request->filled('birthday_month')) {
+            $query->whereMonth('birthdays', $request->birthday_month);
+        }
+
+        // Filtros rápidos
+        if ($request->filled('birthday_filter')) {
+            $today = now();
+            match ($request->birthday_filter) {
+                'today'      => $query->whereMonth('birthdays', $today->month)
+                    ->whereDay('birthdays', $today->day),
+                'this_week'  => $query->whereRaw('DATE_FORMAT(birthdays, "%m-%d") BETWEEN ? AND ?', [
+                    $today->format('m-d'),
+                    $today->addDays(7)->format('m-d'),
+                ]),
+                'this_month' => $query->whereMonth('birthdays', $today->month),
+                default      => null,
+            };
+        }
+
+        $clients = $query->paginate(10)->withQueryString();
+
+        if ($request->ajax() || $request->query('json')) {
+            return response()->json(['success' => true, 'clients' => $clients]);
+        }
+
+        return view('clients.index', compact('clients'));
     }
-
-    // Filtros rápidos
-    if ($request->filled('birthday_filter')) {
-        $today = now();
-        match ($request->birthday_filter) {
-            'today'      => $query->whereMonth('birthdays', $today->month)
-                                  ->whereDay('birthdays', $today->day),
-            'this_week'  => $query->whereRaw('DATE_FORMAT(birthdays, "%m-%d") BETWEEN ? AND ?', [
-                                $today->format('m-d'),
-                                $today->addDays(7)->format('m-d'),
-                            ]),
-            'this_month' => $query->whereMonth('birthdays', $today->month),
-            default      => null,
-        };
-    }
-
-    $clients = $query->paginate(10)->withQueryString();
-
-    if ($request->ajax() || $request->query('json')) {
-        return response()->json(['success' => true, 'clients' => $clients]);
-    }
-
-    return view('clients.index', compact('clients'));
-}
     // public function index()
     // {
     //     $clients = Client::orderBy('created_at', 'desc')->paginate(10);
@@ -47,7 +47,8 @@ class ClientController extends Controller
 
     public function create()
     {
-        return view('clients.create');
+        $branches = \App\Models\Branch::active()->orderBy('name')->get();
+        return view('clients.create', compact('branches'));
     }
 
     public function store(Request $request)
@@ -60,7 +61,7 @@ class ClientController extends Controller
             'document_type' => 'required|in:CI,DNI,Pasaporte',
             'document_number' => 'nullable|string|max:50|unique:clients,document_number',
             'birthdays' => 'nullable|date',
-            'city' => 'nullable|string|max:100',
+            'branch_id' => 'nullable|exists:branches,id',
             'notes' => 'nullable|string',
             'is_active' => 'boolean'
         ]);
@@ -93,7 +94,7 @@ class ClientController extends Controller
             'document_type' => 'required|in:CI,DNI,Pasaporte',
             'document_number' => 'nullable|string|max:50|unique:clients,document_number,' . $client->id,
             'birthdays' => 'nullable|date',
-            'city' => 'nullable|string|max:100',
+            'branch_id' => 'nullable|exists:branches,id',
             'notes' => 'nullable|string',
             'is_active' => 'boolean'
         ]);

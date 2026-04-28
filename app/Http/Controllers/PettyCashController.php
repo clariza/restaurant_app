@@ -352,7 +352,7 @@ class PettyCashController extends Controller
         PettyCash::create([
             'initial_amount' => 0,
             'current_amount' => 0,
-            'date'           => now()->toDateString(),
+            'date'           => now(),
             'opening_notes'  => $request->notes,
             'status'         => 'open',
             'user_id'        => auth()->id(),

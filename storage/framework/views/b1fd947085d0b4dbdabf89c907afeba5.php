@@ -4,14 +4,24 @@
     <meta charset="UTF-8">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        @page {
+            size: 80mm auto;   /* ancho fijo, alto automático */
+            margin: 2mm 4mm;   /* márgenes físicos */
+        }
+        @media print {
+        body {
+            width: 80mm;
+            margin: 0;
+            padding: 0;
+        }
+    }
         body {
             font-family: 'Courier New', Courier, monospace;
             font-size: 10px;
             color: #000;
-            width: 226px;        /* 80mm exactos en px a 96dpi: 80 * 2.8346 = ~226 */
+            width: 80mm;        /* 80mm exactos en px a 96dpi: 80 * 2.8346 = ~226 */
             margin: 0 auto;
-            padding: 0 6px;      /* margen lateral pequeño */
+            padding: 0 4mm;      /* margen lateral pequeño */
         }
 
         /* Encabezado */
