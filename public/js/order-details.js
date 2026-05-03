@@ -1384,12 +1384,12 @@ function generateTicketContent(dailyOrderNumber) {
         if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
     } else {
         // Pedido normal: solo notas del pedido
-        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+        if (orderNotes) allNotes += `<div class="notes"><span class="notes-label" style="font-size:16px;">Notas del pedido:</span> ${orderNotes}</div>\n`;
     }
 
     // Las notas de recoger son independientes y siempre aplican si corresponde
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de recojo: ${pickupNotes}`;
+        allNotes += `<div class="notes" style="font-size:16px;"><span class="notes-label" style="font-size:16px;">Notas de recojo:</span> ${pickupNotes}</div>`;
     }
 
     console.log('✅ Ticket generado con:', {
@@ -1634,15 +1634,15 @@ async function generateTicketContentAsync(dailyOrderNumber) {
 
     if (isConvertingProforma) {
         // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
-        if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+        if (proformaNotes) allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas de reserva:</span> ${proformaNotes}</div>\n`
     } else {
         // Pedido normal: solo notas del pedido
-        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+        if (orderNotes) allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas del pedido:</span> ${orderNotes}</div>\n`;
     }
 
     // Las notas de recoger son independientes y siempre aplican si corresponde
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de recojo: ${pickupNotes}`;
+        allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas de recojo:</span> ${pickupNotes}</div>`;
     }
     return `
         <div class="header">
@@ -1777,9 +1777,12 @@ function confirmPrint() {
                 .footer { text-align: center; margin-top: 5px; font-size: 10px; }
                 .notes { 
                     margin-top: 4px; 
-                    font-size: 11px;
+                    font-size: 13px;
                     white-space: pre-wrap; /* Para mantener los saltos de línea */
                 }
+                .notes-label {
+                    font-size: 13px;
+                    }
                 @page {
                     size: 72mm auto;
                     margin: 0;

@@ -123,6 +123,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
 
     // ─── ORDERS ── ESTÁTICAS PRIMERO ─────────────────────────────
+    Route::get('/orders/{order}/ticket-pdf', [OrderController::class, 'ticketPdf'])->name('orders.ticket-pdf');
     Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
@@ -160,6 +161,7 @@ Route::middleware(['auth'])->group(function () {
     // ─── CLIENTS ─────────────────────────────────────────────────
     Route::post('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus'])
         ->name('clients.toggle-status');
+    Route::get('/clients/search', [ClientController::class, 'search']);
     Route::resource('clients', ClientController::class);
 
     // ─── CUSTOMER DETAILS ────────────────────────────────────────

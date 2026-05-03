@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -158,6 +159,24 @@ class OrderController extends Controller
                 ->first();
         }
         return view('orders.show', compact('order', 'previousOrder', 'nextOrder', 'hasOpenPettyCash'));
+    }
+    public function ticketPdf($id)
+    {
+        $order = Sale::with(['items.menuItem', 'user'])->findOrFail($id);
+
+        $pdf = Pdf::loadView('orders.ticket-pdf', compact('order'))
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,
+                'margin_right'    => 6,
+            ]);
+
+        return $pdf->stream("ticket-orden-{$order->id}.pdf");
     }
     public function destroy($id)
     {

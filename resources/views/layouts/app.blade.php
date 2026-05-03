@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
 
@@ -624,10 +624,10 @@
     <!-- Área de usuario y notificaciones -->
     <div class="flex items-center space-x-3 pr-4 flex-shrink-0">
         <!-- Botón de notificaciones -->
-        <button class="text-gray-600 hover:text-[#203363] relative transition-colors duration-200 hidden sm:block">
+        {{-- <button class="text-gray-600 hover:text-[#203363] relative transition-colors duration-200 hidden sm:block">
             <i class="fas fa-bell text-xl"></i>
             <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
+        </button> --}}
 
         <!-- Menú de usuario -->
         <div class="relative">

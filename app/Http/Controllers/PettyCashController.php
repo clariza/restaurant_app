@@ -565,7 +565,18 @@ class PettyCashController extends Controller
             ]
         ];
 
-        $pdf = Pdf::loadView('petty_cash.print', $data);
+        $pdf = Pdf::loadView('petty_cash.print', $data)
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,
+                'margin_right'    => 6,
+            ]);
+
         return $pdf->stream('reporte-caja-chica-' . $pettyCash->date . '.pdf');
     }
 
@@ -726,7 +737,18 @@ class PettyCashController extends Controller
             ]
         ];
 
-        $pdf = Pdf::loadView('petty_cash.print', $data);
+        $pdf = Pdf::loadView('petty_cash.print', $data)
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,
+                'margin_right'    => 6,
+            ]);
+
         return $pdf->stream('reporte-caja-anterior-' . $previousPettyCash->date . '.pdf');
     }
 

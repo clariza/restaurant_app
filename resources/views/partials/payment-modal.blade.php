@@ -411,23 +411,34 @@
     
     <form id="modal-customer-details-form">
         <!-- Campo Nombre - SIEMPRE VISIBLE -->
-        <div class="form-group">
-            <label for="modal-customer-name" class="form-label required">
-                Nombre Completo
-            </label>
-            <input 
-                type="text" 
-                id="modal-customer-name" 
-                name="customer_name" 
-                class="form-input" 
-                placeholder="Ej: Juan Pérez"
-                required
-            >
-            <small style="display: block; margin-top: 4px; color: #6b7280; font-size: 0.8rem;">
-                <i class="fas fa-info-circle"></i>
-                Ingresa el nombre completo del cliente
-            </small>
-        </div>
+        <!-- Campo Nombre - SIEMPRE VISIBLE -->
+<div class="form-group" style="position: relative;">
+    <label for="modal-customer-name" class="form-label required">
+        Nombre Completo
+    </label>
+    <input 
+        type="text" 
+        id="modal-customer-name" 
+        name="customer_name" 
+        class="form-input" 
+        placeholder="Ej: Juan Pérez"
+        autocomplete="off"
+        oninput="searchClientByName(this.value)"
+        required
+    >
+    <small style="display: block; margin-top: 4px; color: #6b7280; font-size: 0.8rem;">
+        <i class="fas fa-info-circle"></i>
+        Ingresa el nombre del cliente
+    </small>
+
+    <!-- Dropdown de sugerencias -->
+    <div id="client-suggestions-dropdown" 
+         style="display:none; position:absolute; top:100%; left:0; right:0; 
+                background:white; border:1px solid #e2e8f0; border-top:none;
+                border-radius:0 0 8px 8px; max-height:220px; overflow-y:auto;
+                z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    </div>
+</div>
 
         <!-- SECCIÓN DESPLEGABLE UNIFICADA: Información Adicional -->
         <div class="collapsible-section">
@@ -1370,6 +1381,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modificar la función nextStep para validar según el estado de las mesas
 function nextStep() {
+    alert("Validando paso actual...");
     const currentStep = document.querySelector('.step-content.active');
     const currentStepNumber = parseInt(currentStep.id.split('-')[1]);
     
@@ -1427,32 +1439,69 @@ function nextStep() {
         }
     }
     
+
     // Validación del Paso 2 (Métodos de Pago)
-    if (currentStepNumber === 2) {
-        const paymentRows = document.querySelectorAll('.payment-row');
-        
-        if (paymentRows.length === 0) {
-            alert('Por favor agrega al menos un método de pago');
-            return;
-        }
-        
-        let isValid = true;
-        paymentRows.forEach(row => {
-            const method = row.querySelector('.payment-type');
-            const amount = row.querySelector('.total-paid');
-            
-            if (!method || !method.value || !amount || !amount.value) {
-                isValid = false;
-            }
-        });
-        
-        if (!isValid) {
-            alert('Por favor completa todos los métodos de pago');
-            return;
-        }
-        
-        updateStep3Summary();
+if (currentStepNumber === 2) {
+    alert("Validando métodos de pago...");
+    const paymentRows = document.querySelectorAll('.payment-row');
+
+    if (paymentRows.length === 0) {
+        alert('Por favor agrega al menos un método de pago');
+        return;
     }
+
+    let isValid = true;
+    let totalPagado = 0;
+    let totalAPagar = 0;
+
+    paymentRows.forEach(row => {
+        const method   = row.querySelector('.payment-type');
+        alert("paso 2");
+        alert(method.value);
+
+        const paidInput  = row.querySelector('.total-paid');
+        const totalInput = row.querySelector('.total-amount');
+
+        if (!method || !method.value || !paidInput || !paidInput.value) {
+            isValid = false;
+            return;
+        }
+
+        const paid  = parseFloat(paidInput.value)  || 0;
+        const total = parseFloat(totalInput?.value) || 0;
+
+        // Acumular para la verificación global
+        totalPagado += paid;
+        // Solo tomamos el total-amount de la PRIMERA fila (es el total real del pedido)
+    });
+
+    if (!isValid) {
+        alert('Por favor completa todos los métodos de pago');
+        return;
+    }
+
+    // Obtener el total real del pedido (desde calcularTotal o desde el DOM)
+    totalAPagar = parseFloat(calcularTotal()) || 0;
+
+    // Validación 1: Total Pagado debe ser mayor que 0
+    if (totalPagado <= 0) {
+        alert('❌ El total pagado debe ser mayor a 0.\n\nIngresa el monto en el campo "Total Pagado".');
+        return;
+    }
+
+    // Validación 2: Total Pagado debe cubrir el Total a Pagar
+    if (totalPagado < totalAPagar) {
+        alert(
+            `❌ El monto ingresado es insuficiente.\n\n` +
+            `Total del pedido:  Bs ${totalAPagar.toFixed(2)}\n` +
+            `Total pagado:      Bs ${totalPagado.toFixed(2)}\n` +
+            `Diferencia:        Bs ${(totalAPagar - totalPagado).toFixed(2)}`
+        );
+        return;
+    }
+
+    updateStep3Summary();
+}
     
     // Avanzar al siguiente paso
     const nextStepNumber = currentStepNumber + 1;
@@ -1708,6 +1757,87 @@ window.addEventListener('load', function() {
 </script>
 
 <style>
+/* ============================================
+   ESTILOS AUTOCOMPLETADO DE CLIENTES
+   ============================================ */
+
+.client-suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.client-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.client-suggestion-item:hover,
+.client-suggestion-item.highlighted {
+    background: #f0f4ff;
+}
+
+.client-suggestion-avatar {
+    width: 32px;
+    height: 32px;
+    background: #203363;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.client-suggestion-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.client-suggestion-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #203363;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.client-suggestion-detail {
+    font-size: 0.78rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.client-suggestion-badge {
+    font-size: 0.7rem;
+    background: #d1fae5;
+    color: #065f46;
+    padding: 2px 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.client-suggestions-loading {
+    padding: 12px 14px;
+    color: #6b7280;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.client-suggestions-empty {
+    padding: 12px 14px;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    text-align: center;
+    font-style: italic;
+}
     /* ============================================
    ESTILOS PARA CAMPO DE CUMPLEAÑOS
    ============================================ */

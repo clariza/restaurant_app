@@ -317,6 +317,73 @@
 </div>
 
 <script>
+    function downloadCoupon(id) {
+    const btn      = document.getElementById(`download-btn-${id}`);
+    const couponEl = document.querySelector(`#coupon-preview-${id} .coupon-strip`);
+
+    if (!couponEl) return;
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML  = '⏳ Generando...';
+    btn.disabled   = true;
+
+    html2canvas(couponEl, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+    }).then(canvas => {
+        const link    = document.createElement('a');
+        link.download = `cupon-${id}.png`;
+        link.href     = canvas.toDataURL('image/png');
+        link.click();
+        btn.innerHTML = originalHTML;
+        btn.disabled  = false;
+    }).catch(() => {
+        showNotification('Error al generar la imagen', 'error');
+        btn.innerHTML = originalHTML;
+        btn.disabled  = false;
+    });
+}
+    function formatDateES(dateStr) {
+    if (!dateStr) return '';
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const [y, m, d] = dateStr.split('-');
+    return `${d} ${meses[parseInt(m,10)-1]} ${y}`;
+}
+function updateCouponPreview(id) {
+    const pctEl       = document.getElementById(`pct-${id}`);
+    const validityEl  = document.getElementById(`validity-${id}`);
+    const subEl       = document.getElementById(`sub-${id}`);
+
+    // Porcentaje (solo cupón premium)
+    if (pctEl) {
+        const pct = pctEl.value || '0';
+        const stamEl = document.getElementById(`stamp-pct-${id}`);
+        const headEl = document.getElementById(`headline-${id}`);
+        if (stamEl) stamEl.textContent = pct + '%';
+        if (headEl) headEl.textContent = pct + '% OFF';
+    }
+
+    // Vigencia
+    if (validityEl) {
+        const vEl = document.getElementById(`coupon-validity-text-${id}`);
+        if (vEl) {
+            // Si es un date-input (premium) formateamos, si es text (birthday) usamos directo
+            const raw = validityEl.value;
+            const isDate = validityEl.type === 'date';
+            vEl.innerHTML = isDate
+                ? `Válido hasta: ${formatDateES(raw)} &nbsp;·&nbsp; *Aplican términos`
+                : raw;
+        }
+    }
+
+    // Sub-texto / descripción
+    if (subEl) {
+        const sEl = document.getElementById(`coupon-sub-text-${id}`);
+        if (sEl) sEl.textContent = subEl.value;
+    }
+}
 function toggleStatus(clientId, currentStatus) {
     fetch(`/clients/${clientId}/toggle-status`, {
         method: 'POST',
@@ -352,6 +419,16 @@ function toggleStatus(clientId, currentStatus) {
         showNotification('Error al cambiar el estado', 'error');
     });
 }
+function backToEditor(id) {
+    document.getElementById(`coupon-preview-${id}`).classList.add('hidden');
+    document.getElementById(`coupon-editor-${id}`).classList.remove('hidden');
+}
+// Muestra el cupón y oculta el editor
+function confirmCoupon(id) {
+    updateCouponPreview(id); // aplica última edición
+    document.getElementById(`coupon-editor-${id}`).classList.add('hidden');
+    document.getElementById(`coupon-preview-${id}`).classList.remove('hidden');
+}
 
 function showNotification(message, type) {
     const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
@@ -372,7 +449,12 @@ function showNotification(message, type) {
     }, 3000);
 }
 function openCoupon(id) {
-    document.getElementById('coupon-' + id).classList.remove('hidden');
+    const overlay = document.getElementById(`coupon-${id}`);
+    const editor  = document.getElementById(`coupon-editor-${id}`);
+    const preview = document.getElementById(`coupon-preview-${id}`);
+    if (editor)  editor.classList.remove('hidden');
+    if (preview) preview.classList.add('hidden');
+    overlay.classList.remove('hidden');
 }
 function closeCoupon(id) {
     document.getElementById('coupon-' + id).classList.add('hidden');
@@ -387,7 +469,59 @@ document.addEventListener('click', function(e) {
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-
+/* ── Editor de cupón ─────────────────────────────── */
+.coupon-editor {
+    padding: .25rem 0 1rem;
+}
+.coupon-editor-title {
+    font-size: 16px; font-weight: 700; color: #203363;
+    margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: .5rem;
+}
+.coupon-editor-subtitle {
+    font-size: 13px; font-weight: 400; color: #6b7280;
+}
+.coupon-editor-fields {
+    display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem;
+}
+.coupon-field-group {
+    display: flex; flex-direction: column; gap: .3rem; min-width: 140px; flex: 1;
+}
+.coupon-field-full { flex-basis: 100%; }
+.coupon-field-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: #6b7280;
+}
+.coupon-field-row {
+    display: flex; align-items: center; gap: .4rem;
+}
+.coupon-field-input {
+    border: 1.5px solid #d1d5db; border-radius: 8px;
+    padding: 7px 10px; font-size: 14px; width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+}
+.coupon-field-input:focus {
+    border-color: #203363;
+    box-shadow: 0 0 0 3px rgba(32,51,99,.12);
+}
+.coupon-field-unit {
+    font-size: 14px; color: #6b7280; white-space: nowrap;
+}
+.coupon-confirm-btn {
+    background: #203363; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 9px 22px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .2s;
+    display: block; margin-left: auto;
+}
+.coupon-confirm-btn:hover { background: #1a2850; }
+.coupon-back-btn {
+    background: #f3f4f6; color: #374151;
+    border: none; border-radius: 8px;
+    padding: 8px 18px; font-size: 13px;
+    cursor: pointer; transition: background .2s;
+}
+.coupon-back-btn:hover { background: #e5e7eb; }
 .coupon-modal-overlay {
     position: fixed; inset: 0; z-index: 9999;
     background: rgba(0,0,0,0.55);
@@ -409,7 +543,7 @@ document.addEventListener('click', function(e) {
 .coupon-strip {
     display: flex; border-radius: 12px; overflow: hidden;
 }
-.coupon-premium { background: #1a1a1a; }
+.coupon-premium { background: #1e3a5f; }  
 .coupon-birthday { background: #c0392b; }
 
 .coupon-left {
@@ -421,15 +555,16 @@ document.addEventListener('click', function(e) {
     padding: 3px 10px; border-radius: 20px; width: fit-content;
     text-transform: uppercase; letter-spacing: 0.05em;
 }
-.coupon-premium .coupon-badge   { background: #2e2e2e; color: #aaa; }
+.coupon-premium .coupon-badge   { background: #2a4a72; color: #7aafd4; } 
 .coupon-birthday .coupon-badge { background: #fff; color: #c0392b; }
-.coupon-premium .coupon-client  { color: #e0e0e0; }
-.coupon-premium .coupon-stamp   { border-color: #333; }
-.coupon-premium .coupon-stamp-pct{ color: #f5f5f5; }
-.coupon-premium .coupon-stamp-off{ color: #666; }
-.coupon-premium .coupon-code-label{ color: #555; }
+.coupon-premium .coupon-client  { color: #b8d4ea; } 
+.coupon-premium .coupon-stamp   { border-color: #2a4a72; }
+.coupon-premium .coupon-stamp-pct{ color: #7ec8e3; } 
+.coupon-premium .coupon-stamp-off{ color: rgba(255,255,255,.5); }
+.coupon-premium .coupon-code-label{ color: rgba(255,255,255,.4); } 
+.coupon-code { color: #7ec8e3; background: rgba(126,200,227,.1); border-color: rgba(126,200,227,.35); }
 .coupon-birthday .coupon-code   { background: #e8d8c8; color: #5c3d24; border-color: #c8b8a8; }
-.coupon-premium .coupon-bar     { background: #333; }
+.coupon-premium .coupon-bar { background: rgba(255,255,255,.4); }
 .coupon-premium .coupon-notch   { background: #fff; }
 .coupon-headline {
     font-family: 'Bebas Neue', sans-serif;
@@ -439,13 +574,13 @@ document.addEventListener('click', function(e) {
 .coupon-birthday .coupon-headline { color: #fff; }
 
 .coupon-sub { font-size: 12px; line-height: 1.4; }
-.coupon-premium .coupon-sub     { color: #777; }
+.coupon-premium .coupon-sub     { color: #6a9bbf; } 
 .coupon-birthday .coupon-sub { color: rgba(255,255,255,0.85); }
 
 .coupon-client { font-size: 14px; font-weight: 700; color: #fff; }
 .coupon-validity { font-size: 10px; margin-top: auto; }
-.coupon-premium .coupon-validity{ color: #555; }
-.coupon-birthday .coupon-validity { color: rgba(255,255,255,0.55); }
+.coupon-premium .coupon-validity{ color: #3f6a8a; } 
+.coupon-premium .coupon-headline{ color: #e8f2fb; } 
 
 .coupon-divider {
     width: 2px; margin: 1rem 0; flex-shrink: 0;
@@ -468,7 +603,7 @@ document.addEventListener('click', function(e) {
     align-items: center; justify-content: center;
     gap: 0.6rem; padding: 1rem 0.75rem;
 }
-.coupon-premium .coupon-right { background: #141414; }
+.coupon-premium .coupon-right { background: #152d4a; }
 .coupon-birthday .coupon-right { background: #a93226; }
 .coupon-premium .coupon-divider { border-right: 1px dashed rgba(255,255,255,0.12); }
 
@@ -519,5 +654,6 @@ document.addEventListener('click', function(e) {
     animation: fade-in 0.3s ease-out;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/clients/index.blade.php ENDPATH**/ ?>

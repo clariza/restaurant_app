@@ -315,7 +315,7 @@
 
     <div class="info-text">
         <i class="fas fa-shield-alt me-1"></i>
-        © 2026 MIQUNA. Todos los derechos reservados. v.1.1
+        © 2026 MIQUNA. Todos los derechos reservados. v.1.2
     </div>
 
 </div>

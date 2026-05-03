@@ -1,3 +1,251 @@
+let _clientSearchTimeout = null;
+let _clientSearchCache = {};
+let _highlightedIndex = -1;
+
+async function searchClientByName(value) {
+    const dropdown = document.getElementById('client-suggestions-dropdown');
+    if (!dropdown) return;
+
+    const query = value.trim();
+
+    // Limpiar indicador previo si el usuario está escribiendo
+    clearClientSavedIndicator();
+
+    // Ocultar si menos de 2 caracteres
+    if (query.length < 2) {
+        hideClientSuggestionsDropdown();
+        return;
+    }
+
+    // Mostrar loading inmediatamente
+    dropdown.style.display = 'block';
+    dropdown.innerHTML = `
+        <div class="client-suggestions-loading">
+            <i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>
+            Buscando...
+        </div>
+    `;
+
+    // Debounce: esperar 300ms antes de hacer la petición
+    clearTimeout(_clientSearchTimeout);
+    _clientSearchTimeout = setTimeout(async () => {
+        // Usar caché si ya buscamos esta query
+        if (_clientSearchCache[query]) {
+            renderClientSuggestions(_clientSearchCache[query], query);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/clients/search?q=${encodeURIComponent(query)}&json=1`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            const clients = data.clients || [];
+
+            // Guardar en caché
+            _clientSearchCache[query] = clients;
+
+            renderClientSuggestions(clients, query);
+
+        } catch (error) {
+            console.error('❌ Error buscando clientes:', error);
+            dropdown.innerHTML = `
+                <div class="client-suggestions-empty">
+                    <i class="fas fa-exclamation-circle" style="margin-right:6px;color:#f59e0b;"></i>
+                    Error al buscar clientes
+                </div>
+            `;
+        }
+    }, 300);
+}
+function renderClientSuggestions(clients, query) {
+    const dropdown = document.getElementById('client-suggestions-dropdown');
+    if (!dropdown) return;
+
+    _highlightedIndex = -1;
+
+    if (!clients || clients.length === 0) {
+        dropdown.innerHTML = `
+            <div class="client-suggestions-empty">
+                <i class="fas fa-user-slash" style="margin-right:6px;"></i>
+                No se encontró "${query}" — puedes crear un cliente nuevo
+            </div>
+        `;
+        return;
+    }
+
+    dropdown.innerHTML = clients.map((client, index) => {
+        const fullName = client.full_name || `${client.name} ${client.last_name}`;
+        const initials = getInitials(fullName);
+
+        // Construir línea de detalle
+        const details = [
+            client.phone ? `📞 ${client.phone}` : null,
+            client.document_number ? `🪪 ${client.document_number}` : null,
+            client.email ? `✉️ ${client.email}` : null,
+        ].filter(Boolean).join('  ·  ');
+
+        return `
+            <div class="client-suggestion-item"
+                 data-index="${index}"
+                 data-client-id="${client.id}"
+                 onclick="selectClientFromSuggestion(${client.id})"
+                 onmouseenter="highlightSuggestion(${index})">
+                <div class="client-suggestion-avatar">${initials}</div>
+                <div class="client-suggestion-info">
+                    <div class="client-suggestion-name">${highlightMatch(fullName, query)}</div>
+                    ${details ? `<div class="client-suggestion-detail">${details}</div>` : ''}
+                </div>
+                ${client.is_active
+                ? '<span class="client-suggestion-badge">✓ Activo</span>'
+                : ''}
+            </div>
+        `;
+    }).join('');
+
+    dropdown.style.display = 'block';
+}
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return text.replace(regex, '<mark style="background:#fef08a;border-radius:2px;padding:0 1px;">$1</mark>');
+}
+/**
+ * Obtener iniciales del nombre
+ */
+function getInitials(name) {
+    return name
+        .split(' ')
+        .slice(0, 2)
+        .map(w => w[0]?.toUpperCase() || '')
+        .join('');
+}
+
+/**
+ * Resaltar un item del dropdown con teclado
+ */
+function highlightSuggestion(index) {
+    _highlightedIndex = index;
+    document.querySelectorAll('.client-suggestion-item').forEach((el, i) => {
+        el.classList.toggle('highlighted', i === index);
+    });
+}
+
+/**
+ * Seleccionar un cliente desde el dropdown
+ */
+function selectClientFromSuggestion(clientId) {
+    // Buscar en caché local primero
+    let client = null;
+
+    for (const cached of Object.values(_clientSearchCache)) {
+        client = cached.find(c => c.id === clientId);
+        if (client) break;
+    }
+
+    // También buscar en clientsData si ya estaba cargado
+    if (!client && Array.isArray(window.clientsData)) {
+        client = window.clientsData.find(c => c.id === clientId);
+    }
+
+    if (!client) {
+        console.warn('⚠️ Cliente no encontrado en caché, cargando desde API...');
+        fetchAndFillClient(clientId);
+        return;
+    }
+
+    fillCustomerFormWithClient(client);
+    hideClientSuggestionsDropdown();
+}
+
+/**
+ * Cargar cliente desde la API si no está en caché
+ */
+async function fetchAndFillClient(clientId) {
+    try {
+        const response = await fetch(`/clients/${clientId}?json=1`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        });
+        const data = await response.json();
+        const client = data.client || data;
+        fillCustomerFormWithClient(client);
+    } catch (e) {
+        console.error('❌ Error al cargar cliente:', e);
+    } finally {
+        hideClientSuggestionsDropdown();
+    }
+}
+
+/**
+ * Rellenar formulario con datos del cliente
+ */
+function fillCustomerFormWithClient(client) {
+    const fullName = client.full_name || `${client.name} ${client.last_name}`;
+
+    // Campos principales
+    _setField('modal-customer-name', fullName);
+    _setField('modal-customer-email', client.email || '');
+    _setField('modal-customer-phone', client.phone || '');
+    _setField('modal-customer-doc-type', client.document_type || 'CI');
+    _setField('modal-customer-doc-number', client.document_number || '');
+    _setField('modal-customer-address', client.address || '');
+    _setField('modal-customer-city', client.city || '');
+    _setField('modal-customer-notes', client.notes || '');
+    _setField('modal-customer-birthday', client.birthday || client.birthdays || '');
+
+    // Calcular edad si hay cumpleaños
+    if (client.birthday || client.birthdays) {
+        setTimeout(updateAgeFromBirthday, 100);
+    }
+
+    // Abrir secciones desplegables si tienen datos
+    setTimeout(() => {
+        if (client.email || client.phone) {
+            openCollapsibleSection('additional-info-section');
+        }
+    }, 150);
+
+    // Guardar en localStorage
+    localStorage.setItem('customerName', fullName);
+    localStorage.setItem('customerEmail', client.email || '');
+    localStorage.setItem('customerPhone', client.phone || '');
+    localStorage.setItem('selectedClientId', client.id);
+
+    // Mostrar indicador de guardado
+    showClientSavedIndicator(client.id, fullName);
+
+    console.log(`✅ Formulario llenado con cliente: ${fullName} (ID: ${client.id})`);
+}
+
+/** Setear un campo con verificación */
+function _setField(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+}
+
+/**
+ * Ocultar el dropdown de sugerencias
+ */
+function hideClientSuggestionsDropdown() {
+    const dropdown = document.getElementById('client-suggestions-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    _highlightedIndex = -1;
+}
+
+
 (async function initializeTablesState() {
     try {
         console.log('🔄 Sincronizando estado inicial de mesas desde payment-modal.js...');
@@ -890,6 +1138,7 @@ function updateModalSectionsVisibility() {
 // ============================================
 
 function goToStep(step) {
+    alert('Función goToStep: ' + step);
     console.log(`🔄 Navegando al paso ${step}`);
 
     // Validaciones antes de cambiar de paso
@@ -900,13 +1149,60 @@ function goToStep(step) {
                 return;
             }
         }
-
+        alert('Paso 1 validado correctamente');
         // Validar paso 2 antes de ir al paso 3
         if (window.paymentModalState.currentStep === 2 && step === 3) {
-            if (!validateStep2()) {
+
+            // ── Validación de filas de pago ──────────────────────────────
+            const paymentRows = document.querySelectorAll('#payment-rows-container .payment-row');
+
+            if (paymentRows.length === 0) {
+                alert('Por favor agrega al menos un método de pago');
                 return;
             }
-            // Cargar resumen en el paso 3
+
+            let isValid = true;
+            let totalPagado = 0;
+
+            paymentRows.forEach(row => {
+                const method = row.querySelector('.payment-type');
+                const paidInput = row.querySelector('.total-paid');
+
+                if (!method || !method.value || !paidInput || !paidInput.value) {
+                    isValid = false;
+                    return;
+                }
+
+                totalPagado += parseFloat(paidInput.value) || 0;
+            });
+
+            if (!isValid) {
+                alert('Por favor completa todos los métodos de pago');
+                return;
+            }
+
+            // Total real del pedido desde localStorage
+            const order = JSON.parse(localStorage.getItem('order')) || [];
+            const totalAPagar = order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Validación 1: Total Pagado > 0
+            if (totalPagado <= 0) {
+                alert('❌ El total pagado debe ser mayor a 0.\n\nIngresa el monto en el campo "Total Pagado".');
+                return;
+            }
+
+            // Validación 2: Total Pagado >= Total a Pagar
+            if (totalPagado < totalAPagar - 0.001) {   // margen de 0.001 por decimales flotantes
+                alert(
+                    '❌ El monto ingresado es insuficiente.\n\n' +
+                    'Total del pedido:  Bs ' + totalAPagar.toFixed(2) + '\n' +
+                    'Total pagado:      Bs ' + totalPagado.toFixed(2) + '\n' +
+                    'Diferencia:        Bs ' + (totalAPagar - totalPagado).toFixed(2)
+                );
+                return;
+            }
+            // ── Fin validaciones ─────────────────────────────────────────
+
             syncPaymentRowsFromDOM();
             loadStep3Summary();
         }
@@ -943,51 +1239,21 @@ function goToStep(step) {
 }
 
 function nextStep() {
-    console.log(`\n🔄 === AVANZANDO DE PASO ${currentStep} A ${currentStep + 1} ===`);
+    console.log(`➡️ nextStep desde paso ${currentStep}`);
 
-    // ✅ CRÍTICO: Si estamos en el Paso 2, sincronizar ANTES de validar
+    // Validar paso actual
+    if (currentStep === 1 && !validateStep1()) return;
+
     if (currentStep === 2) {
-        console.log('💳 Sincronizando métodos de pago antes de avanzar...');
         syncPaymentRowsFromDOM();
-        console.log('📦 window.paymentRows sincronizado:', window.paymentRows);
+        if (!validateStep2()) return;
     }
 
-    // ✅ Validar el paso actual
-    if (!validateCurrentStep()) {
-        console.warn('⚠️ Validación fallida, no se puede avanzar');
-        return;
-    }
-
-    // ✅ Avanzar al siguiente paso
     if (currentStep < totalSteps) {
         currentStep++;
-        console.log(`✅ Avanzando al paso ${currentStep}`);
-
-        updateStepDisplay();
-
-        // ✅ Acciones específicas por paso
-        if (currentStep === 2) {
-            setTimeout(() => {
-                const rowsContainer = document.getElementById('payment-rows-container');
-                if (rowsContainer && rowsContainer.children.length === 0) {
-                    console.log('➕ Agregando primera fila automáticamente...');
-                    addPaymentRow();
-                }
-            }, 100);
-        }
-        else if (currentStep === 3) {
-            // ✅✅ CRÍTICO: Actualizar resumen en el Paso 3
-            console.log('📋 Preparando Paso 3...');
-
-            setTimeout(() => {
-                console.log('🔄 Ejecutando updateStep3Summary...');
-                updateStep3Summary();
-                console.log('✅ Resumen del Paso 3 actualizado');
-            }, 150);
-        }
+        window.paymentModalState.currentStep = currentStep; // ✅ sincronizar ambas variables
+        _updateStepUI();
     }
-
-    console.log('=== FIN AVANCE DE PASO ===\n');
 }
 function updateNoPaymentsMessage() {
     const container = document.getElementById('payment-rows-container');
@@ -1668,35 +1934,7 @@ function updateTotalInStep3() {
  * Actualizar detalles de pago
  */
 function updatePaymentDetails() {
-    const container = document.getElementById('step3-payment-methods');
-    if (!container) return;
-
-    const paymentRows = document.querySelectorAll('.payment-row');
-    let detailsHTML = '';
-
-    paymentRows.forEach(row => {
-        const methodSelect = row.querySelector('.payment-method-select');
-        const amountInput = row.querySelector('.payment-amount-input');
-
-        if (methodSelect && amountInput && methodSelect.value && amountInput.value) {
-            const method = methodSelect.options[methodSelect.selectedIndex].text;
-            const amount = parseFloat(amountInput.value);
-
-            detailsHTML += `
-                <div class="payment-method-item">
-                    <div class="payment-method-name">
-                        <div class="payment-method-icon">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <span>${method}</span>
-                    </div>
-                    <div class="payment-method-amount">Bs. ${amount.toFixed(2)}</div>
-                </div>
-            `;
-        }
-    });
-
-    container.innerHTML = detailsHTML;
+    _updatePaymentDetailsStep3();
 }
 function getPaymentMethodIcon(method) {
     const icons = {
@@ -1753,13 +1991,107 @@ function selectOrderType(type) {
 }
 
 function prevStep() {
+    console.log(`⬅️ prevStep desde paso ${currentStep}`);
+
     if (currentStep > 1) {
         currentStep--;
-        updateStepDisplay();
+        window.paymentModalState.currentStep = currentStep; // ✅ sincronizar ambas variables
+        _updateStepUI();
     }
 }
 
+// Función interna unificada que actualiza TODA la UI del stepper
+function _updateStepUI() {
+    console.log(`🎨 Actualizando UI para paso ${currentStep}`);
 
+    // 1. Mostrar/ocultar contenido de pasos
+    document.querySelectorAll('.step-content').forEach((content, index) => {
+        content.classList.toggle('active', index + 1 === currentStep);
+    });
+
+    // 2. Actualizar indicadores de navegación
+    document.querySelectorAll('.step-item').forEach((item, index) => {
+        const stepNum = index + 1;
+        item.classList.remove('active', 'completed');
+        if (stepNum === currentStep) item.classList.add('active');
+        else if (stepNum < currentStep) item.classList.add('completed');
+    });
+
+    // 3. Botones prev/next/confirm
+    const prevBtn = document.querySelector('#payment-modal .step-btn.prev');
+    const nextBtn = document.querySelector('#payment-modal .step-btn.next');
+    const confirmBtn = document.querySelector('#payment-modal .step-btn.confirm');
+
+    if (prevBtn) prevBtn.disabled = currentStep === 1;
+
+    if (nextBtn && confirmBtn) {
+        if (currentStep < totalSteps) {
+            nextBtn.style.display = 'inline-block'; // ✅ mostrar Siguiente
+            confirmBtn.style.display = 'none';
+        } else {
+            nextBtn.style.display = 'none';
+            confirmBtn.style.display = 'inline-block'; // ✅ mostrar Confirmar en paso 3
+        }
+    }
+
+    // 4. Acciones específicas por paso
+    if (currentStep === 2) {
+        updateOrderTotal();
+        setTimeout(() => {
+            const container = document.getElementById('payment-rows-container');
+            if (container && container.children.length === 0) {
+                addPaymentRow();
+            }
+        }, 100);
+    }
+
+    if (currentStep === 3) {
+        setTimeout(() => {
+            updateStep3Summary();
+            _updatePaymentDetailsStep3(); // ver abajo
+        }, 150);
+    }
+}
+function _updatePaymentDetailsStep3() {
+    const container = document.getElementById('step3-payment-methods');
+    if (!container) return;
+
+    const paymentRows = document.querySelectorAll('#payment-rows-container .payment-row');
+    let html = '';
+
+    paymentRows.forEach(row => {
+        const method = row.querySelector('.payment-method-select')?.value
+            || row.querySelector('.payment-type')?.value
+            || row.querySelector('select')?.value;
+        const amount = parseFloat(
+            row.querySelector('.payment-amount-input')?.value
+            || row.querySelector('.total-paid')?.value
+            || 0
+        );
+
+        if (method && amount > 0) {
+            const icons = {
+                'Efectivo': 'money-bill-wave',
+                'QR': 'qrcode',
+                'Tarjeta': 'credit-card',
+                'Transferencia': 'exchange-alt'
+            };
+            html += `
+                <div class="payment-method-item">
+                    <div class="payment-method-name">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-${icons[method] || 'dollar-sign'}"></i>
+                        </div>
+                        <span>${method}</span>
+                    </div>
+                    <div class="payment-method-amount">Bs. ${amount.toFixed(2)}</div>
+                </div>
+            `;
+        }
+    });
+
+    container.innerHTML = html || '<p style="color:#94a3b8;text-align:center;">Sin métodos de pago</p>';
+}
 function updateStepNavigation() {
     const prevButton = document.querySelector('#payment-modal .step-btn.prev');
     const nextButton = document.querySelector('#payment-modal .step-btn.next');
@@ -1868,103 +2200,51 @@ function generateDailyOrderNumber() {
     return counter;
 }
 
-// function validateStep2() {
-//     console.log('🔍 Validando paso 2 (leyendo del DOM)...');
 
-//     // ✅ Leer directamente del DOM en lugar de window.paymentRows
-//     const paymentRowElements = document.querySelectorAll('#payment-rows-container .payment-row');
-
-//     console.log('📦 Filas de pago en DOM:', paymentRowElements.length);
-
-//     if (paymentRowElements.length === 0) {
-//         alert('Por favor agrega al menos un método de pago');
-//         console.error('❌ No hay filas de pago en el DOM');
-//         return false;
-//     }
-
-//     let totalPaid = 0;
-//     const orderTotal = calculateOrderTotal();
-
-//     // Validar cada fila
-//     for (let rowElement of paymentRowElements) {
-//         const methodSelect = rowElement.querySelector('.form-select');
-//         const amountInput = rowElement.querySelector('input[type="number"]');
-
-//         if (!methodSelect || !amountInput) {
-//             console.error('❌ No se encontraron elementos en la fila');
-//             continue;
-//         }
-
-//         const method = methodSelect.value;
-//         const amount = parseFloat(amountInput.value) || 0;
-
-//         console.log(`💳 Método: ${method}, Monto: ${amount}`);
-
-//         if (!method) {
-//             alert('Por favor selecciona un método de pago para todos los métodos agregados');
-//             return false;
-//         }
-
-//         if (amount <= 0) {
-//             alert('Por favor ingresa un monto válido para todos los métodos de pago');
-//             return false;
-//         }
-
-//         totalPaid += amount;
-//     }
-
-//     console.log('💰 Total del pedido:', orderTotal);
-//     console.log('💳 Total pagado:', totalPaid);
-
-//     if (totalPaid < orderTotal) {
-//         alert(`El total de pagos ($${totalPaid.toFixed(2)}) es menor al total del pedido ($${orderTotal.toFixed(2)})`);
-//         return false;
-//     }
-
-//     console.log('✅ Validación del paso 2 exitosa');
-//     return true;
-// }
-// ============================================
-// CARGAR RESUMEN EN EL PASO 3
-// ============================================
 /**
  * Validar Paso 2: Métodos de pago
  */
 function validateStep2() {
-    const paymentRows = document.querySelectorAll('.payment-row');
+    const paymentRows = document.querySelectorAll('#payment-rows-container .payment-row');
 
     if (paymentRows.length === 0) {
-        alert('⚠️ Por favor agrega al menos un método de pago');
+        alert('Por favor agrega al menos un método de pago');
         return false;
     }
 
-    // Validar que todos los métodos estén completos
-    let isValid = true;
-    paymentRows.forEach(row => {
-        const methodSelect = row.querySelector('.payment-method-select');
-        const amountInput = row.querySelector('.payment-amount-input');
+    let totalPagado = 0;
 
-        if (!methodSelect || !methodSelect.value || !amountInput || !amountInput.value) {
-            isValid = false;
+    for (const row of paymentRows) {
+        const method = row.querySelector('.payment-type');  // ✅ clase confirmada
+        const amount = row.querySelector('.total-paid');    // ✅ clase confirmada
+
+        if (!method || !method.value) {
+            alert('Por favor selecciona un método de pago en todas las filas');
+            return false;
         }
-    });
 
-    if (!isValid) {
-        alert('⚠️ Por favor completa todos los métodos de pago');
+        const amountValue = parseFloat(amount?.value) || 0;
+        if (amountValue <= 0) {
+            alert('Por favor ingresa un monto mayor a 0 en todas las filas');
+            return false;
+        }
+
+        totalPagado += amountValue;
+    }
+
+    const order = JSON.parse(localStorage.getItem('order')) || [];
+    const totalAPagar = order.reduce((s, i) => s + (i.price * i.quantity), 0);
+
+    if (totalPagado < totalAPagar - 0.001) {
+        alert(
+            `Monto insuficiente.\n` +
+            `Total pedido: Bs ${totalAPagar.toFixed(2)}\n` +
+            `Total pagado: Bs ${totalPagado.toFixed(2)}\n` +
+            `Diferencia:   Bs ${(totalAPagar - totalPagado).toFixed(2)}`
+        );
         return false;
     }
 
-    // Validar que el monto total coincida con el pedido
-    const order = getOrderFromLocalStorage();
-    const orderTotal = calculateOrderTotal(order);
-    const paymentTotal = calculatePaymentTotal();
-
-    if (Math.abs(orderTotal - paymentTotal) > 0.01) {
-        alert(`⚠️ El total de pagos (${paymentTotal.toFixed(2)}) no coincide con el total del pedido (${orderTotal.toFixed(2)})`);
-        return false;
-    }
-
-    console.log('✅ Paso 2 validado correctamente');
     return true;
 }
 
@@ -3334,94 +3614,7 @@ function showPickupPaymentWarning() {
         }
     }
 }
-// async function confirmAndProcessOrder() {
-//     console.log('🚀 Confirmando y procesando pedido...');
 
-//     syncPaymentRowsFromDOM();
-
-//     if (!window.paymentRows || window.paymentRows.length === 0) {
-//         alert('Error: No hay métodos de pago registrados. Por favor regresa al Paso 2 y agrega un método de pago.');
-//         return;
-//     }
-
-//     const validPayments = window.paymentRows.filter(row =>
-//         row.method && row.amount > 0
-//     );
-
-//     if (validPayments.length === 0) {
-//         alert('Por favor completa todos los métodos de pago con método y monto válido');
-//         return;
-//     }
-
-//     // Validar formulario de cliente
-//     const customerName = document.getElementById('modal-customer-name')?.value?.trim();
-
-//     if (!customerName) {
-//         alert('Por favor ingresa el nombre del cliente');
-//         return;
-//     }
-
-//     // Recopilar TODOS los datos del cliente (incluyendo los nuevos campos)
-//     const customerData = {
-//         name: customerName,
-//         email: document.getElementById('modal-customer-email')?.value?.trim() || '',
-//         phone: document.getElementById('modal-customer-phone')?.value?.trim() || '',
-//         notes: document.getElementById('modal-customer-notes')?.value?.trim() || '',
-//         document_type: document.getElementById('modal-customer-doc-type')?.value || 'CI',
-//         document_number: document.getElementById('modal-customer-doc-number')?.value?.trim() || '',
-//         address: document.getElementById('modal-customer-address')?.value?.trim() || '',
-//         city: document.getElementById('modal-customer-city')?.value?.trim() || '',
-//         client_id: localStorage.getItem('selectedClientId') || null // ID si ya fue guardado
-//     };
-
-//     // Preparar métodos de pago
-//     const paymentMethods = window.paymentRows.map(row => ({
-//         method: row.method,
-//         amount: parseFloat(row.amount),
-//         transaction_number: row.reference || null
-//     }));
-
-//     console.log('💳 Métodos de pago preparados:', paymentMethods);
-//     console.log('👤 Datos del cliente:', customerData);
-
-//     // Guardar en localStorage
-//     localStorage.setItem('paymentMethods', JSON.stringify(paymentMethods));
-//     localStorage.setItem('customerName', customerData.name);
-//     localStorage.setItem('customerEmail', customerData.email);
-//     localStorage.setItem('customerPhone', customerData.phone);
-//     localStorage.setItem('customerNotes', customerData.notes);
-
-//     // Deshabilitar botón
-//     const confirmBtn = document.querySelector('.step-btn.confirm');
-//     if (confirmBtn) {
-//         confirmBtn.disabled = true;
-//         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-//     }
-
-//     try {
-//         if (typeof window.processOrder === 'function') {
-//             console.log('✅ Llamando a window.processOrder...');
-//             await window.processOrder();
-
-//             console.log('✅ Pedido procesado exitosamente');
-//             closePaymentModal();
-//             clearModalData();
-
-//         } else {
-//             throw new Error('La función processOrder no está disponible');
-//         }
-
-//     } catch (error) {
-//         console.error('❌ Error al procesar el pedido:', error);
-//         alert('Error al procesar el pedido: ' + error.message);
-
-//         if (confirmBtn) {
-//             confirmBtn.disabled = false;
-//             confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pedido';
-//         }
-//     }
-// }
-// Función auxiliar para limpiar datos del modal
 /**
  * Confirmar y procesar el pedido
  */
@@ -3709,6 +3902,40 @@ function debugPaymentRowsInRealTime() {
 // INICIALIZACIÓN
 // ============================================
 document.addEventListener('DOMContentLoaded', function () {
+    const nameInput = document.getElementById('modal-customer-name');
+    if (!nameInput) return;
+
+    nameInput.addEventListener('keydown', function (e) {
+        const items = document.querySelectorAll('.client-suggestion-item');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            _highlightedIndex = Math.min(_highlightedIndex + 1, items.length - 1);
+            highlightSuggestion(_highlightedIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            _highlightedIndex = Math.max(_highlightedIndex - 1, 0);
+            highlightSuggestion(_highlightedIndex);
+        } else if (e.key === 'Enter' && _highlightedIndex >= 0) {
+            e.preventDefault();
+            const selected = items[_highlightedIndex];
+            if (selected) selected.click();
+        } else if (e.key === 'Escape') {
+            hideClientSuggestionsDropdown();
+        }
+    });
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#modal-customer-name') &&
+            !e.target.closest('#client-suggestions-dropdown')) {
+            hideClientSuggestionsDropdown();
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
     const configBtnInPaymentModal = document.querySelector('#modal-table-selection .tables-config-btn');
 
     if (configBtnInPaymentModal) {
@@ -3839,83 +4066,14 @@ function diagnosePaymentRowStructure() {
     console.log('🔍 === FIN DIAGNÓSTICO ===\n');
 }
 window.goToStep = function (step) {
-    console.log(`📍 Navegando al paso ${step}`);
-
-    // Validar paso anterior antes de avanzar
-    if (step > window.paymentModalState.currentStep) {
-        if (!validateCurrentStep()) {
-            return;
-        }
-    }
-
-    // ✅ SI VAMOS AL PASO 3, SINCRONIZAR ANTES DE CAMBIAR
-    if (step === 3) {
-        console.log('📋 Preparando paso 3...');
-        syncPaymentRowsFromDOM();
-        console.log('📦 window.paymentRows antes de mostrar:', window.paymentRows);
-    }
-
-    // Ocultar todos los contenidos de pasos
-    document.querySelectorAll('#payment-modal .step-content').forEach(content => {
-        content.classList.remove('active');
-    });
-
-    // Desactivar todos los items de navegación
-    document.querySelectorAll('#payment-modal .step-item').forEach(item => {
-        item.classList.remove('active');
-        item.classList.remove('completed');
-    });
-
-    // Marcar pasos completados
-    for (let i = 1; i < step; i++) {
-        const completedItem = document.querySelector(`#payment-modal .step-item[data-step="${i}"]`);
-        if (completedItem) {
-            completedItem.classList.add('completed');
-        }
-    }
-
-    // Activar paso actual
-    const stepContent = document.getElementById(`step-${step}`);
-    const stepItem = document.querySelector(`#payment-modal .step-item[data-step="${step}"]`);
-
-    if (stepContent) stepContent.classList.add('active');
-    if (stepItem) stepItem.classList.add('active');
-
-    window.paymentModalState.currentStep = step;
-    updateStepNavigation();
-
-    // ✅ ACCIONES ESPECÍFICAS POR PASO
-    if (step === 1) {
-        console.log('📝 Paso 1: Tipo de pedido');
-        const orderType = window.paymentModalState?.selectedOrderType || 'comer-aqui';
-        const orderTypeBtn = document.querySelector(`#payment-modal .order-type-btn[data-type="${orderType}"]`);
-        if (orderTypeBtn) {
-            document.querySelectorAll('#payment-modal .order-type-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            orderTypeBtn.classList.add('selected');
-        }
-    } else if (step === 2) {
-        console.log('💳 Paso 2: Métodos de pago');
-        updateOrderTotal();
-        updateNoPaymentsMessage();
-
-        setTimeout(() => {
-            const container = document.getElementById('payment-rows-container');
-            if (container && container.children.length === 0) {
-                console.log('➕ Agregando primera fila automáticamente...');
-                addPaymentRow();
-            }
-        }, 100);
-    } else if (step === 3) {
-        // ✅✅ CRÍTICO: Actualizar resumen DESPUÉS de mostrar el paso
-        console.log('📋 Paso 3: Actualizando resumen...');
-
-        setTimeout(() => {
-            console.log('🔄 Ejecutando updateStep3Summary...');
-            updateStep3Summary();
-            console.log('✅ Resumen actualizado');
-        }, 100);
+    // Solo permite ir hacia atrás libremente
+    // hacia adelante requiere pasar por nextStep()
+    if (step < currentStep) {
+        currentStep = step;
+        window.paymentModalState.currentStep = step;
+        _updateStepUI();
+    } else if (step === currentStep + 1) {
+        nextStep(); // delega la validación a nextStep
     }
 };
 function showNoPaymentsMessage() {
@@ -3937,11 +4095,6 @@ function showNoPaymentsMessage() {
         console.log('✅ Ocultando mensaje "no hay pagos" (hay filas presentes)');
     }
 }
-window.nextStep = function () {
-    if (window.paymentModalState.currentStep < 3) {
-        goToStep(window.paymentModalState.currentStep + 1);
-    }
-};
 window.prevStep = function () {
     if (window.paymentModalState.currentStep > 1) {
         goToStep(window.paymentModalState.currentStep - 1);
@@ -5216,6 +5369,10 @@ window.clearClientSavedIndicator = clearClientSavedIndicator;
 console.log('✅ Función de guardar cliente desde formulario cargada');
 
 // Exponer funciones globalmente
+window.searchClientByName = searchClientByName;
+window.selectClientFromSuggestion = selectClientFromSuggestion;
+window.hideClientSuggestionsDropdown = hideClientSuggestionsDropdown;
+window.fillCustomerFormWithClient = fillCustomerFormWithClient;
 window.openClientsConfigModal = openClientsConfigModal;
 window.closeClientsConfigModal = closeClientsConfigModal;
 window.loadClientsFromDB = loadClientsFromDB;
@@ -5249,7 +5406,6 @@ window.debugPaymentRowsInRealTime = debugPaymentRowsInRealTime;
 window.showPaymentModal = showPaymentModal;
 window.addPaymentRow = addPaymentRow;
 window.renderPaymentRows = renderPaymentRows;
-window.validateStep2 = validateStep2;
 window.updatePaymentRow = updatePaymentRow;
 window.updateNoPaymentsMessage = updateNoPaymentsMessage;
 window.openTablesConfigModal = openTablesConfigModal;

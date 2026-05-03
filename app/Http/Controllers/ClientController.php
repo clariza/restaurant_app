@@ -53,6 +53,15 @@ class ClientController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('birthdays')) {
+            try {
+                $request->merge([
+                    'birthdays' => \Carbon\Carbon::createFromFormat('d-m-Y', $request->birthdays)->format('Y-m-d')
+                ]);
+            } catch (\Exception $e) {
+                // Si el formato ya es correcto o viene vacío, lo dejamos pasar
+            }
+        }
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -76,6 +85,10 @@ class ClientController extends Controller
 
     public function show(Client $client)
     {
+        if (request()->expectsJson() || request()->query('json')) {
+            return response()->json(['client' => $client]);
+        }
+
         return view('clients.show', compact('client'));
     }
 
@@ -86,6 +99,15 @@ class ClientController extends Controller
 
     public function update(Request $request, Client $client)
     {
+        if ($request->filled('birthdays')) {
+            try {
+                $request->merge([
+                    'birthdays' => \Carbon\Carbon::createFromFormat('d-m-Y', $request->birthdays)->format('Y-m-d')
+                ]);
+            } catch (\Exception $e) {
+                // Si el formato ya es correcto o viene vacío, lo dejamos pasar
+            }
+        }
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -106,7 +128,46 @@ class ClientController extends Controller
         return redirect()->route('clients.index')
             ->with('success', 'Cliente actualizado exitosamente');
     }
+    /**
+     * Buscar clientes por nombre, teléfono o documento (para autocompletado)
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
 
+        if (strlen($query) < 2) {
+            return response()->json(['clients' => []]);
+        }
+
+        $clients = Client::where('is_active', true)
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('last_name', 'LIKE', "%{$query}%")
+                    ->orWhereRaw("CONCAT(name, ' ', last_name) LIKE ?", ["%{$query}%"])
+                    ->orWhere('phone', 'LIKE', "%{$query}%")
+                    ->orWhere('document_number', 'LIKE', "%{$query}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get()
+            ->map(fn($c) => [
+                'id'              => $c->id,
+                'name'            => $c->name,
+                'last_name'       => $c->last_name,
+                'full_name'       => trim("{$c->name} {$c->last_name}"),
+                'email'           => $c->email,
+                'phone'           => $c->phone,
+                'document_type'   => $c->document_type,
+                'document_number' => $c->document_number,
+                'address'         => $c->address,
+                'city'            => $c->city,
+                'birthday'        => $c->birthdays,
+                'notes'           => $c->notes,
+                'is_active'       => $c->is_active,
+            ]);
+
+        return response()->json(['clients' => $clients]);
+    }
     public function destroy(Client $client)
     {
         $client->delete();
