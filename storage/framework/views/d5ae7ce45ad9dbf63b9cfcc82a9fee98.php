@@ -96,7 +96,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
                             <option value="CI" <?php echo e(old('document_type', $client->document_type) == 'CI' ? 'selected' : ''); ?>>CI - Carnet de Identidad</option>
-                            <option value="NIT" <?php echo e(old('document_type', $client->document_type) == 'NIT' ? 'selected' : ''); ?>>NIT</option>
+                            <option value="DNI" <?php echo e(in_array(old('document_type', $client->document_type), ['DNI', 'NIT']) ? 'selected' : ''); ?>>DNI</option>
                             <option value="Pasaporte" <?php echo e(old('document_type', $client->document_type) == 'Pasaporte' ? 'selected' : ''); ?>>Pasaporte</option>
                         </select>
                         <?php $__errorArgs = ['document_type'];
@@ -209,58 +209,65 @@ unset($__errorArgs, $__bag); ?>
                 </h3>
                 <div class="grid grid-cols-1 gap-4">
                     <!-- Cumpleaños -->
-                    <div>
-                        <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
-                            Fecha de Cumpleaños
-                        </label>
-                        <input type="date" name="birthdays" id="birthdays" value="<?php echo e(old('birthdays', $client->birthdays)); ?>"
-                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 <?php $__errorArgs = ['birthdays'];
+                    <!-- Cumpleaños -->
+<div>
+    <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
+        Fecha de Cumpleaños
+    </label>
+    <input type="date" name="birthdays" id="birthdays" 
+        value="<?php echo e(old('birthdays', $client->birthdays ? \Carbon\Carbon::parse($client->birthdays)->format('Y-m-d') : '')); ?>"
+        class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 <?php $__errorArgs = ['birthdays'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>"
-                            placeholder="Ej: 1990-01-01">
-                        <?php $__errorArgs = ['birthdays'];
+unset($__errorArgs, $__bag); ?>">
+    <?php $__errorArgs = ['birthdays'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                        <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
-                        <?php unset($message);
+    <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+    <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                    </div>
+</div>
 
                     <!-- Ciudad -->
                     <div>
-                        <label for="city" class="block text-sm font-medium text-[var(--primary-color)]">
-                            Ciudad
-                        </label>
-                        <input type="text" name="city" id="city" value="<?php echo e(old('city', $client->city)); ?>"
-                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 <?php $__errorArgs = ['city'];
+    <label for="branch_id" class="block text-sm font-medium text-[var(--primary-color)]">
+        Sucursal
+    </label>
+    <select name="branch_id" id="branch_id"
+        class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 <?php $__errorArgs = ['branch_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>"
-                            placeholder="Ej: La Paz">
-                        <?php $__errorArgs = ['city'];
+unset($__errorArgs, $__bag); ?>">
+        <option value="">-- Seleccionar sucursal --</option>
+        <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($branch->id); ?>" <?php echo e(old('branch_id', $client->branch_id) == $branch->id ? 'selected' : ''); ?>>
+                <?php echo e($branch->name); ?> (<?php echo e($branch->ciudad); ?>)
+            </option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+    <?php $__errorArgs = ['branch_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                        <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
-                        <?php unset($message);
+    <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+    <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                    </div>
+</div>
                 </div>
             </div>
 

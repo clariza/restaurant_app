@@ -130,12 +130,10 @@
     <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
         Fecha de Cumpleaños
     </label>
-    <input type="text"
+    <input type="date"
            name="birthdays"
            id="birthdays"
-           placeholder="dd-mm-AAAA"
-           autocomplete="off"
-           value="{{ old('birthdays') ? \Carbon\Carbon::parse(old('birthdays'))->format('d-m-Y') : '' }}"
+           value="{{ old('birthdays') }}"
            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('birthdays') border-red-500 @enderror">
     @error('birthdays')
         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -208,19 +206,7 @@
         </div>
     </form>
 </div>
-{{-- Flatpickr --}}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/es.js"></script>
 
-<script>
-flatpickr("#birthdays", {
-    locale: "es",
-    dateFormat: "Y-m-d",   // valor enviado al servidor: YYYY-MM-DD
-    altInput: true,         // crea un segundo input visible
-    altFormat: "d-m-Y",    // formato visible para el usuario: dd-mm-YYYY
-    allowInput: true,
-    maxDate: "today",
-});
-</script>
+
+
 @endsection

@@ -29,7 +29,7 @@ class PettyCash extends Model
         'opening_notes',
     ];
     protected $casts = [
-        'date' => 'date',
+        'date' => 'datetime',
         'closed_at' => 'datetime',
     ];
     /**

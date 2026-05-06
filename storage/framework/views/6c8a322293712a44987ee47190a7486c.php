@@ -212,12 +212,10 @@ unset($__errorArgs, $__bag); ?>
     <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
         Fecha de Cumpleaños
     </label>
-    <input type="text"
+    <input type="date"
            name="birthdays"
            id="birthdays"
-           placeholder="dd-mm-AAAA"
-           autocomplete="off"
-           value="<?php echo e(old('birthdays') ? \Carbon\Carbon::parse(old('birthdays'))->format('d-m-Y') : ''); ?>"
+           value="<?php echo e(old('birthdays')); ?>"
            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 <?php $__errorArgs = ['birthdays'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -334,19 +332,8 @@ unset($__errorArgs, $__bag); ?>
     </form>
 </div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/es.js"></script>
 
-<script>
-flatpickr("#birthdays", {
-    locale: "es",
-    dateFormat: "Y-m-d",   // valor enviado al servidor: YYYY-MM-DD
-    altInput: true,         // crea un segundo input visible
-    altFormat: "d-m-Y",    // formato visible para el usuario: dd-mm-YYYY
-    allowInput: true,
-    maxDate: "today",
-});
-</script>
+
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/clients/create.blade.php ENDPATH**/ ?>

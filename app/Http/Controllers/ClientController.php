@@ -53,15 +53,7 @@ class ClientController extends Controller
 
     public function store(Request $request)
     {
-        if ($request->filled('birthdays')) {
-            try {
-                $request->merge([
-                    'birthdays' => \Carbon\Carbon::createFromFormat('d-m-Y', $request->birthdays)->format('Y-m-d')
-                ]);
-            } catch (\Exception $e) {
-                // Si el formato ya es correcto o viene vacío, lo dejamos pasar
-            }
-        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -94,7 +86,8 @@ class ClientController extends Controller
 
     public function edit(Client $client)
     {
-        return view('clients.edit', compact('client'));
+        $branches = \App\Models\Branch::active()->orderBy('name')->get();
+        return view('clients.edit', compact('client', 'branches'));
     }
 
     public function update(Request $request, Client $client)
