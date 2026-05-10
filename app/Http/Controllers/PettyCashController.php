@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\PettyCash;
 use App\Models\User;
 use App\Models\Expense;
+use App\Models\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -452,6 +453,9 @@ class PettyCashController extends Controller
                 'closed_at'        => now(),
                 'notes'            => $validated['closure_notes'] ?? null,
             ]);
+
+            // Liberar todas las mesas al cerrar caja chica
+            Table::whereIn('state', ['Ocupada', 'Reservada'])->update(['state' => 'Disponible']);
 
             DB::commit();
 

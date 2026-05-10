@@ -126,13 +126,14 @@
             <div class="col-span-2  md:col-span-1">ID</div>
             <div class="col-span-4  md:col-span-2">Fecha/Hora</div>
             <div class="hidden md:block md:col-span-2">Cliente</div>
-            <div class="col-span-3  md:col-span-2">Tipo</div>
+            <div class="col-span-2  md:col-span-1">Tipo</div>
             <div class="hidden md:block md:col-span-1 text-center">Items</div>
-            <div class="col-span-3  md:col-span-{{ ($isAdmin ?? false) ? '1' : '2' }}">Total</div>
+            <div class="col-span-4  md:col-span-1">Total</div>
+            <div class="hidden md:block md:col-span-1">Pago</div>
             @if($isAdmin ?? false)
             <div class="hidden md:block md:col-span-1">Sucursal</div>
             @endif
-            <div class="hidden md:block md:col-span-2">Acciones</div>
+            <div class="hidden md:block md:col-span-{{ ($isAdmin ?? false) ? '2' : '3' }}">Acciones</div>
         </div>
 
         {{-- Filas --}}
@@ -183,7 +184,7 @@
                 </div>
 
                 {{-- Tipo --}}
-                <div class="col-span-3 md:col-span-2">
+                <div class="col-span-2 md:col-span-1">
                     <span class="px-2 py-1 rounded-full text-xs {{ $typeColor }}">
                         {{ $isProforma ? 'Proforma' : $record->order_type }}
                         @if(!$isProforma && ($record->order_type ?? '') === 'Comer aquí' && $record->table_number)
@@ -198,8 +199,17 @@
                 </div>
 
                 {{-- Total --}}
-                <div class="col-span-3 md:col-span-{{ ($isAdmin ?? false) ? '1' : '2' }} font-bold">
+                <div class="col-span-4 md:col-span-1 font-bold">
                     ${{ number_format($record->total, 2) }}
+                </div>
+
+                {{-- Pago --}}
+                <div class="hidden md:block md:col-span-1 text-xs text-gray-600">
+                    @if(!$isProforma)
+                        {{ $record->payment_method ?? '—' }}
+                    @else
+                        <span class="text-gray-400 italic">—</span>
+                    @endif
                 </div>
 
                 {{-- Sucursal --}}
@@ -217,7 +227,7 @@
                 @endif
 
                 {{-- 🔥 Acciones desktop - MODIFICADO --}}
-                <div class="hidden md:flex md:col-span-2 items-center space-x-2">
+                <div class="hidden md:flex md:col-span-{{ ($isAdmin ?? false) ? '2' : '3' }} items-center space-x-2">
                     <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}"
                        class="text-[#203363] hover:text-[#47517c] p-1" title="Ver detalles">
                         <i class="fas fa-eye"></i>
@@ -332,6 +342,8 @@
     @method('DELETE')
 </form>
 
+@include('partials.print-preview-modal')
+
 <script>
     // Aplicar filtros
     document.getElementById('filter-form').addEventListener('submit', function (e) {
@@ -359,9 +371,49 @@
     });
 
     // Imprimir
-    function printOrder(type, id) {
-        const url = type === 'proforma' ? `/proformas/${id}/print` : `/orders/${id}/print`;
-        window.open(url, '_blank');
+    async function printOrder(type, id) {
+        const modalUrl = type === 'proforma' ? `/proformas/${id}/print?modal=1` : `/orders/${id}/print?modal=1`;
+
+        try {
+            const response = await fetch(modalUrl, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo obtener la vista previa de impresión.');
+            }
+
+            const data = await response.json();
+
+            if (!data.success || !data.ticket) {
+                throw new Error(data.message || 'La vista previa de impresión está vacía.');
+            }
+
+            if (typeof showPrintPreview !== 'function' || typeof window.renderPrintPreviewTicket !== 'function') {
+                throw new Error('El modal de vista previa no está disponible.');
+            }
+
+            showPrintPreview(window.renderPrintPreviewTicket(data.ticket));
+
+            window.handlePrintClose = function() {
+                const previewModal = document.getElementById('print-preview-modal');
+
+                if (previewModal) {
+                    previewModal.classList.add('hidden');
+                    previewModal.style.display = 'none';
+                }
+
+                document.body.style.overflow = '';
+            };
+        } catch (error) {
+            console.error('Error al abrir vista previa:', error);
+
+            const fallbackUrl = type === 'proforma' ? `/proformas/${id}/print` : `/orders/${id}/print`;
+            window.open(fallbackUrl, '_blank');
+        }
     }
 
     // Eliminar orden
@@ -627,4 +679,6 @@
         .grid-cols-12 > div { padding: 8px 4px; }
     }
 </style>
+
+<script src="{{ asset('js/order-details.js') }}"></script>
 @endsection

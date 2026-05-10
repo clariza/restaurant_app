@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\PettyCash;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -153,6 +154,44 @@ class OrderController extends Controller
     {
         // Obtener la orden con sus relaciones
         $order = Sale::with(['items.menuItem', 'user'])->findOrFail($id);
+
+        if (request()->boolean('modal') || request()->expectsJson()) {
+            $orderNumber = $order->daily_order_number ?: $order->transaction_number;
+            $typeText = $order->order_type;
+
+            if (($order->order_type ?? '') === 'Comer aquí' && $order->table_number) {
+                $typeText .= ' ' . $order->table_number;
+            }
+
+            $ticket = [
+                'title' => 'RESTAURANTE MIQUNA',
+                'date' => $order->created_at->format('j/n/Y H:i'),
+                'seller' => $order->user->name ?? 'Usuario',
+                'order_number' => $orderNumber,
+                'type' => $typeText,
+                'customer' => $order->customer_name,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'quantity' => $item->quantity,
+                        'name' => Str::limit($item->name ?? ($item->menuItem->name ?? 'Producto'), 20, ''),
+                        'amount' => (float) ($item->price * $item->quantity),
+                    ];
+                })->values()->all(),
+                'subtotal' => (float) ($order->subtotal ?? $order->total),
+                'tax' => (float) ($order->tax ?? 0),
+                'total' => (float) $order->total,
+                'payments' => [[
+                    'label' => $order->payment_method ?: 'Efectivo',
+                    'amount' => (float) $order->total,
+                ]],
+                'notes' => $order->order_notes,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'ticket' => $ticket,
+            ]);
+        }
 
         // Retornar vista de impresión
         return view('orders.print', compact('order'));

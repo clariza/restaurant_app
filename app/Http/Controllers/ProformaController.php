@@ -10,6 +10,7 @@ use App\Models\MenuItem;
 use App\Models\InventoryMovement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use App\Models\PettyCash;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -75,19 +76,35 @@ class ProformaController extends Controller
                 }
             }
 
-            return response()->json($responseData, 200);
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json($responseData, 200);
+            }
+
+            return view('proformas.show', [
+                'proforma' => $proforma,
+                'isConverted' => $isConverted,
+                'canConvert' => $responseData['can_convert']
+            ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Proforma no encontrada',
-                'error' => 'NOT_FOUND'
-            ], 404);
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proforma no encontrada',
+                    'error' => 'NOT_FOUND'
+                ], 404);
+            }
+
+            abort(404, 'Proforma no encontrada');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener la proforma',
-                'error' => 'SERVER_ERROR'
-            ], 500);
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al obtener la proforma',
+                    'error' => 'SERVER_ERROR'
+                ], 500);
+            }
+
+            return back()->with('error', 'Error al obtener la proforma');
         }
     }
 
@@ -573,5 +590,44 @@ class ProformaController extends Controller
 
             return back()->with('error', 'Error al cargar las proformas');
         }
+    }
+
+    /**
+     * Mostrar vista de impresión de una proforma
+     * Ruta: GET /proformas/{proforma}/print
+     */
+    public function print(Proforma $proforma)
+    {
+        $proforma->load(['items', 'user']);
+
+        if (request()->boolean('modal') || request()->expectsJson()) {
+            $ticket = [
+                'title' => 'RESTAURANTE MIQUNA',
+                'date' => $proforma->created_at->format('j/n/Y H:i'),
+                'seller' => $proforma->user->name ?? 'Usuario',
+                'order_number' => 'PROF-' . $proforma->id,
+                'type' => $proforma->order_type ? ucfirst($proforma->order_type) : 'Proforma',
+                'customer' => $proforma->customer_name,
+                'items' => $proforma->items->map(function ($item) {
+                    return [
+                        'quantity' => $item->quantity,
+                        'name' => Str::limit($item->name ?? ($item->menuItem->name ?? 'Producto'), 20, ''),
+                        'amount' => (float) ($item->price * $item->quantity),
+                    ];
+                })->values()->all(),
+                'subtotal' => (float) ($proforma->subtotal ?? $proforma->total),
+                'tax' => (float) ($proforma->tax ?? 0),
+                'total' => (float) $proforma->total,
+                'payments' => [],
+                'notes' => $proforma->notes,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'ticket' => $ticket,
+            ]);
+        }
+
+        return view('proformas.print', compact('proforma'));
     }
 }

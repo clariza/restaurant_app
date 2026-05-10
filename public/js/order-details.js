@@ -1499,34 +1499,22 @@ function showPrintPreview(content) {
         // Crear el modal dinámicamente si no existe
         previewModal = document.createElement('div');
         previewModal.id = 'print-preview-modal';
-        previewModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden z-[1000] flex items-center justify-center';
+        previewModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden z-[1000]';
         previewModal.innerHTML = `
-            <div class="modal-container bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-                <!-- Header del Modal -->
-                <div class="bg-[#203363] text-white px-6 py-4 flex justify-between items-center">
-                    <div class="flex items-center space-x-3">
-                        <i class="fas fa-receipt text-xl"></i>
-                        <h3 class="text-lg font-bold">Vista Previa del Ticket</h3>
-                    </div>
-                    <button onclick="closePrintPreview()" class="text-white hover:text-gray-300 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-
-                <!-- Contenido del Ticket -->
-                <div id="print-preview-content" class="bg-white p-6 border-y border-gray-200 max-h-[60vh] overflow-y-auto">
-                    <!-- El contenido del ticket se insertará aquí -->
-                </div>
-
-                <!-- Footer con Botones -->
-                <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-5 py-2.5 rounded-lg hover:bg-gray-500 transition-colors font-medium flex items-center space-x-2">
+            <div class="modal-container bg-white rounded-lg p-6 w-full max-w-md mx-auto my-8">
+                <div class="modal-header flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-[#203363]">Vista previa de impresión</h3>
+                    <button onclick="closePrintPreview()" class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-times"></i>
-                        <span>Cancelar</span>
                     </button>
-                    <button onclick="confirmPrint()" class="bg-[#203363] text-white px-5 py-2.5 rounded-lg hover:bg-[#47517c] transition-colors font-medium flex items-center space-x-2 shadow-md">
-                        <i class="fas fa-print"></i>
-                        <span>Imprimir</span>
+                </div>
+                <div id="print-preview-content" class="modal-body bg-white p-4 border border-gray-300 mb-4 max-h-[60vh] overflow-y-auto"></div>
+                <div class="modal-footer flex justify-end space-x-2">
+                    <button onclick="closePrintPreview()" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmPrint()" class="bg-[#203363] text-white px-4 py-2 rounded-lg hover:bg-[#47517c]">
+                        <i class="fas fa-print mr-2"></i> Imprimir
                     </button>
                 </div>
             </div>
@@ -1546,6 +1534,59 @@ function showPrintPreview(content) {
     // Bloquear el scroll del body cuando el modal está abierto
     document.body.style.overflow = 'hidden';
 }
+
+function renderPrintPreviewTicket(ticketData) {
+    const items = Array.isArray(ticketData.items) ? ticketData.items : [];
+    const payments = Array.isArray(ticketData.payments) ? ticketData.payments : [];
+    const notes = ticketData.notes || '';
+
+    const S = {
+        ticket:   'font-family:"Courier New",monospace;color:#000;font-size:12px;',
+        header:   'font-family:"Courier New",monospace;color:#000;text-align:center;margin-bottom:6px;',
+        title:    'font-family:"Courier New",monospace;color:#000;font-weight:bold;font-size:14px;',
+        subtitle: 'font-family:"Courier New",monospace;color:#000;font-size:11px;',
+        section:  'margin-top:6px;margin-bottom:6px;',
+        row:      'font-family:"Courier New",monospace;color:#000;display:flex;justify-content:space-between;gap:8px;margin:2px 0;font-size:12px;',
+        rowBold:  'font-family:"Courier New",monospace;color:#000;display:flex;justify-content:space-between;gap:8px;margin:2px 0;font-size:12px;font-weight:bold;margin-top:4px;',
+        footer:   'font-family:"Courier New",monospace;color:#000;text-align:center;margin-top:8px;font-size:10px;',
+        notes:    'font-family:"Courier New",monospace;color:#000;margin-top:6px;font-size:11px;white-space:pre-wrap;',
+    };
+
+    return `
+        <div style="${S.ticket}">
+        <div style="${S.header}">
+            <div style="${S.title}">RESTAURANTE MIQUNA</div>
+            <div style="${S.subtitle}">${ticketData.date || ''}</div>
+        </div>
+        <div style="${S.section}">
+            <div style="${S.row}"><span>Vendedor:</span><span>${ticketData.seller || 'Usuario'}</span></div>
+            <div style="${S.row}"><span>Pedido:</span><span>${ticketData.order_number || ''}</span></div>
+            ${ticketData.type ? `<div style="${S.row}"><span>Tipo:</span><span>${ticketData.type}</span></div>` : ''}
+            ${ticketData.customer ? `<div style="${S.row}"><span>Cliente:</span><span>${ticketData.customer}</span></div>` : ''}
+        </div>
+        <div style="${S.section}">
+            ${items.map(item => `
+                <div style="${S.row}">
+                    <span>${item.quantity}x ${(item.name || '').substring(0, 20)}</span>
+                    <span>Bs ${parseFloat(item.amount || 0).toFixed(2)}</span>
+                </div>
+            `).join('')}
+        </div>
+        <div style="${S.section}">
+            <div style="${S.row}"><span>Subtotal:</span><span>Bs${parseFloat(ticketData.subtotal || 0).toFixed(2)}</span></div>
+            <div style="${S.row}"><span>Impuesto:</span><span>Bs${parseFloat(ticketData.tax || 0).toFixed(2)}</span></div>
+            <div style="${S.rowBold}"><span>TOTAL:</span><span>Bs${parseFloat(ticketData.total || 0).toFixed(2)}</span></div>
+            ${payments.map(payment => `
+                <div style="${S.row}"><span>${payment.label}:</span><span>Bs${parseFloat(payment.amount || 0).toFixed(2)}</span></div>
+            `).join('')}
+        </div>
+        ${notes ? `<div style="${S.notes}">${notes}</div>` : ''}
+        <div style="${S.footer}">¡Gracias por su preferencia!</div>
+        </div>
+    `;
+}
+
+window.renderPrintPreviewTicket = renderPrintPreviewTicket;
 async function getTableNumberFromId(tableId) {
     try {
         const response = await fetch(`/tables/${tableId}/status`);
@@ -1633,95 +1674,41 @@ async function generateTicketContentAsync(dailyOrderNumber) {
     if (pickupNotes && orderType === 'Recoger') {
         allNotes += `Notas de recojo: ${pickupNotes}`;
     }
-    return `
-        <div class="header">
-            <div class="title">RESTAURANTE MIQUNA</div>
-            <div class="subtitle">${dateStr} ${timeStr}</div>
-        </div>
-        <div class="divider"></div>
-        
-        <div class="item-row">
-            <span>Vendedor:</span>
-            <span>${sellerName}</span>
-        </div>
-        <div class="item-row">
-            <span>Pedido:</span>
-            <span>${dailyOrderNumber}</span>
-        </div>
-        <div class="divider"></div>
-        
-        ${orderType ? `
-            <div class="item-row">
-                <span>Tipo:</span>
-                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
-            </div>
-        ` : ''}
-        
-        ${customerName ? `
-            <div class="item-row">
-                <span>Cliente:</span>
-                <span>${customerName}</span>
-            </div>
-        ` : ''}
-        
-        <div class="divider"></div>
-        
-        ${order.map(item => `
-            <div class="item-row">
-                <span>${item.quantity}x ${item.name.substring(0, 20)}</span>
-                <span>Bs ${(item.price * item.quantity).toFixed(2)}</span>
-            </div>
-        `).join('')}
-        
-        <div class="divider"></div>
-        
-        <div class="item-row">
-            <span>Subtotal:</span>
-            <span>Bs${subtotal.toFixed(2)}</span>
-        </div>
-        <div class="item-row">
-            <span>Impuesto:</span>
-            <span>Bs${tax.toFixed(2)}</span>
-        </div>
-        <div class="item-row total-row">
-    <span>TOTAL:</span>
-    <span>Bs${total.toFixed(2)}</span>
-</div>
+    let paymentMethods = [];
 
-${(() => {
-            // Obtener métodos de pago para mostrar detalle
-            let paymentMethodsHTML = '';
-            try {
-                const methods = JSON.parse(localStorage.getItem('paymentMethods') || '[]');
-                methods.forEach(m => {
-                    paymentMethodsHTML += `
-                <div class="item-row">
-                    <span>${m.method}:</span>
-                    <span>Bs${parseFloat(m.amount || 0).toFixed(2)}</span>
-                </div>
-            `;
-                });
-            } catch (e) { }
-            return paymentMethodsHTML;
-        })()}
+    try {
+        paymentMethods = JSON.parse(localStorage.getItem('paymentMethods') || '[]').map(method => ({
+            label: method.method,
+            amount: parseFloat(method.amount || 0)
+        }));
+    } catch (e) {
+        paymentMethods = [];
+    }
 
-${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
-    <div class="item-row" style="font-weight: bold;">
-        <span>CAMBIO:</span>
-        <span>Bs${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
-    </div>
-` : ''}
-        
-        ${allNotes ? `
-            <div class="divider"></div>
-            <div class="notes">${allNotes}</div>
-        ` : ''}
-        
-        <div class="divider"></div>
-        <div class="footer">
-            ¡Gracias por su preferencia!
-        </div>
-    `;
+    if (parseFloat(localStorage.getItem('paymentChange') || '0') > 0) {
+        paymentMethods.push({
+            label: 'CAMBIO',
+            amount: parseFloat(localStorage.getItem('paymentChange') || '0')
+        });
+    }
+
+    return renderPrintPreviewTicket({
+        date: `${dateStr} ${timeStr}`,
+        seller: sellerName,
+        order_number: dailyOrderNumber,
+        type: orderType ? `${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}` : '',
+        customer: customerName,
+        items: order.map(item => ({
+            quantity: item.quantity,
+            name: item.name,
+            amount: item.price * item.quantity
+        })),
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        payments: paymentMethods,
+        notes: allNotes
+    });
 }
 /**
  * Cierra la vista previa de impresión
@@ -1742,7 +1729,7 @@ function confirmPrint() {
         <head>
             <title>Ticket de Venta</title>
             <style>
-                 {
+                body {
                     font-family: 'Courier New', monospace;
                     font-size: 12px;
                     width: 72mm;
@@ -1750,27 +1737,9 @@ function confirmPrint() {
                     padding: 2mm;
                     -webkit-print-color-adjust: exact;
                 }
-                .header { text-align: center; margin-bottom: 3px; }
-                .title { font-weight: bold; font-size: 14px; }
-                .subtitle { font-size: 11px; }
-                .divider { border-top: 1px dashed #000; margin: 3px 0; }
-                .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
-                .total-row { font-weight: bold; margin-top: 4px; }
-                .footer { text-align: center; margin-top: 5px; font-size: 10px; }
-                .notes { 
-                    margin-top: 4px; 
-                    font-size: 11px;
-                    white-space: pre-wrap; /* Para mantener los saltos de línea */
-                }
-                @page {
-                    size: 72mm auto;
-                    margin: 0;
-                }
+                @page { size: 72mm auto; margin: 0; }
                 @media print {
-                    body {
-                        margin: 0;
-                        padding: 0;
-                    }
+                    body { margin: 0; padding: 0; }
                     .no-print { display: none !important; }
                 }
             </style>
