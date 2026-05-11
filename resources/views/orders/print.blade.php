@@ -3,370 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orden {{ $order->transaction_number }}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Ticket {{ $order->daily_order_number ?: $order->transaction_number }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
             padding: 20px;
         }
-        
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+        .ticket-wrapper {
+            background: #fff;
+            width: 72mm;
+            padding: 2mm;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
-        
-        /* Header */
-        .header {
-            padding: 40px 40px 30px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 30px;
-        }
-        
-        .company-info h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #203363;
-            margin-bottom: 8px;
-        }
-        
-        .company-info p {
-            font-size: 14px;
-            color: #666;
-            margin: 3px 0;
-        }
-        
-        .order-badge {
-            text-align: right;
-        }
-        
-        .order-number {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-        
-        .order-id {
-            font-size: 28px;
-            font-weight: 700;
-            color: #203363;
-        }
-        
-        /* Order Info Grid */
-        .order-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 30px 40px;
-            background: #fafafa;
-        }
-        
-        .info-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-        
-        .info-group .value {
-            font-size: 15px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        
-        .badge-comer {
-            background-color: #FFD166;
-            color: #203363;
-        }
-        
-        .badge-llevar {
-            background-color: #06D6A0;
-            color: white;
-        }
-        
-        .badge-recoger {
-            background-color: #118AB2;
-            color: white;
-        }
-        
-        /* Items Table */
-        .items-section {
-            padding: 40px;
-        }
-        
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
-        }
-        
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .items-table thead {
-            border-bottom: 2px solid #e0e0e0;
-        }
-        
-        .items-table th {
-            text-align: left;
-            padding: 12px 0;
-            font-size: 12px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .items-table th:nth-child(2),
-        .items-table th:nth-child(3),
-        .items-table th:nth-child(4) {
-            text-align: right;
-        }
-        
-        .items-table tbody tr {
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .items-table td {
-            padding: 16px 0;
-            font-size: 15px;
-            color: #333;
-        }
-        
-        .items-table td:nth-child(2),
-        .items-table td:nth-child(3),
-        .items-table td:nth-child(4) {
-            text-align: right;
-        }
-        
-        .item-name {
-            font-weight: 500;
-        }
-        
-        /* Totals */
-        .totals-section {
-            padding: 0 40px 40px;
-        }
-        
-        .totals {
-            max-width: 350px;
-            margin-left: auto;
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            font-size: 15px;
-            color: #333;
-        }
-        
-        .total-row.subtotal {
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .total-row.grand-total {
-            border-top: 2px solid #203363;
-            padding-top: 16px;
-            margin-top: 8px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #203363;
-        }
-        
-        /* Footer */
-        .footer {
-            padding: 30px 40px;
-            background: #fafafa;
-            border-top: 1px solid #e0e0e0;
-        }
-        
-        .footer-message {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        
-        .notes-box {
-            background: white;
-            border-left: 3px solid #FFD166;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 15px;
-        }
-        
-        .notes-box label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
-            margin-bottom: 6px;
-        }
-        
-        .notes-box p {
-            color: #333;
-            font-size: 14px;
-        }
-        
-        /* Action Buttons */
+        .header { text-align: center; margin-bottom: 3px; }
+        .title { font-weight: bold; font-size: 14px; }
+        .subtitle { font-size: 11px; }
+        .divider { border-top: 1px dashed #000; margin: 3px 0; }
+        .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
+        .total-row { font-weight: bold; margin-top: 4px; }
+        .footer { text-align: center; margin-top: 5px; font-size: 10px; }
+        .notes { margin-top: 4px; font-size: 11px; white-space: pre-wrap; }
+
         .action-buttons {
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            padding: 30px 40px;
-            border-top: 1px solid #e0e0e0;
-        }
-        
-        .btn {
-            padding: 12px 28px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
             gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+            font-family: sans-serif;
+        }
+        .btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             text-decoration: none;
+            font-size: 12px;
         }
-        
-        .btn-primary {
-            background: #203363;
-            color: white;
+        .btn-primary { background: #203363; color: #fff; }
+        .btn-secondary { background: #6b7280; color: #fff; }
+
+        @page {
+            size: 72mm auto;
+            margin: 0;
         }
-        
-        .btn-primary:hover {
-            background: #47517c;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(32, 51, 99, 0.2);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: #666;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .btn-secondary:hover {
-            background: #f5f5f5;
-            border-color: #d0d0d0;
-        }
-        
-        /* Print Styles */
         @media print {
             body {
-                background: white;
+                margin: 0;
                 padding: 0;
+                background: #fff;
             }
-            
-            .container {
+            .ticket-wrapper {
                 box-shadow: none;
-                border-radius: 0;
             }
-            
             .action-buttons {
                 display: none;
-            }
-            
-            @page {
-                margin: 1.5cm;
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-            }
-            
-            .container {
-                border-radius: 0;
-            }
-            
-            .header,
-            .order-info,
-            .items-section,
-            .totals-section,
-            .footer,
-            .action-buttons {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            
-            .header-top {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .order-badge {
-                text-align: left;
-            }
-            
-            .order-info {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            
-            .items-table {
-                font-size: 13px;
-            }
-            
-            .items-table th,
-            .items-table td {
-                padding: 10px 0;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
+@php
+    $orderNumber = $order->daily_order_number ?: $order->transaction_number;
+    $paymentLabel = $order->payment_method ?: 'Efectivo';
+    $formattedDate = $order->created_at->format('j/n/Y H:i');
+    $typeText = $order->order_type;
+    if (($order->order_type ?? '') === 'Comer aquí' && $order->table_number) {
+        $typeText .= ' ' . $order->table_number;
+    }
+@endphp
+<div class="ticket-wrapper">
+    <div class="header">
+        <div class="title">RESTAURANTE MIQUNA</div>
+        <div class="subtitle">{{ $formattedDate }}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="item-row">
+        <span>Vendedor:</span>
+        <span>{{ $order->user->name ?? 'Usuario' }}</span>
+    </div>
+    <div class="item-row">
+        <span>Pedido:</span>
+        <span>{{ $orderNumber }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="item-row">
+        <span>Tipo:</span>
+        <span>{{ $typeText }}</span>
+    </div>
+
+    @if($order->customer_name)
+    <div class="item-row">
+        <span>Cliente:</span>
+        <span>{{ $order->customer_name }}</span>
+    </div>
+    @endif
+
+    <div class="divider"></div>
+
+    @foreach($order->items as $item)
+    <div class="item-row">
+        <span>{{ $item->quantity }}x {{ \Illuminate\Support\Str::limit($item->name ?? ($item->menuItem->name ?? 'Producto'), 20, '') }}</span>
+        <span>Bs {{ number_format($item->price * $item->quantity, 2) }}</span>
+    </div>
+    @endforeach
+
+    <div class="divider"></div>
+
+    <div class="item-row">
+        <span>Subtotal:</span>
+        <span>Bs{{ number_format($order->subtotal, 2) }}</span>
+    </div>
+    <div class="item-row">
+        <span>Impuesto:</span>
+        <span>Bs{{ number_format($order->tax, 2) }}</span>
+    </div>
+    <div class="item-row total-row">
+        <span>TOTAL:</span>
+        <span>Bs{{ number_format($order->total, 2) }}</span>
+    </div>
+
+    <div class="item-row">
+        <span>{{ $paymentLabel }}:</span>
+        <span>Bs{{ number_format($order->total, 2) }}</span>
+    </div>
+
+    @php $orderNotes = $order->order_notes ?? null; @endphp
+    @if($orderNotes)
+    <div class="divider"></div>
+    <div class="notes">{{ $orderNotes }}</div>
+    @endif
+
+    <div class="divider"></div>
+    <div class="footer">¡Gracias por su preferencia!</div>
+
+    <div class="action-buttons">
+        <a href="{{ route('orders.index') }}" class="btn btn-secondary">Volver</a>
+        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -519,5 +300,6 @@
             </button>
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\PettyCash;
 use App\Models\User;
 use App\Models\Expense;
+use App\Models\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -477,6 +478,9 @@ class PettyCashController extends Controller
                 'notes'            => $validated['closure_notes'] ?? null,
             ]);
 
+            // Liberar todas las mesas al cerrar caja chica
+            Table::whereIn('state', ['Ocupada', 'Reservada'])->update(['state' => 'Disponible']);
+
             // ✅ Cancelar proformas pendientes de la sucursal y restaurar su stock
             $cancelledProformas = \App\Models\Proforma::where('branch_id', $pettyCash->branch_id)
                 ->where('status', '!=', 'cancelled')
@@ -493,7 +497,6 @@ class PettyCashController extends Controller
                 }
                 $proforma->update(['status' => 'cancelled']);
             }
-
             DB::commit();
 
             return response()->json([

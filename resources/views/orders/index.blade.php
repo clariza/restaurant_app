@@ -116,6 +116,20 @@
             Con admin: ID(2) | Fecha(2) | Cliente(1) | Tipo(2) | Total(1) | Sucursal(2) | Acciones(2)
         --}}
         {{-- Header --}}
+
+        <div class="grid grid-cols-12 bg-[#203363] text-white p-4 font-bold text-sm">
+            <div class="col-span-2  md:col-span-1">ID</div>
+            <div class="col-span-4  md:col-span-2">Fecha/Hora</div>
+            <div class="hidden md:block md:col-span-2">Cliente</div>
+            <div class="col-span-2  md:col-span-1">Tipo</div>
+            <div class="hidden md:block md:col-span-1 text-center">Items</div>
+            <div class="col-span-4  md:col-span-1">Total</div>
+            <div class="hidden md:block md:col-span-1">Pago</div>
+            @if($isAdmin ?? false)
+            <div class="hidden md:block md:col-span-1">Sucursal</div>
+            @endif
+            <div class="hidden md:block md:col-span-{{ ($isAdmin ?? false) ? '2' : '3' }}">Acciones</div>
+
         @if($isAdmin ?? false)
         <div class="hidden md:grid md:grid-cols-12 bg-[#203363] text-white px-4 py-3 font-bold text-sm">
             <div class="col-span-2">ID</div>
@@ -142,6 +156,7 @@
             <div class="col-span-4">Fecha</div>
             <div class="col-span-3">Tipo</div>
             <div class="col-span-2 text-right">Total</div>
+
         </div>
         {{-- Filas --}}
         @forelse($orders->merge($proformas)->sortByDesc('created_at') as $record)
@@ -192,16 +207,45 @@
                 <div class="col-span-2 truncate text-gray-700 text-left">
                     {{ $record->customer_name ?? 'N/A' }}
                 </div>
+
+                {{-- Tipo --}}
+                <div class="col-span-2 md:col-span-1">
+                    <span class="px-2 py-1 rounded-full text-xs {{ $typeColor }}">
+                        {{ $isProforma ? 'Proforma' : $record->order_type }}
+                        @if(!$isProforma && ($record->order_type ?? '') === 'Comer aquí' && $record->table_number)
+                            (Mesa {{ $record->table_number }})
+                        @endif
+
                 {{-- Tipo (2) --}}
                 <div class="col-span-2">
                     <span class="inline-block px-2 py-1 rounded-full text-xs {{ $typeColor }} whitespace-nowrap">
                         {{ $typeLabel }}{{ $tableLabel }}
+
                     </span>
                 </div>
                 {{-- Total (1) --}}
                 <div class="col-span-1 font-bold text-[#203363] whitespace-nowrap">
                     Bs {{ number_format($record->total, 2) }}
                 </div>
+
+                {{-- Total --}}
+                <div class="col-span-4 md:col-span-1 font-bold">
+                    ${{ number_format($record->total, 2) }}
+                </div>
+
+                {{-- Pago --}}
+                <div class="hidden md:block md:col-span-1 text-xs text-gray-600">
+                    @if(!$isProforma)
+                        {{ $record->payment_method ?? '—' }}
+                    @else
+                        <span class="text-gray-400 italic">—</span>
+                    @endif
+                </div>
+
+                {{-- Sucursal --}}
+                @if($isAdmin ?? false)
+                <div class="hidden md:block md:col-span-1 text-xs text-gray-600">
+
                 {{-- Sucursal (2) --}}
                 <div class="col-span-2 text-xs text-gray-600">
                     @if($record->branch)
@@ -213,6 +257,11 @@
                         <span class="text-gray-400">—</span> --}}
                     @endif
                 </div>
+                @endif
+
+                {{-- 🔥 Acciones desktop - MODIFICADO --}}
+                <div class="hidden md:flex md:col-span-{{ ($isAdmin ?? false) ? '2' : '3' }} items-center space-x-2">
+
                 {{-- Acciones (2) --}}
                 <div class="col-span-2 flex items-center gap-1">
                     <a href="{{ $isProforma ? route('proformas.show', $record->id) : route('orders.show', $record->id) }}"
@@ -407,6 +456,11 @@
     @csrf
     @method('DELETE')
 </form>
+
+
+@include('partials.print-preview-modal')
+
+
 <script>
     // Aplicar filtros
     document.getElementById('filter-form').addEventListener('submit', function (e) {
@@ -431,9 +485,49 @@
         }, 500);
     });
     // Imprimir
-    function printOrder(type, id) {
-        const url = type === 'proforma' ? `/proformas/${id}/print` : `/orders/${id}/print`;
-        window.open(url, '_blank');
+    async function printOrder(type, id) {
+        const modalUrl = type === 'proforma' ? `/proformas/${id}/print?modal=1` : `/orders/${id}/print?modal=1`;
+
+        try {
+            const response = await fetch(modalUrl, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo obtener la vista previa de impresión.');
+            }
+
+            const data = await response.json();
+
+            if (!data.success || !data.ticket) {
+                throw new Error(data.message || 'La vista previa de impresión está vacía.');
+            }
+
+            if (typeof showPrintPreview !== 'function' || typeof window.renderPrintPreviewTicket !== 'function') {
+                throw new Error('El modal de vista previa no está disponible.');
+            }
+
+            showPrintPreview(window.renderPrintPreviewTicket(data.ticket));
+
+            window.handlePrintClose = function() {
+                const previewModal = document.getElementById('print-preview-modal');
+
+                if (previewModal) {
+                    previewModal.classList.add('hidden');
+                    previewModal.style.display = 'none';
+                }
+
+                document.body.style.overflow = '';
+            };
+        } catch (error) {
+            console.error('Error al abrir vista previa:', error);
+
+            const fallbackUrl = type === 'proforma' ? `/proformas/${id}/print` : `/orders/${id}/print`;
+            window.open(fallbackUrl, '_blank');
+        }
     }
     // Eliminar orden
     function deleteOrder(orderId, orderNumber) {
@@ -681,4 +775,6 @@
     .pagination li.active span { background-color: #203363; color: white; border-color: #203363; }
     .pagination li a:hover { background-color: #f8fafc; }
 </style>
+
+<script src="{{ asset('js/order-details.js') }}"></script>
 @endsection

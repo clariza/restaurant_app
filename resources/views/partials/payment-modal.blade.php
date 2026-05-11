@@ -391,13 +391,6 @@
                 Datos del Cliente
             </h4>
             <div style="display: flex; gap: 8px;">
-                <button onclick="openClientsConfigModal()" 
-                        class="clients-config-btn" 
-                        type="button"
-                        style="background: #203363; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-                    <i class="fas fa-users"></i>
-                    <span>Gestionar Clientes</span>
-                </button>
                 <button onclick="saveCurrentClientToDatabase()" 
                     class="clients-config-btn" 
                     type="button"
