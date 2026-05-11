@@ -1,4 +1,3 @@
-
 <div id="order-panel" class="w-full md:w-1/5 bg-white p-4 rounded-lg shadow-lg fixed right-0 top-16 h-[calc(100vh-4rem)] flex flex-col z-40">
 
     <div class="scroll-container flex-1">
@@ -43,26 +42,6 @@
             Realizar Pago
         </button>
 
-        
-        <div class="flex space-x-2">
-            <a onclick="event.preventDefault(); openExpensesModal();"
-               class="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors text-sm flex items-center justify-center"
-               title="Gastos">
-                <i class="fas fa-receipt"></i>
-            </a>
-            <a href="<?php echo e(route('orders.index')); ?>"
-               class="flex-1 bg-[#6380a6] text-white py-2 px-3 rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center justify-center"
-               title="Historial">
-                <i class="fas fa-history"></i>
-            </a>
-
-            
-            <button onclick="openUnifiedModal(null, 'list')"
-                class="flex-1 bg-[#EF476F] text-white py-2 px-3 rounded-lg hover:bg-accent-dark transition-colors text-sm flex items-center justify-center"
-                title="Caja Chica">
-                <i class="fas fa-cash-register"></i>
-            </button>
-        </div>
     </div>
 
     <!-- Input oculto para el tipo de pedido -->

@@ -301,7 +301,6 @@ class SaleController extends Controller
                 'service_charge' => 0,
                 'tax' => $tax,
                 'total' => $total,
-                'transaction_number' => $request->transaction_number,
                 'payment_method' => $request->payment_method,
                 'order_notes' => $request->order_notes,
                 'daily_order_number' => $orderNumber,

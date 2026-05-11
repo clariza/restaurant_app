@@ -37,6 +37,77 @@
         </div>
     @endif
 
+    <!-- ===================== FILTROS DE CUMPLEAÑOS ===================== -->
+    <div class="bg-white rounded-lg shadow-md p-5 mb-6 border-l-4 border-[#203363]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+            <i class="fas fa-birthday-cake mr-2 text-[#203363]"></i>
+            Filtrar por Cumpleaños
+        </h2>
+        <form method="GET" action="{{ route('clients.index') }}" class="flex flex-wrap gap-4 items-end">
+            <!-- Filtro: Mes -->
+            <div class="flex flex-col min-w-[160px]">
+                <label for="birthday_month" class="text-sm font-medium text-gray-600 mb-1">
+                    <i class="fas fa-calendar-alt mr-1 text-gray-400"></i> Mes
+                </label>
+                <select name="birthday_month" id="birthday_month"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#203363] focus:border-transparent">
+                    <option value="">Todos los meses</option>
+                    <option value="1"  {{ request('birthday_month') == '1'  ? 'selected' : '' }}>Enero</option>
+                    <option value="2"  {{ request('birthday_month') == '2'  ? 'selected' : '' }}>Febrero</option>
+                    <option value="3"  {{ request('birthday_month') == '3'  ? 'selected' : '' }}>Marzo</option>
+                    <option value="4"  {{ request('birthday_month') == '4'  ? 'selected' : '' }}>Abril</option>
+                    <option value="5"  {{ request('birthday_month') == '5'  ? 'selected' : '' }}>Mayo</option>
+                    <option value="6"  {{ request('birthday_month') == '6'  ? 'selected' : '' }}>Junio</option>
+                    <option value="7"  {{ request('birthday_month') == '7'  ? 'selected' : '' }}>Julio</option>
+                    <option value="8"  {{ request('birthday_month') == '8'  ? 'selected' : '' }}>Agosto</option>
+                    <option value="9"  {{ request('birthday_month') == '9'  ? 'selected' : '' }}>Septiembre</option>
+                    <option value="10" {{ request('birthday_month') == '10' ? 'selected' : '' }}>Octubre</option>
+                    <option value="11" {{ request('birthday_month') == '11' ? 'selected' : '' }}>Noviembre</option>
+                    <option value="12" {{ request('birthday_month') == '12' ? 'selected' : '' }}>Diciembre</option>
+                </select>
+            </div>
+
+            <!-- Filtro acceso rápido: hoy / esta semana / este mes -->
+            <div class="flex flex-col min-w-[180px]">
+                <label for="birthday_filter" class="text-sm font-medium text-gray-600 mb-1">
+                    <i class="fas fa-filter mr-1 text-gray-400"></i> Acceso Rápido
+                </label>
+                <select name="birthday_filter" id="birthday_filter"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#203363] focus:border-transparent">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="today"      {{ request('birthday_filter') == 'today'      ? 'selected' : '' }}>🎂 Hoy</option>
+                    <option value="this_week"  {{ request('birthday_filter') == 'this_week'  ? 'selected' : '' }}>📅 Esta semana</option>
+                    <option value="this_month" {{ request('birthday_filter') == 'this_month' ? 'selected' : '' }}>🗓️ Este mes</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="bg-[#203363] text-white px-5 py-2 rounded-lg hover:bg-[#1a2850] transition duration-200 flex items-center text-sm shadow">
+                    <i class="fas fa-search mr-2"></i> Filtrar
+                </button>
+                @if(request('birthday_month') || request('birthday_filter'))
+                    <a href="{{ route('clients.index') }}"
+                       class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 flex items-center text-sm">
+                        <i class="fas fa-times mr-2"></i> Limpiar
+                    </a>
+                @endif
+            </div>
+
+            <!-- Indicador de resultados activos -->
+            @if(request('birthday_month') || request('birthday_filter'))
+                <div class="flex items-center ml-2">
+                    <span class="bg-[#203363] text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                        <i class="fas fa-birthday-cake"></i>
+                        Filtrando cumpleaños
+                    </span>
+                </div>
+            @endif
+        </form>
+    </div>
+    <!-- ================================================================ -->
+
     <!-- Tabla de Clientes -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="overflow-x-auto">
@@ -46,8 +117,9 @@
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
                             <i class="fas fa-user mr-1"></i> Cliente
                         </th>
+                        <!-- COLUMNA CAMBIADA: Documento → Cumpleaños -->
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
-                            <i class="fas fa-id-card mr-1"></i> Documento
+                            <i class="fas fa-birthday-cake mr-1"></i> Cumpleaños
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">
                             <i class="fas fa-phone mr-1"></i> Contacto
@@ -65,12 +137,19 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($clients as $client)
-                        <tr class="hover:bg-gray-50 transition duration-150">
+                        <tr class="hover:bg-gray-50 transition duration-150
+                            {{-- Resaltar si es cumpleaños hoy --}}
+                            {{ $client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'bg-yellow-50' : '' }}">
+
                             <!-- Cliente -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-[#203363] rounded-full flex items-center justify-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-[#203363] rounded-full flex items-center justify-center relative">
                                         <i class="fas fa-user text-white"></i>
+                                        {{-- Ícono de pastel si hoy es su cumpleaños --}}
+                                        @if($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d'))
+                                            <span class="absolute -top-1 -right-1 text-xs">🎂</span>
+                                        @endif
                                     </div>
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">
@@ -85,20 +164,42 @@
                                 </div>
                             </td>
 
-                            <!-- Documento -->
+                            <!-- CELDA CAMBIADA: Cumpleaños en lugar de Documento -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm">
-                                    <div class="font-medium text-gray-900">
-                                        {{ $client->document_type }}
-                                    </div>
-                                    @if($client->document_number)
-                                        <div class="text-gray-500 font-mono">
-                                            {{ $client->document_number }}
+                                @if($client->birthdays)
+                                    <div class="text-sm">
+                                        <div class="font-medium text-gray-900 flex items-center gap-1">
+                                            <i class="fas fa-calendar text-gray-400 w-4"></i>
+                                            {{ $client->birthdays->format('d/m/Y') }}
                                         </div>
-                                    @else
-                                        <span class="text-gray-400 italic">Sin documento</span>
-                                    @endif
-                                </div>
+                                        <div class="text-gray-500 text-xs mt-0.5">
+                                            @php
+                                                $today     = now();
+                                                $birthday  = $client->birthdays->setYear($today->year);
+                                                if ($birthday->isPast() && !$birthday->isToday()) {
+                                                    $birthday->addYear();
+                                                }
+                                                $daysLeft = (int) $today->diffInDays($birthday, false);
+                                            @endphp
+
+                                            @if($client->birthdays->format('m-d') === $today->format('m-d'))
+                                                <span class="text-yellow-600 font-semibold flex items-center gap-1">
+                                                    🎉 ¡Hoy es su cumpleaños!
+                                                </span>
+                                            @elseif($daysLeft <= 7)
+                                                <span class="text-orange-500 font-medium">
+                                                    En {{ $daysLeft }} día{{ $daysLeft !== 1 ? 's' : '' }}
+                                                </span>
+                                            @else
+                                                <span class="text-gray-400">
+                                                    En {{ $daysLeft }} días
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 italic text-sm">Sin fecha</span>
+                                @endif
                             </td>
 
                             <!-- Contacto -->
@@ -145,6 +246,13 @@
                             <!-- Acciones -->
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                 <div class="flex items-center justify-center space-x-2">
+                                    @if(($client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d')) || $client->is_active)
+        <button onclick="openCoupon({{ $client->id }})"
+        class="transition duration-200 {{ $client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'text-red-500 hover:text-red-700' : 'text-amber-500 hover:text-amber-700' }}"
+        title="{{ $client->birthdays && $client->birthdays->format('m-d') === now()->format('m-d') ? 'Cupón cumpleaños' : 'Cupón descuento' }}">
+        <i class="fas fa-ticket-alt"></i>
+        </button>
+        @endif
                                     <a href="{{ route('clients.show', $client) }}" 
                                        class="text-blue-600 hover:text-blue-800 transition duration-200"
                                        title="Ver detalles">
@@ -195,9 +303,81 @@
             </div>
         @endif
     </div>
+
+    {{-- Modales de cupones --}}
+@foreach($clients as $client)
+    @include('clients.partials.coupon', ['client' => $client])
+@endforeach
 </div>
 
 <script>
+    function downloadCoupon(id) {
+    const btn      = document.getElementById(`download-btn-${id}`);
+    const couponEl = document.querySelector(`#coupon-preview-${id} .coupon-strip`);
+
+    if (!couponEl) return;
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML  = '⏳ Generando...';
+    btn.disabled   = true;
+
+    html2canvas(couponEl, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+    }).then(canvas => {
+        const link    = document.createElement('a');
+        link.download = `cupon-${id}.png`;
+        link.href     = canvas.toDataURL('image/png');
+        link.click();
+        btn.innerHTML = originalHTML;
+        btn.disabled  = false;
+    }).catch(() => {
+        showNotification('Error al generar la imagen', 'error');
+        btn.innerHTML = originalHTML;
+        btn.disabled  = false;
+    });
+}
+    function formatDateES(dateStr) {
+    if (!dateStr) return '';
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const [y, m, d] = dateStr.split('-');
+    return `${d} ${meses[parseInt(m,10)-1]} ${y}`;
+}
+function updateCouponPreview(id) {
+    const pctEl       = document.getElementById(`pct-${id}`);
+    const validityEl  = document.getElementById(`validity-${id}`);
+    const subEl       = document.getElementById(`sub-${id}`);
+
+    // Porcentaje (solo cupón premium)
+    if (pctEl) {
+        const pct = pctEl.value || '0';
+        const stamEl = document.getElementById(`stamp-pct-${id}`);
+        const headEl = document.getElementById(`headline-${id}`);
+        if (stamEl) stamEl.textContent = pct + '%';
+        if (headEl) headEl.textContent = pct + '% OFF';
+    }
+
+    // Vigencia
+    if (validityEl) {
+        const vEl = document.getElementById(`coupon-validity-text-${id}`);
+        if (vEl) {
+            // Si es un date-input (premium) formateamos, si es text (birthday) usamos directo
+            const raw = validityEl.value;
+            const isDate = validityEl.type === 'date';
+            vEl.innerHTML = isDate
+                ? `Válido hasta: ${formatDateES(raw)} &nbsp;·&nbsp; *Aplican términos`
+                : raw;
+        }
+    }
+
+    // Sub-texto / descripción
+    if (subEl) {
+        const sEl = document.getElementById(`coupon-sub-text-${id}`);
+        if (sEl) sEl.textContent = subEl.value;
+    }
+}
 function toggleStatus(clientId, currentStatus) {
     fetch(`/clients/${clientId}/toggle-status`, {
         method: 'POST',
@@ -233,6 +413,16 @@ function toggleStatus(clientId, currentStatus) {
         showNotification('Error al cambiar el estado', 'error');
     });
 }
+function backToEditor(id) {
+    document.getElementById(`coupon-preview-${id}`).classList.add('hidden');
+    document.getElementById(`coupon-editor-${id}`).classList.remove('hidden');
+}
+// Muestra el cupón y oculta el editor
+function confirmCoupon(id) {
+    updateCouponPreview(id); // aplica última edición
+    document.getElementById(`coupon-editor-${id}`).classList.add('hidden');
+    document.getElementById(`coupon-preview-${id}`).classList.remove('hidden');
+}
 
 function showNotification(message, type) {
     const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
@@ -252,16 +442,211 @@ function showNotification(message, type) {
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
+function openCoupon(id) {
+    const overlay = document.getElementById(`coupon-${id}`);
+    const editor  = document.getElementById(`coupon-editor-${id}`);
+    const preview = document.getElementById(`coupon-preview-${id}`);
+    if (editor)  editor.classList.remove('hidden');
+    if (preview) preview.classList.add('hidden');
+    overlay.classList.remove('hidden');
+}
+function closeCoupon(id) {
+    document.getElementById('coupon-' + id).classList.add('hidden');
+}
+// Cerrar al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('coupon-modal-overlay')) {
+        e.target.classList.add('hidden');
+    }
+});
 </script>
 
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+/* ── Editor de cupón ─────────────────────────────── */
+.coupon-editor {
+    padding: .25rem 0 1rem;
+}
+.coupon-editor-title {
+    font-size: 16px; font-weight: 700; color: #203363;
+    margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: .5rem;
+}
+.coupon-editor-subtitle {
+    font-size: 13px; font-weight: 400; color: #6b7280;
+}
+.coupon-editor-fields {
+    display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem;
+}
+.coupon-field-group {
+    display: flex; flex-direction: column; gap: .3rem; min-width: 140px; flex: 1;
+}
+.coupon-field-full { flex-basis: 100%; }
+.coupon-field-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: #6b7280;
+}
+.coupon-field-row {
+    display: flex; align-items: center; gap: .4rem;
+}
+.coupon-field-input {
+    border: 1.5px solid #d1d5db; border-radius: 8px;
+    padding: 7px 10px; font-size: 14px; width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+}
+.coupon-field-input:focus {
+    border-color: #203363;
+    box-shadow: 0 0 0 3px rgba(32,51,99,.12);
+}
+.coupon-field-unit {
+    font-size: 14px; color: #6b7280; white-space: nowrap;
+}
+.coupon-confirm-btn {
+    background: #203363; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 9px 22px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .2s;
+    display: block; margin-left: auto;
+}
+.coupon-confirm-btn:hover { background: #1a2850; }
+.coupon-back-btn {
+    background: #f3f4f6; color: #374151;
+    border: none; border-radius: 8px;
+    padding: 8px 18px; font-size: 13px;
+    cursor: pointer; transition: background .2s;
+}
+.coupon-back-btn:hover { background: #e5e7eb; }
+.coupon-modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.coupon-modal-overlay.hidden { display: none; }
+.coupon-modal-box {
+    background: #fff; border-radius: 16px;
+    padding: 1.5rem; max-width: 580px; width: 100%;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.coupon-close {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 22px; color: #888; background: none;
+    border: none; cursor: pointer; line-height: 1;
+}
+.coupon-strip {
+    display: flex; border-radius: 12px; overflow: hidden;
+}
+.coupon-premium { background: #1e3a5f; }  
+.coupon-birthday { background: #c0392b; }
+
+.coupon-left {
+    flex: 1; padding: 1.25rem; display: flex;
+    flex-direction: column; gap: 0.4rem;
+}
+.coupon-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; width: fit-content;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.coupon-premium .coupon-badge   { background: #2a4a72; color: #7aafd4; } 
+.coupon-birthday .coupon-badge { background: #fff; color: #c0392b; }
+.coupon-premium .coupon-client  { color: #b8d4ea; } 
+.coupon-premium .coupon-stamp   { border-color: #2a4a72; }
+.coupon-premium .coupon-stamp-pct{ color: #7ec8e3; } 
+.coupon-premium .coupon-stamp-off{ color: rgba(255,255,255,.5); }
+.coupon-premium .coupon-code-label{ color: rgba(255,255,255,.4); } 
+.coupon-code { color: #7ec8e3; background: rgba(126,200,227,.1); border-color: rgba(126,200,227,.35); }
+.coupon-birthday .coupon-code   { background: #e8d8c8; color: #5c3d24; border-color: #c8b8a8; }
+.coupon-premium .coupon-bar { background: rgba(255,255,255,.4); }
+.coupon-premium .coupon-notch   { background: #fff; }
+.coupon-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px; line-height: 1;
+}
+.coupon-premium .coupon-headline{ color: #f5f5f5; }
+.coupon-birthday .coupon-headline { color: #fff; }
+
+.coupon-sub { font-size: 12px; line-height: 1.4; }
+.coupon-premium .coupon-sub     { color: #6a9bbf; } 
+.coupon-birthday .coupon-sub { color: rgba(255,255,255,0.85); }
+
+.coupon-client { font-size: 14px; font-weight: 700; color: #fff; }
+.coupon-validity { font-size: 10px; margin-top: auto; }
+.coupon-premium .coupon-validity{ color: #3f6a8a; } 
+.coupon-premium .coupon-headline{ color: #e8f2fb; } 
+
+.coupon-divider {
+    width: 2px; margin: 1rem 0; flex-shrink: 0;
+    background: repeating-linear-gradient(
+        to bottom, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 12px
+    );
+    position: relative;
+}
+.coupon-divider::before, .coupon-divider::after {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; background: #fff;
+    border-radius: 50%; left: 50%; transform: translateX(-50%); z-index: 2;
+}
+.coupon-divider::before { top: -9px; }
+.coupon-divider::after  { bottom: -9px; }
+
+.coupon-right {
+    width: 130px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.6rem; padding: 1rem 0.75rem;
+}
+.coupon-premium .coupon-right { background: #152d4a; }
+.coupon-birthday .coupon-right { background: #a93226; }
+.coupon-premium .coupon-divider { border-right: 1px dashed rgba(255,255,255,0.12); }
+
+.coupon-stamp {
+    width: 50px; height: 50px; border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,0.4);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+}
+.coupon-stamp-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; color: #f5a623; line-height: 1;
+}
+.coupon-stamp-off {
+    font-size: 9px; color: rgba(255,255,255,0.6);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.coupon-code-label {
+    font-size: 10px; color: rgba(255,255,255,0.5);
+    text-transform: uppercase; letter-spacing: 0.1em;
+}
+.coupon-code {
+    font-family: monospace; font-size: 15px;
+    color: #f5a623; letter-spacing: 0.1em;
+    background: rgba(245,166,35,0.12);
+    padding: 3px 8px; border-radius: 5px;
+    border: 1px dashed rgba(245,166,35,0.4);
+}
+.coupon-birthday .coupon-code {
+    color: #fff; background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+}
+.coupon-barcode { display: flex; gap: 2px; align-items: flex-end; }
+.coupon-bar { background: rgba(255,255,255,0.55); border-radius: 1px; }
+
+.coupon-print-btn {
+    background: #203363; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 8px 20px; font-size: 13px;
+    cursor: pointer; transition: background 0.2s;
+}
+.coupon-print-btn:hover { background: #1a2850; }
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 @endsection

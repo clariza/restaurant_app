@@ -26,9 +26,10 @@ class PettyCash extends Model
         'total_expenses',
         'total_general',
         'closed_at',
+        'opening_notes',
     ];
     protected $casts = [
-        'date' => 'date',
+        'date' => 'datetime',
         'closed_at' => 'datetime',
     ];
     /**

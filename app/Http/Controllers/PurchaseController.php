@@ -13,14 +13,31 @@ use App\Models\Stock;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Models\InventoryMovement;
 use App\Models\Branch;
 
 class PurchaseController extends Controller
 {
+    protected function resolvePurchaseBranchId(Request $request): ?int
+    {
+        $branchId = $request->input('branch_id') ?: session('branch_id') ?: Auth::user()?->branch_id;
+
+        return $branchId ? (int) $branchId : null;
+    }
+
+    protected function buildPurchaseAttributes(array $attributes): array
+    {
+        if (Schema::hasColumn('purchases', 'user_id')) {
+            $attributes['user_id'] = Auth::id();
+        }
+
+        return $attributes;
+    }
+
     public function index(Request $request)
     {
-        $query = Purchase::with('supplier');
+        $query = Purchase::with(['supplier', 'branch', 'user']);
 
         // Búsqueda por referencia o proveedor
         if ($request->filled('search')) {
@@ -38,6 +55,11 @@ class PurchaseController extends Controller
             $query->where('supplier_id', $request->supplier_id);
         }
 
+        // Filtro por sucursal
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         // Filtro por estado
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -48,14 +70,15 @@ class PurchaseController extends Controller
             $query->whereDate('purchase_date', $request->date);
         }
 
-        // Ordenar por fecha más reciente
-        $query->orderBy('purchase_date', 'desc');
+        // Ordenar por fecha y hora de creación más reciente
+        $query->orderByDesc('purchase_date')->orderByDesc('created_at')->orderByDesc('id');
 
         // Paginación
         $purchases = $query->paginate(15)->appends($request->except('page'));
 
         // Obtener todos los proveedores para el filtro
         $suppliers = Supplier::orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->orderBy('name')->get();
 
         // Verificar si hay caja abierta
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
@@ -71,6 +94,7 @@ class PurchaseController extends Controller
         return view('purchases.index', compact(
             'purchases',
             'suppliers',
+            'branches',
             'hasOpenPettyCash',
             'statistics'
         ));
@@ -80,13 +104,14 @@ class PurchaseController extends Controller
     {
         $suppliers = Supplier::all();
         $categorias = Category::all();
+        $activeBranchId = session('branch_id') ?: Auth::user()?->branch_id;
         $branches = \App\Models\Branch::where('is_active', true)
             ->orderBy('is_main', 'desc')
             ->orderBy('name')
             ->get();
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();
 
-        return view('purchases.create', compact('suppliers', 'hasOpenPettyCash', 'categorias', 'branches'));
+        return view('purchases.create', compact('suppliers', 'hasOpenPettyCash', 'categorias', 'branches', 'activeBranchId'));
     }
 
     public function store(Request $request)
@@ -94,7 +119,7 @@ class PurchaseController extends Controller
         // Validación
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'branch_id' => 'required|exists:branches,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'reference_number' => 'nullable|string|max:100',
             'purchase_date' => 'required|date',
             'products' => 'required|array|min:1',
@@ -109,15 +134,23 @@ class PurchaseController extends Controller
         try {
             DB::beginTransaction();
 
+            $branchId = $this->resolvePurchaseBranchId($request);
+            if (!$branchId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar una sucursal para registrar la compra.'
+                ], 422);
+            }
+            // $purchaseDate = Carbon::parse($validated['purchase_date']);
             // Crear la compra
-            $purchase = Purchase::create([
+            $purchase = Purchase::create($this->buildPurchaseAttributes([
                 'supplier_id' => $validated['supplier_id'],
-                'branch_id' => $validated['branch_id'],
+                'branch_id' => $branchId,
                 'reference_number' => $validated['reference_number'],
-                'purchase_date' => $validated['purchase_date'],
+                'purchase_date' => now(),
                 'total_amount' => 0,
-                'user_id' => Auth::id(),
-            ]);
+                'status' => 'completed',
+            ]));
 
             $totalAmount = 0;
 
@@ -151,8 +184,6 @@ class PurchaseController extends Controller
                 ]);
 
                 if ($product->manage_inventory) {
-                    $branchId = $validated['branch_id'];
-
                     // ── 1. Actualizar BranchMenuItemStock (stock por sucursal) ──
                     $branchStock = \App\Models\BranchMenuItemStock::firstOrCreate(
                         ['branch_id' => $branchId, 'menu_item_id' => $product->id],
@@ -222,6 +253,7 @@ class PurchaseController extends Controller
     {
         $validatedData = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'reference_number' => 'nullable|string|max:255',
             'purchase_date' => 'required|date',
             'products' => 'required|array|min:1',
@@ -236,17 +268,25 @@ class PurchaseController extends Controller
         try {
             DB::beginTransaction();
 
+            $branchId = $this->resolvePurchaseBranchId($request);
+            if (!$branchId) {
+                return redirect()->back()
+                    ->with('error', 'Debe seleccionar una sucursal para registrar la compra.')
+                    ->withInput();
+            }
+
             $totalAmount = $this->calculateTotalAmount($request->products);
 
-            $purchase = Purchase::create([
+            $purchase = Purchase::create($this->buildPurchaseAttributes([
                 'supplier_id' => $request->supplier_id,
+                'branch_id' => $branchId,
                 'reference_number' => $request->reference_number,
                 'purchase_date' => $request->purchase_date,
                 'total_amount' => $totalAmount,
                 'status' => 'completed',
-            ]);
+            ]));
 
-            $this->processPurchaseProducts($purchase, $request->products);
+            $this->processPurchaseProducts($purchase, $request->products, $branchId);
 
             DB::commit();
 
@@ -264,6 +304,7 @@ class PurchaseController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_id' => 'required|exists:suppliers,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'reference_number' => 'nullable|string|max:255',
             'purchase_date' => 'required|date',
             'products' => 'required|array|min:1',
@@ -286,17 +327,26 @@ class PurchaseController extends Controller
         try {
             DB::beginTransaction();
 
+            $branchId = $this->resolvePurchaseBranchId($request);
+            if (!$branchId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar una sucursal para registrar la compra.'
+                ], 422);
+            }
+
             $totalAmount = $this->calculateTotalAmount($request->products);
 
-            $purchase = Purchase::create([
+            $purchase = Purchase::create($this->buildPurchaseAttributes([
                 'supplier_id' => $request->supplier_id,
+                'branch_id' => $branchId,
                 'reference_number' => $request->reference_number,
                 'purchase_date' => $request->purchase_date,
                 'total_amount' => $totalAmount,
                 'status' => 'completed',
-            ]);
+            ]));
 
-            $this->processPurchaseProducts($purchase, $request->products);
+            $this->processPurchaseProducts($purchase, $request->products, $branchId);
 
             DB::commit();
 
@@ -602,7 +652,7 @@ class PurchaseController extends Controller
     public function show(Purchase $purchase)
     {
         // Cargar las relaciones necesarias
-        $purchase->load(['supplier', 'stocks.item.category']);
+        $purchase->load(['supplier', 'branch', 'stocks.item.category']);
 
         // Verificar si hay caja abierta
         $hasOpenPettyCash = PettyCash::where('status', 'open')->exists();

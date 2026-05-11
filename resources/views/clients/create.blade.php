@@ -62,7 +62,7 @@
                         <select name="document_type" id="document_type" required
                             class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('document_type') border-red-500 @enderror">
                             <option value="CI" {{ old('document_type') == 'CI' ? 'selected' : '' }}>CI - Carnet de Identidad</option>
-                            <option value="NIT" {{ old('document_type') == 'NIT' ? 'selected' : '' }}>NIT</option>
+                            <option value="DNI" {{ old('document_type') == 'DNI' || old('document_type') == 'NIT' ? 'selected' : '' }}>DNI</option>
                             <option value="Pasaporte" {{ old('document_type') == 'Pasaporte' ? 'selected' : '' }}>Pasaporte</option>
                         </select>
                         @error('document_type')
@@ -125,31 +125,39 @@
                     Ubicación
                 </h3>
                 <div class="grid grid-cols-1 gap-4">
-                    <!-- Cumpleaños -->
-                    <div>
-                        <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
-                            Fecha de Cumpleaños
-                        </label>
-                        <input type="date" name="birthdays" id="birthdays" value="{{ old('birthdays') }}"
-                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('birthdays') border-red-500 @enderror"
-                            placeholder="Ej: 1990-01-01">
-                        @error('birthdays')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                   <!-- Cumpleaños -->
+<div>
+    <label for="birthdays" class="block text-sm font-medium text-[var(--primary-color)]">
+        Fecha de Cumpleaños
+    </label>
+    <input type="date"
+           name="birthdays"
+           id="birthdays"
+           value="{{ old('birthdays') }}"
+           class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('birthdays') border-red-500 @enderror">
+    @error('birthdays')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
 
-                    <!-- Ciudad -->
-                    <div>
-                        <label for="city" class="block text-sm font-medium text-[var(--primary-color)]">
-                            Ciudad
-                        </label>
-                        <input type="text" name="city" id="city" value="{{ old('city') }}"
-                            class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('city') border-red-500 @enderror"
-                            placeholder="Ej: La Paz">
-                        @error('city')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <!-- Sucursal -->
+                <div>
+    <label for="branch_id" class="block text-sm font-medium text-[var(--primary-color)]">
+        Sucursal
+    </label>
+    <select name="branch_id" id="branch_id"
+        class="mt-1 block w-full rounded-md border border-[var(--tertiary-color)] shadow-sm p-2 focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50 @error('branch_id') border-red-500 @enderror">
+        <option value="">-- Seleccionar sucursal --</option>
+        @foreach($branches as $branch)
+            <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                {{ $branch->name }} ({{ $branch->ciudad }})
+            </option>
+        @endforeach
+    </select>
+    @error('branch_id')
+    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
                 </div>
             </div>
 
@@ -198,4 +206,7 @@
         </div>
     </form>
 </div>
+
+
+
 @endsection

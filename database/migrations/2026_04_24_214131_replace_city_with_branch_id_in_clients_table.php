@@ -6,22 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
-            $table->foreignId('branch_id')
-                ->nullable()
-                ->after('menu_item_id')
-                ->constrained('branches')
-                ->nullOnDelete();
+        Schema::table('clients', function (Blueprint $table) {
+            $table->dropColumn('city');
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
+        Schema::table('clients', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
             $table->dropColumn('branch_id');
+            $table->string('city', 100)->nullable();
         });
     }
 };

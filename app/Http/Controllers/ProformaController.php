@@ -188,7 +188,7 @@ class ProformaController extends Controller
             $stockIssues = [];
             foreach ($validated['items'] as $item) {
                 $menuItem = MenuItem::where('name', $item['name'])->first();
-                
+
                 if (!$menuItem) {
                     throw new \Exception("El ítem '{$item['name']}' no existe en el menú.");
                 }
@@ -248,20 +248,12 @@ class ProformaController extends Controller
                         'quantity' => $item['quantity'],
                         'old_stock' => $menuItem->stock,
                         'new_stock' => $menuItem->stock - $item['quantity'],
-                        'notes' => "Proforma PROF-{$proforma->id} - Reserva para {$validated['customer_name']}" . 
-                                   (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
+                        'notes' => "Proforma PROF-{$proforma->id} - Reserva para {$validated['customer_name']}" .
+                            (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
                     ]);
 
                     // Actualizar stock
                     $menuItem->decrement('stock', $item['quantity']);
-                    
-                    \Log::info("Stock descontado para proforma", [
-                        'menu_item' => $menuItem->name,
-                        'quantity' => $item['quantity'],
-                        'old_stock' => $menuItem->stock + $item['quantity'],
-                        'new_stock' => $menuItem->stock,
-                        'proforma_id' => $proforma->id
-                    ]);
                 }
             }
 
@@ -274,11 +266,8 @@ class ProformaController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al crear proforma:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear la proforma: ' . $e->getMessage()
@@ -315,7 +304,7 @@ class ProformaController extends Controller
                         'old_stock' => $menuItem->stock,
                         'new_stock' => $menuItem->stock + $item->quantity,
                         'notes' => "Cancelación de Proforma PROF-{$proforma->id} - Stock restaurado" .
-                                   (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
+                            (session('branch_name') ? " - Sucursal: " . session('branch_name') : '')
                     ]);
 
                     // Restaurar stock
@@ -592,6 +581,7 @@ class ProformaController extends Controller
         }
     }
 
+
     /**
      * Mostrar vista de impresión de una proforma
      * Ruta: GET /proformas/{proforma}/print
@@ -631,3 +621,5 @@ class ProformaController extends Controller
         return view('proformas.print', compact('proforma'));
     }
 }
+}
+

@@ -35,7 +35,7 @@
     <!-- Filtros y Búsqueda -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden border border-[var(--gray-light)] p-6 mb-6">
         <form method="GET" action="{{ route('purchases.index') }}" id="filterForm">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Búsqueda -->
                 <div>
                     <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
@@ -59,6 +59,21 @@
                             <option value="{{ $supplier->id }}" 
                                 {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
                                 {{ $supplier->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filtro por Sucursal -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-light)] mb-1">
+                        <i class="fas fa-store mr-1"></i>Sucursal
+                    </label>
+                    <select name="branch_id" class="w-full border border-[var(--gray-light)] rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)]">
+                        <option value="">Todas las sucursales</option>
+                        @foreach($branches ?? [] as $branch)
+                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
                             </option>
                         @endforeach
                     </select>
@@ -116,7 +131,17 @@
                     <tr class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--primary-light)] text-white">
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Referencia</th>
                         <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Proveedor</th>
-                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Fecha</th>
+                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">Sucursal</th>
+                        <th class="px-4 py-3 text-left font-semibold border-r border-white/20">
+                        <div class="flex items-center gap-1">
+                            Fecha
+                            <span class="flex flex-col" title="Ordenado por fecha: más reciente primero">
+                                <i class="fas fa-caret-up text-white/40 text-xs leading-none"></i>
+                                <i class="fas fa-caret-down text-white text-xs leading-none"></i>
+                            </span>
+                            <span class="text-white/70 text-xs font-normal ml-1">↓</span>
+                            </div>
+                            </th>
                         <th class="px-4 py-3 text-right font-semibold border-r border-white/20">Monto Total</th>
                         <th class="px-4 py-3 text-center font-semibold border-r border-white/20">Estado</th>
                         <th class="px-4 py-3 text-center font-semibold">Acciones</th>
@@ -145,8 +170,14 @@
                             </td>
                             <td class="px-4 py-3 border-r border-[var(--gray-light)]">
                                 <div class="flex items-center text-[var(--text-color)]">
+                                    <i class="fas fa-store text-[var(--text-light)] mr-2"></i>
+                                    {{ $purchase->branch->name ?? 'Sin sucursal' }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 border-r border-[var(--gray-light)]">
+                                <div class="flex items-center text-[var(--text-color)]">
                                     <i class="fas fa-calendar-alt text-[var(--text-light)] mr-2"></i>
-                                    {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}
+                                    {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y H:i') }}
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-right border-r border-[var(--gray-light)]">
@@ -203,7 +234,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center">
+                            <td colspan="7" class="px-4 py-12 text-center">
                                 <div class="text-[var(--text-light)]">
                                     <i class="fas fa-inbox text-5xl mb-4 opacity-50"></i>
                                     <p class="text-lg">No se encontraron compras registradas</p>

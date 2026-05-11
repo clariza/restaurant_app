@@ -13,9 +13,41 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PettyCashExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Proforma;
+use App\Models\InventoryMovement;
+use Illuminate\Support\Facades\Auth;
+
 
 class PettyCashController extends Controller
 {
+    public function ticketPdf(PettyCash $pettyCash)
+    {
+        $user          = $pettyCash->user;
+        $date          = \Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y');
+        $totalExpenses = $pettyCash->expenses->sum('amount');
+
+        $widthPt  = 80  * 2.8346;  // 226.77 pt
+        $heightPt = 500 * 2.8346;  // alto generoso, dompdf corta al contenido
+
+        $pdf = Pdf::loadView('petty_cash.ticket-pdf', compact(
+            'pettyCash',
+            'user',
+            'date',
+            'totalExpenses'
+        ))
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,    // margen izquierdo en mm
+                'margin_right'    => 6,    // margen derecho en mm
+            ]);
+
+        return $pdf->stream("ticket-caja-{$pettyCash->id}.pdf");
+    }
     private function getBranchId()
     {
         return session('branch_id');
@@ -68,7 +100,7 @@ class PettyCashController extends Controller
                 $totalSales           = $totalSalesQR + $totalSalesCard + $totalSalesCash;
             }
 
-            $query = PettyCash::with('user');
+            $query = PettyCash::with(['user', 'branch']);
             if ($branchId) $query->where('branch_id', $branchId);
 
             if ($request->filled('user_id'))   $query->where('user_id', $request->user_id);
@@ -237,7 +269,7 @@ class PettyCashController extends Controller
         $totalSalesCashFromDB = $openPettyCash ? $openPettyCash->total_sales_cash : 0;
         $totalSales           = $totalSalesQR + $totalSalesCard + $totalSalesCash;
 
-        $query = PettyCash::with('user');
+        $query = PettyCash::with(['user', 'branch']);
         if ($branchId) $query->where('branch_id', $branchId);
 
         if ($request->filled('user_id'))   $query->where('user_id', $request->user_id);
@@ -254,7 +286,7 @@ class PettyCashController extends Controller
         }
 
         $pettyCashes = $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
-            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')  // ← cambiar 'date' por 'created_at'
             ->paginate(10);
 
         $users = User::select('id', 'name')->orderBy('name')->get();
@@ -282,15 +314,15 @@ class PettyCashController extends Controller
     {
         $branchId = $this->getBranchId();
 
-        // ✅ Verificar caja abierta solo para el usuario actual (no por sucursal global)
+        // ✅ CORREGIDO — también filtra por sucursal
         $hasOpenPettyCash = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->where('branch_id', $branchId)  // ← esta línea faltaba
             ->exists();
 
         if ($hasOpenPettyCash) {
             return redirect()->route('menu.index')
-                ->with('info', 'Ya tienes una caja chica abierta.');
+                ->with('info', 'Ya tienes una caja chica abierta en esta sucursal.');
         }
 
         return view('petty_cash.create', compact('hasOpenPettyCash'));
@@ -310,7 +342,8 @@ class PettyCashController extends Controller
         // ✅ Verificar por usuario — no por sucursal
         $existing = PettyCash::where('status', 'open')
             ->where('user_id', auth()->id())
-            ->first();  // sin filtro de branch, un usuario = una caja
+            ->where('branch_id', $branchId)  // ← esta línea faltaba
+            ->first();
 
         if ($existing) {
             return redirect()->route('menu.index')
@@ -320,8 +353,8 @@ class PettyCashController extends Controller
         PettyCash::create([
             'initial_amount' => 0,
             'current_amount' => 0,
-            'date'           => now()->toDateString(),
-            'notes'          => $request->notes,
+            'date'           => now(),
+            'opening_notes'  => $request->notes,
             'status'         => 'open',
             'user_id'        => auth()->id(),
             'branch_id'      => $branchId,
@@ -365,10 +398,6 @@ class PettyCashController extends Controller
     public function saveClosure(Request $request)
     {
         try {
-            // ── 1. Normalizar nombres del frontend al contrato interno ──────────
-            // payment-modal.js envía: total_gastos, ventas_efectivo, ventas_qr,
-            // ventas_tarjeta, gastos_nuevos[].
-            // Si ya llegan con el nombre canónico se respeta; si no, se mapea.
             $raw = array_merge($request->all(), [
                 'total_expenses'   => $request->input('total_expenses',   $request->input('total_gastos',    0)),
                 'total_sales_cash' => $request->input('total_sales_cash', $request->input('ventas_efectivo', 0)),
@@ -376,7 +405,6 @@ class PettyCashController extends Controller
                 'total_sales_card' => $request->input('total_sales_card', $request->input('ventas_tarjeta',  0)),
             ]);
 
-            // gastos_nuevos → expenses (normalizar claves internas)
             if (empty($raw['expenses']) && !empty($raw['gastos_nuevos'])) {
                 $raw['expenses'] = array_map(fn($g) => [
                     'name'        => $g['nombre']      ?? ($g['name']        ?? ''),
@@ -385,7 +413,6 @@ class PettyCashController extends Controller
                 ], (array) $raw['gastos_nuevos']);
             }
 
-            // ── 2. Validar con los nombres canónicos ─────────────────────────
             $validated = Validator::make($raw, [
                 'petty_cash_id'          => 'required|integer',
                 'total_expenses'         => 'required|numeric|min:0',
@@ -399,7 +426,6 @@ class PettyCashController extends Controller
                 'expenses.*.amount'      => 'required_with:expenses|numeric|min:0.01',
             ])->validate();
 
-            // ── 3. Lógica de negocio (sin cambios) ──────────────────────────
             DB::beginTransaction();
 
             $pettyCash = PettyCash::find($validated['petty_cash_id']);
@@ -416,7 +442,6 @@ class PettyCashController extends Controller
             $newExpensesCount = 0;
             if (!empty($validated['expenses'])) {
                 foreach ($validated['expenses'] as $expense) {
-                    // Ignorar filas completamente vacías
                     if (empty(trim($expense['name'] ?? '')) || ($expense['amount'] ?? 0) <= 0) {
                         continue;
                     }
@@ -433,7 +458,6 @@ class PettyCashController extends Controller
                 }
             }
 
-            // Recalcular sobre la BD (no confiar en el valor que envió el cliente)
             $totalExpenses = Expense::where('petty_cash_id', $pettyCash->id)->sum('amount');
             $totalGeneral  = $validated['total_sales_cash']
                 + ($validated['total_sales_qr']  ?? 0)
@@ -457,17 +481,34 @@ class PettyCashController extends Controller
             // Liberar todas las mesas al cerrar caja chica
             Table::whereIn('state', ['Ocupada', 'Reservada'])->update(['state' => 'Disponible']);
 
+            // ✅ Cancelar proformas pendientes de la sucursal y restaurar su stock
+            $cancelledProformas = \App\Models\Proforma::where('branch_id', $pettyCash->branch_id)
+                ->where('status', '!=', 'cancelled')
+                ->where('converted_to_order', false)
+                ->with('items.menuItem')
+                ->get();
+
+            foreach ($cancelledProformas as $proforma) {
+                foreach ($proforma->items as $proformaItem) {
+                    $menuItem = $proformaItem->menuItem;
+                    if ($menuItem && $menuItem->manage_inventory) {
+                        $menuItem->increment('stock', $proformaItem->quantity);
+                    }
+                }
+                $proforma->update(['status' => 'cancelled']);
+            }
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Cierre de caja guardado exitosamente',
                 'data'    => [
-                    'petty_cash_id'      => $pettyCash->id,
-                    'total_expenses'     => $totalExpenses,
-                    'total_general'      => $totalGeneral,
-                    'current_amount'     => $currentAmount,
-                    'new_expenses_count' => $newExpensesCount,
+                    'petty_cash_id'       => $pettyCash->id,
+                    'total_expenses'      => $totalExpenses,
+                    'total_general'       => $totalGeneral,
+                    'current_amount'      => $currentAmount,
+                    'new_expenses_count'  => $newExpensesCount,
+                    'cancelled_proformas' => $cancelledProformas->count(),
                 ],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -527,7 +568,18 @@ class PettyCashController extends Controller
             ]
         ];
 
-        $pdf = Pdf::loadView('petty_cash.print', $data);
+        $pdf = Pdf::loadView('petty_cash.print', $data)
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,
+                'margin_right'    => 6,
+            ]);
+
         return $pdf->stream('reporte-caja-chica-' . $pettyCash->date . '.pdf');
     }
 
@@ -688,7 +740,18 @@ class PettyCashController extends Controller
             ]
         ];
 
-        $pdf = Pdf::loadView('petty_cash.print', $data);
+        $pdf = Pdf::loadView('petty_cash.print', $data)
+            ->setPaper([0, 0, 226.77, 800], 'portrait')
+            ->setOptions([
+                'defaultFont'     => 'Courier',
+                'isRemoteEnabled' => false,
+                'dpi'             => 96,
+                'margin_top'      => 3,
+                'margin_bottom'   => 3,
+                'margin_left'     => 6,
+                'margin_right'    => 6,
+            ]);
+
         return $pdf->stream('reporte-caja-anterior-' . $previousPettyCash->date . '.pdf');
     }
 
@@ -716,13 +779,14 @@ class PettyCashController extends Controller
             'status'    => $request->input('status'),
             'date_from' => $request->input('date_from'),
             'date_to'   => $request->input('date_to'),
+            'branch_id' => $this->getBranchId(),
         ];
     }
 
     private function getPettyCashesQuery($filters)
     {
         $branchId = $this->getBranchId();
-        $query    = PettyCash::with('user');
+        $query    = PettyCash::with(['user', 'branch']);
 
         if ($branchId) $query->where('branch_id', $branchId);
         if (!empty($filters['user_id']))   $query->where('user_id', $filters['user_id']);
@@ -731,6 +795,6 @@ class PettyCashController extends Controller
         if (!empty($filters['date_to']))   $query->whereDate('date', '<=', $filters['date_to']);
 
         return $query->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
-            ->orderBy('date', 'desc');
+            ->orderBy('created_at', 'desc');  // ← cambiar 'date' por 'created_at'
     }
 }

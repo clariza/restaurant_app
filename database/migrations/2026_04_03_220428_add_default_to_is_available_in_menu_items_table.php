@@ -8,15 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('menu_items', function (Blueprint $table) {
-            $table->boolean('is_available')->default(true)->change();
-        });
+        if (Schema::hasColumn('menu_items', 'is_available')) {
+            Schema::table('menu_items', function (Blueprint $table) {
+                $table->boolean('is_available')->default(true)->change();
+            });
+        } else {
+            Schema::table('menu_items', function (Blueprint $table) {
+                $table->boolean('is_available')->default(true);
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('menu_items', function (Blueprint $table) {
-            $table->boolean('is_available')->change();
-        });
+        if (Schema::hasColumn('menu_items', 'is_available')) {
+            Schema::table('menu_items', function (Blueprint $table) {
+                $table->boolean('is_available')->change();
+            });
+        }
     }
 };

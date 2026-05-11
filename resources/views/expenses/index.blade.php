@@ -33,6 +33,7 @@
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Descripción</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Monto</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Sucursal</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Fecha</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -43,6 +44,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">{{ $expense->expense_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">{{ $expense->description }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">Bs. {{ number_format($expense->amount, 2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">{{ $expense->pettyCash?->branch?->name ?? 'Sin sucursal' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-light)]">{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="{{ route('expenses.edit', $expense->id) }}" 

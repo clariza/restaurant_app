@@ -148,6 +148,157 @@
     <div class="action-buttons">
         <a href="{{ route('orders.index') }}" class="btn btn-secondary">Volver</a>
         <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="company-info">
+                    <h1>{{ config('app.name', 'Restaurante') }}</h1>
+                    <p>{{ config('restaurant.address', 'Dirección no configurada') }}</p>
+                    <p>Tel: {{ config('restaurant.phone', 'N/A') }} | RUC: {{ config('restaurant.ruc', 'N/A') }}</p>
+                </div>
+                <div class="order-badge">
+                    <div class="order-number">ORDEN</div>
+                    <div class="order-id">{{ $order->transaction_number }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Info -->
+        <div class="order-info">
+            <div class="info-group">
+                <label>Fecha y Hora</label>
+                <div class="value">{{ $order->created_at->format('d/m/Y H:i') }}</div>
+            </div>
+            
+            <div class="info-group">
+                <label>Tipo de Orden</label>
+                <div class="value">
+                    <span class="badge 
+    @if($order->order_type == 'Comer aquí') badge-comer
+    @elseif($order->order_type == 'Para llevar') badge-llevar
+    @else badge-recoger
+    @endif">
+    {{ $order->order_type === 'Comer aquí' ? 'Para la Mesa' : $order->order_type }}
+</span>
+                </div>
+            </div>
+            
+            @if($order->order_type == 'Comer aquí' && $order->table_number)
+            <div class="info-group">
+                <label>Mesa</label>
+                <div class="value">Mesa {{ $order->table_number }}</div>
+            </div>
+            @endif
+            
+            @if($order->customer_name)
+            <div class="info-group">
+                <label>Cliente</label>
+                <div class="value">{{ $order->customer_name }}</div>
+            </div>
+            @endif
+            
+            @if($order->phone)
+            <div class="info-group">
+                <label>Teléfono</label>
+                <div class="value">{{ $order->phone }}</div>
+            </div>
+            @endif
+            
+            @if($order->user)
+            <div class="info-group">
+                <label>Atendido por</label>
+                <div class="value">{{ $order->user->name }}</div>
+            </div>
+            @endif
+            
+            @if($order->payment_method)
+            <div class="info-group">
+                <label>Método de Pago</label>
+                <div class="value">{{ ucfirst($order->payment_method) }}</div>
+            </div>
+            @endif
+        </div>
+        
+        <!-- Items -->
+        <div class="items-section">
+            <div class="section-title">Productos</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Cant.</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($order->items as $item)
+                    <tr>
+                        <td class="item-name">{{ $item->menuItem->name ?? 'Producto eliminado' }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>Bs. {{ number_format($item->price, 2) }}</td>
+                        <td>Bs. {{ number_format($item->quantity * $item->price, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Totals -->
+        <div class="totals-section">
+            <div class="totals">
+                <div class="total-row subtotal">
+                    <span>Subtotal</span>
+                    <span>Bs. {{ number_format($order->subtotal, 2) }}</span>
+                </div>
+                
+                @if($order->tax > 0)
+                <div class="total-row">
+                    <span>Impuesto ({{ config('restaurant.tax_rate', 13) }}%)</span>
+                    <span>Bs. {{ number_format($order->tax, 2) }}</span>
+                </div>
+                @endif
+                
+                @if($order->discount > 0)
+                <div class="total-row">
+                    <span>Descuento</span>
+                    <span>-Bs. {{ number_format($order->discount, 2) }}</span>
+                </div>
+                @endif
+                
+                <div class="total-row grand-total">
+                    <span>Total</span>
+                    <span>Bs. {{ number_format($order->total, 2) }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-message">
+                Gracias por su preferencia
+            </div>
+            
+            @if($order->notes)
+            <div class="notes-box">
+                <label>Notas</label>
+                <p>{{ $order->notes }}</p>
+            </div>
+            @endif
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ route('orders.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i>
+                Imprimir
+            </button>
+        </div>
     </div>
 </div>
 </body>

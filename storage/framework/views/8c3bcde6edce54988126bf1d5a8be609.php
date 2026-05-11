@@ -1,518 +1,530 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Caja Chica - <?php echo e($date); ?></title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=80mm, initial-scale=1.0">
+<title>Ticket Caja Chica - <?php echo e($date); ?></title>
 
-        body {
-            font-family: 'Arial', sans-serif;
-            padding: 15px;
-            background: white;
-            color: #333;
-            font-size: 11px;
-        }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
 
-        .report-container {
-            max-width: 100%;
-            margin: 0 auto;
-        }
+/* ✅ CONFIGURACIÓN IMPRESORA TÉRMICA 80mm */
+@page {
+    size: 80mm auto;
+    margin: 0;
+    padding: 0;
+}
 
-        /* Header Compacto */
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #203363;
-        }
+html {
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+}
 
-        .header h1 {
-            color: #203363;
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
+body {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    width: 80mm;
+    min-width: 80mm;
+    max-width: 80mm;
+    margin: 0;
+    padding: 0;
+    height: auto !important;
+    overflow: visible !important;
+    background: white;
+}
 
-        .header .subtitle {
-            color: #666;
-            font-size: 11px;
-        }
+/* CONTENEDOR */
+.ticket-wrapper {
+    width: 72mm;
+    margin: 0 auto;
+    padding: 3mm 4mm;
+    height: auto !important;
+    overflow: visible !important;
+}
 
-        /* Grid de 2 columnas para info general */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+/* 🔴 FIX PAGE BREAK */
+@media print {
 
-        /* Tablas compactas */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-            font-size: 10px;
-        }
+    html, body {
+        width: 80mm !important;
+        min-width: 80mm !important;
+        max-width: 80mm !important;
+        height: auto !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
 
-        table th {
-            background: #203363;
-            color: white;
-            padding: 6px 8px;
-            text-align: left;
-            font-weight: bold;
-            font-size: 10px;
-        }
+    /* Evitar cortes en TODOS los bloques */
+    .header,
+    .section-title,
+    .info-row,
+    .alert,
+    .cmp-header,
+    .cmp-row,
+    .summary-box,
+    .summary-row,
+    .note-box,
+    .expense-row,
+    .expense-total,
+    .signatures,
+    .footer,
+    .cut-line {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
 
-        table td {
-            padding: 5px 8px;
-            border-bottom: 1px solid #dee2e6;
-        }
+    /* Evitar que section-title quede huérfano sin su contenido */
+    .section-title {
+        page-break-after: avoid;
+        break-after: avoid;
+    }
 
-        table tr:hover {
-            background: #f8f9fa;
-        }
+    /* Los flex containers necesitan display:block en impresión para respetar break-inside */
+    .info-row,
+    .cmp-header,
+    .cmp-row,
+    .summary-row,
+    .exp-top,
+    .expense-total {
+        display: flex; /* mantener flex pero con overflow visible */
+        overflow: visible;
+    }
 
-        .text-right {
-            text-align: right;
-        }
+    .signatures {
+        margin-top: 4mm;
+        display: flex;
+        overflow: visible;
+    }
 
-        .text-center {
-            text-align: center;
-        }
+    .no-print {
+        display: none !important;
+    }
+}
 
-        /* Sección de título compacto */
-        .section-title {
-            background: #203363;
-            color: white;
-            padding: 5px 10px;
-            margin: 10px 0 5px 0;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
-        }
+/* HEADER */
+.header {
+    background: #f0f0f0;
+    text-align: center;
+    padding: 2mm 0;
+    border-bottom: 1px dashed #000;
+    margin-bottom: 3mm;
+}
 
-        /* Comparación compacta */
-        .comparison-table {
-            width: 100%;
-            margin-bottom: 12px;
-        }
+.header h1 {
+    font-size: 12px;
+}
 
-        .comparison-table th {
-            background: #e9ecef;
-            color: #203363;
-            padding: 6px 8px;
-            font-weight: bold;
-            border-bottom: 2px solid #203363;
-            font-size: 10px;
-        }
+.subtitle {
+    font-size: 8px;
+}
 
-        .comparison-table td {
-            padding: 5px 8px;
-            font-size: 10px;
-        }
+.caja-id {
+    font-size: 9px;
+    font-weight: bold;
+}
 
-        .comparison-table .total-row {
-            background: #f8f9fa;
-            font-weight: bold;
-            border-top: 2px solid #203363;
-        }
+/* TITULOS */
+.section-title {
+    font-size: 8px;
+    font-weight: bold;
+    text-align: center;
+    margin: 2mm 0 1mm;
+    padding: 1mm 0;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
 
-        .diff-positive {
-            color: #155724;
-            font-weight: bold;
-        }
+/* INFO */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5px;
+    padding: 1mm 0;
+    border-bottom: 1px dotted #ccc;
+}
 
-        .diff-negative {
-            color: #721c24;
-            font-weight: bold;
-        }
+.info-row:last-child {
+    border-bottom: none;
+}
 
-        .diff-neutral {
-            color: #0c5460;
-            font-weight: bold;
-        }
+/* COMPARACIÓN */
+.cmp-header, .cmp-row {
+    display: flex;
+    font-size: 7.5px;
+    padding: 1mm 0;
+}
 
-        /* Alerta compacta */
-        .alert-compact {
-            padding: 8px 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.cmp-header {
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+}
 
-        .alert-compact.warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            color: #856404;
-        }
+.cmp-row {
+    border-bottom: 1px dotted #bbb;
+}
 
-        .alert-compact.success {
-            background-color: #d4edda;
-            border-left: 4px solid #28a745;
-            color: #155724;
-        }
+.cmp-row.total {
+    font-weight: bold;
+    border-top: 1px solid #000;
+    border-bottom: none;
+}
 
-        .alert-compact.danger {
-            background-color: #f8d7da;
-            border-left: 4px solid #dc3545;
-            color: #721c24;
-        }
+.col-method { flex: 2.5; }
+.col-sys, .col-box, .col-diff {
+    flex: 2;
+    text-align: right;
+}
 
-        /* Resumen final compacto */
-        .summary-compact {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
+/* ALERTA */
+.alert {
+    text-align: center;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 1.5mm;
+    margin: 1.5mm 0;
+    border: 1px solid #000;
+}
+.alert.warning { border-style: dashed; }
+.alert.danger  { border-style: double; }
 
-        .summary-compact table {
-            margin: 0;
-        }
+/* RESUMEN */
+.summary-box {
+    border: 1px solid #000;
+    padding: 2mm;
+    margin: 2mm 0;
+}
 
-        .summary-compact td {
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding: 4px 8px;
-            font-size: 10px;
-        }
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5px;
+    padding: 0.8mm 0;
+    border-bottom: 1px dotted #999;
+}
 
-        .summary-compact .final-row {
-            font-size: 12px;
-            font-weight: bold;
-            border-top: 2px solid rgba(255,255,255,0.5);
-            padding-top: 6px;
-        }
+.summary-row:last-child {
+    font-size: 10px;
+    font-weight: bold;
+    border-top: 1px solid #000;
+    border-bottom: none;
+}
 
-        /* Footer compacto */
-        .footer {
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #dee2e6;
-            text-align: center;
-            font-size: 9px;
-            color: #666;
-        }
+/* GASTOS */
+.expense-row {
+    font-size: 8px;
+    padding: 1mm 0;
+    border-bottom: 1px dotted #bbb;
+}
 
-        /* Firmas en una línea */
-        .signature-compact {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 30px;
-            font-size: 9px;
-        }
+.exp-top {
+    display: flex;
+    justify-content: space-between;
+}
 
-        .signature-box {
-            text-align: center;
-            border-top: 2px solid #333;
-            padding-top: 5px;
-        }
+.exp-desc {
+    font-size: 7px;
+    padding-left: 3mm;
+    color: #555;
+}
 
-        .no-expenses {
-            text-align: center;
-            padding: 15px;
-            color: #666;
-            font-style: italic;
-            font-size: 10px;
-        }
+.expense-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    border-top: 1px solid #000;
+    margin-top: 1mm;
+    font-size: 8.5px;
+    padding-top: 1.5mm;
+}
 
-        /* Optimización para impresión */
-        @media print {
-            body {
-                padding: 10px;
-            }
-            
-            .no-print {
-                display: none !important;
-            }
+/* NOTAS */
+.note-box {
+    border-left: 2px solid #000;
+    padding: 1mm 2mm;
+    margin: 1.5mm 0;
+    font-size: 7.5px;
+    line-height: 1.5;
+}
 
-            @page {
-                margin: 0.5cm;
-                size: letter portrait;
-            }
+.note-label {
+    font-weight: bold;
+    font-size: 7px;
+    text-transform: uppercase;
+    margin-bottom: 1mm;
+}
 
-            table {
-                page-break-inside: auto;
-            }
+/* FIRMAS */
+.signatures {
+    display: flex;
+    gap: 4mm;
+    margin-top: 4mm;
+}
 
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-        }
+.sig-box {
+    flex: 1;
+    text-align: center;
+}
 
-        .print-button {
-            background: #203363;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-bottom: 15px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
+.sig-line {
+    border-top: 1px solid #000;
+    padding-top: 1mm;
+    font-size: 7px;
+    font-weight: bold;
+}
 
-        .print-button:hover {
-            background: #152546;
-        }
+.sig-name {
+    font-size: 6.5px;
+}
 
-        /* Info box compacto */
-        .info-box {
-            background: #f8f9fa;
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 10px;
-        }
+/* SEPARADOR */
+.dashed-sep {
+    border-top: 1px dashed #000;
+    margin: 3mm 0;
+}
 
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
+/* FOOTER */
+.footer {
+    text-align: center;
+    font-size: 7px;
+    color: #555;
+    margin-top: 3mm;
+    border-top: 1px dashed #000;
+    padding-top: 2mm;
+}
 
-        .info-row:last-child {
-            border-bottom: none;
-        }
+.cut-line {
+    text-align: center;
+    font-size: 7px;
+    margin-top: 3mm;
+    letter-spacing: 2px;
+}
 
-        .info-label {
-            font-weight: bold;
-            color: #203363;
-        }
-
-        .info-value {
-            color: #333;
-        }
-    </style>
+/* BOTÓN */
+.print-button {
+    display: block;
+    margin: 3mm auto;
+    background: #203363;
+    color: white;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+}
+.print-button:hover { background: #152546; }
+</style>
 </head>
+
 <body>
-    <div class="report-container">
-        
-        <button onclick="window.print()" class="print-button no-print">
-            Imprimir Reporte
-        </button>
 
-        
-        <div class="header">
-            <h1>REPORTE DE CAJA CHICA</h1>
-            <div class="subtitle">
-                <?php echo e($date); ?> | <?php echo e($user->name); ?> | Caja #<?php echo e(str_pad($pettyCash->id, 6, '0', STR_PAD_LEFT)); ?>
+<button onclick="window.print()" class="print-button no-print">
+    🖨 Imprimir Ticket
+</button>
 
-            </div>
+<div class="ticket-wrapper">
+
+    <?php
+        $salesCashSystem  = $pettyCash->sales()->where('payment_method', 'Efectivo')->sum('total');
+        $salesQRSystem    = $pettyCash->sales()->where('payment_method', 'QR')->sum('total');
+        $salesCardSystem  = $pettyCash->sales()->where('payment_method', 'Tarjeta')->sum('total');
+        $totalSalesSystem = $salesCashSystem + $salesQRSystem + $salesCardSystem;
+
+        $salesCashBox  = $pettyCash->total_sales_cash ?? 0;
+        $salesQRBox    = $pettyCash->total_sales_qr   ?? 0;
+        $salesCardBox  = $pettyCash->total_sales_card ?? 0;
+        $totalSalesBox = $salesCashBox + $salesQRBox + $salesCardBox;
+
+        $diffCash  = $salesCashBox  - $salesCashSystem;
+        $diffQR    = $salesQRBox    - $salesQRSystem;
+        $diffCard  = $salesCardBox  - $salesCardSystem;
+        $diffTotal = $salesCashBox  - $salesCashSystem;
+
+        $hasInconsistencies = abs($diffCash) > 0.01 || abs($diffQR) > 0.01 || abs($diffCard) > 0.01;
+
+        $diffSign = fn($d) => $d > 0 ? '+' : '';
+    ?>
+
+    
+    <div class="header">
+        <h1>REPORTE CAJA CHICA</h1>
+        <div class="caja-id">Caja #<?php echo e(str_pad($pettyCash->id, 6, '0', STR_PAD_LEFT)); ?></div>
+        <div class="subtitle"><?php echo e($date); ?> &nbsp;|&nbsp; <?php echo e($user->name); ?></div>
+    </div>
+
+    
+    <div class="section-title">INFORMACIÓN GENERAL</div>
+
+    <div class="info-row">
+        <span>Apertura:</span>
+        <span><?php echo e(\Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y H:i')); ?></span>
+    </div>
+
+    <?php if($pettyCash->closed_at): ?>
+    <div class="info-row">
+        <span>Cierre:</span>
+        <span><?php echo e(\Carbon\Carbon::parse($pettyCash->closed_at)->format('d/m/Y H:i')); ?></span>
+    </div>
+    <?php endif; ?>
+
+    <div class="info-row">
+        <span>Responsable:</span>
+        <span><?php echo e($user->name); ?></span>
+    </div>
+
+    <div class="info-row">
+        <span>Estado:</span>
+        <span><strong>CERRADA</strong></span>
+    </div>
+
+    <div class="info-row">
+        <span>Ventas registradas:</span>
+        <span><?php echo e($pettyCash->sales()->count()); ?></span>
+    </div>
+
+    
+    <div class="section-title">SISTEMA vs CAJA</div>
+
+    <?php if($hasInconsistencies): ?>
+        <div class="alert <?php echo e(abs($diffTotal) < 0.01 ? '' : ($diffTotal > 0 ? 'warning' : 'danger')); ?>">
+            <?php if(abs($diffTotal) < 0.01): ?>
+                ✓ Diferencias parciales se compensan
+            <?php elseif($diffTotal > 0): ?>
+                ▲ SOBRANTE: +Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+
+            <?php else: ?>
+                ✗ FALTANTE: Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+
+            <?php endif; ?>
         </div>
+    <?php else: ?>
+        <div class="alert">✓ Montos coinciden exactamente</div>
+    <?php endif; ?>
 
-        
-        <div class="info-grid">
-            
-            <div>
-                <?php
-                    // Calcular ventas del sistema
-                    $salesCashSystem = $pettyCash->sales()->where('payment_method', 'Efectivo')->sum('total');
-                    $salesQRSystem = $pettyCash->sales()->where('payment_method', 'QR')->sum('total');
-                    $salesCardSystem = $pettyCash->sales()->where('payment_method', 'Tarjeta')->sum('total');
-                    $totalSalesSystem = $salesCashSystem + $salesQRSystem + $salesCardSystem;
-                    
-                    // Ventas de la caja
-                    $salesCashBox = $pettyCash->total_sales_cash ?? 0;
-                    $salesQRBox = $pettyCash->total_sales_qr ?? 0;
-                    $salesCardBox = $pettyCash->total_sales_card ?? 0;
-                    $totalSalesBox = $salesCashBox + $salesQRBox + $salesCardBox;
-                    
-                    // Diferencias
-                    $diffCash = $salesCashBox - $salesCashSystem;
-                    $diffQR = $salesQRBox - $salesQRSystem;
-                    $diffCard = $salesCardBox - $salesCardSystem;
-                    $diffTotal = $totalSalesBox - $totalSalesSystem;
-                    
-                    $hasInconsistencies = abs($diffCash) > 0.01 || abs($diffQR) > 0.01 || abs($diffCard) > 0.01;
-                ?>
+    <div class="cmp-header">
+        <span class="col-method">MÉTODO</span>
+        <span class="col-sys">SIST.</span>
+        <span class="col-box">CAJA</span>
+        <span class="col-diff">DIF.</span>
+    </div>
 
-                <div class="section-title">COMPARACIÓN: SISTEMA VS CAJA</div>
+    <div class="cmp-row">
+        <span class="col-method">Efectivo</span>
+        <span class="col-sys"><?php echo e(number_format($salesCashSystem, 2)); ?></span>
+        <span class="col-box"><?php echo e(number_format($salesCashBox, 2)); ?></span>
+        <span class="col-diff"><strong><?php echo e($diffSign($diffCash)); ?><?php echo e(number_format($diffCash, 2)); ?></strong></span>
+    </div>
 
-                
-                <?php if($hasInconsistencies): ?>
-                    <div class="alert-compact <?php echo e(abs($diffTotal) < 0.01 ? 'success' : ($diffTotal > 0 ? 'warning' : 'danger')); ?>">
-                        <strong>
-                            <?php if(abs($diffTotal) < 0.01): ?>
-                                ✓ Coincide
-                            <?php elseif($diffTotal > 0): ?>
-                                Sobrante: +Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+    <div class="cmp-row">
+        <span class="col-method">QR</span>
+        <span class="col-sys"><?php echo e(number_format($salesQRSystem, 2)); ?></span>
+        <span class="col-box"><?php echo e(number_format($salesQRBox, 2)); ?></span>
+        <span class="col-diff"><strong><?php echo e($diffSign($diffQR)); ?><?php echo e(number_format($diffQR, 2)); ?></strong></span>
+    </div>
 
-                            <?php else: ?>
-                                ✗ Faltante: Bs. <?php echo e(number_format($diffTotal, 2)); ?>
+    <div class="cmp-row">
+        <span class="col-method">Tarjeta</span>
+        <span class="col-sys"><?php echo e(number_format($salesCardSystem, 2)); ?></span>
+        <span class="col-box"><?php echo e(number_format($salesCardBox, 2)); ?></span>
+        <span class="col-diff"><strong><?php echo e($diffSign($diffCard)); ?><?php echo e(number_format($diffCard, 2)); ?></strong></span>
+    </div>
 
-                            <?php endif; ?>
-                        </strong>
-                    </div>
-                <?php else: ?>
-                    <div class="alert-compact success">
-                        <strong>✓ Los montos coinciden exactamente</strong>
-                    </div>
-                <?php endif; ?>
+    <div class="cmp-row total">
+        <span class="col-method">TOTAL</span>
+        <span class="col-sys"><?php echo e(number_format($salesCashSystem, 2)); ?></span>
+        <span class="col-box"><?php echo e(number_format($salesCashBox, 2)); ?></span>
+        <span class="col-diff"><?php echo e($diffSign($diffTotal)); ?><?php echo e(number_format($diffTotal, 2)); ?></span>
+    </div>
 
-                
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th width="30%">Método</th>
-                            <th width="25%" class="text-right">Sistema</th>
-                            <th width="25%" class="text-right">Caja</th>
-                            <th width="20%" class="text-right">Dif.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Efectivo</td>
-                            <td class="text-right"><?php echo e(number_format($salesCashSystem, 2)); ?></td>
-                            <td class="text-right"><?php echo e(number_format($salesCashBox, 2)); ?></td>
-                            <td class="text-right <?php echo e(abs($diffCash) < 0.01 ? 'diff-neutral' : ($diffCash > 0 ? 'diff-positive' : 'diff-negative')); ?>">
-                                <?php echo e($diffCash > 0 ? '+' : ''); ?><?php echo e(number_format($diffCash, 2)); ?>
-
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>QR</td>
-                            <td class="text-right"><?php echo e(number_format($salesQRSystem, 2)); ?></td>
-                            <td class="text-right"><?php echo e(number_format($salesQRBox, 2)); ?></td>
-                            <td class="text-right <?php echo e(abs($diffQR) < 0.01 ? 'diff-neutral' : ($diffQR > 0 ? 'diff-positive' : 'diff-negative')); ?>">
-                                <?php echo e($diffQR > 0 ? '+' : ''); ?><?php echo e(number_format($diffQR, 2)); ?>
-
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tarjeta</td>
-                            <td class="text-right"><?php echo e(number_format($salesCardSystem, 2)); ?></td>
-                            <td class="text-right"><?php echo e(number_format($salesCardBox, 2)); ?></td>
-                            <td class="text-right <?php echo e(abs($diffCard) < 0.01 ? 'diff-neutral' : ($diffCard > 0 ? 'diff-positive' : 'diff-negative')); ?>">
-                                <?php echo e($diffCard > 0 ? '+' : ''); ?><?php echo e(number_format($diffCard, 2)); ?>
-
-                            </td>
-                        </tr>
-                        <tr class="total-row">
-                            <td><strong>TOTAL</strong></td>
-                            <td class="text-right"><strong><?php echo e(number_format($totalSalesSystem, 2)); ?></strong></td>
-                            <td class="text-right"><strong><?php echo e(number_format($totalSalesBox, 2)); ?></strong></td>
-                            <td class="text-right <?php echo e(abs($diffTotal) < 0.01 ? 'diff-neutral' : ($diffTotal > 0 ? 'diff-positive' : 'diff-negative')); ?>">
-                                <strong><?php echo e($diffTotal > 0 ? '+' : ''); ?><?php echo e(number_format($diffTotal, 2)); ?></strong>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            
-            <div>
-                <div class="section-title">INFORMACIÓN GENERAL</div>
-                <div class="info-box">
-                    <div class="info-row">
-                        <span class="info-label">Apertura:</span>
-                        <span class="info-value"><?php echo e(\Carbon\Carbon::parse($pettyCash->date)->format('d/m/Y H:i')); ?></span>
-                    </div>
-                    <?php if($pettyCash->closed_at): ?>
-                    <div class="info-row">
-                        <span class="info-label">Cierre:</span>
-                        <span class="info-value"><?php echo e(\Carbon\Carbon::parse($pettyCash->closed_at)->format('d/m/Y H:i')); ?></span>
-                    </div>
-                    <?php endif; ?>
-                    <div class="info-row">
-                        <span class="info-label">Responsable:</span>
-                        <span class="info-value"><?php echo e($user->name); ?></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Estado:</span>
-                        <span class="info-value" style="color: #28a745; font-weight: bold;">CERRADA</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Ventas:</span>
-                        <span class="info-value"><?php echo e($pettyCash->sales()->count()); ?> registradas</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Gastos:</span>
-                        <span class="info-value"><?php echo e($pettyCash->expenses()->count()); ?> registrados</span>
-                    </div>
-                </div>
-
-                
-                <div class="summary-compact">
-                    <table>
-                        <tr>
-                            <td>Total Ventas (Caja):</td>
-                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalSalesBox, 2)); ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td>Total Gastos:</td>
-                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalExpenses, 2)); ?></strong></td>
-                        </tr>
-                        <tr class="final-row">
-                            <td>SALDO FINAL:</td>
-                            <td class="text-right"><strong>Bs. <?php echo e(number_format($totalSalesBox - $totalExpenses, 2)); ?></strong></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+    
+    <div class="section-title">RESUMEN FINANCIERO</div>
+    <div class="summary-box">
+        <div class="summary-row">
+            <span>Total Ventas (Caja):</span>
+            <span>Bs. <?php echo e(number_format($totalSalesBox, 2)); ?></span>
         </div>
-
-        
-        <?php if($pettyCash->expenses()->count() > 0): ?>
-        <div class="section-title">DETALLE DE GASTOS</div>
-        <table>
-            <thead>
-                <tr>
-                    <th width="5%">#</th>
-                    <th width="35%">Nombre</th>
-                    <th width="40%">Descripción</th>
-                    <th width="20%" class="text-right">Monto</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php $__currentLoopData = $pettyCash->expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <tr>
-                    <td><?php echo e($index + 1); ?></td>
-                    <td><?php echo e($expense->expense_name); ?></td>
-                    <td><?php echo e($expense->description ?? '-'); ?></td>
-                    <td class="text-right">Bs. <?php echo e(number_format($expense->amount, 2)); ?></td>
-                </tr>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                <tr style="background: #f8f9fa; font-weight: bold;">
-                    <td colspan="3" class="text-right">TOTAL GASTOS:</td>
-                    <td class="text-right" style="color: #dc3545;">
-                        Bs. <?php echo e(number_format($totalExpenses, 2)); ?>
-
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <?php endif; ?>
-
-        
-        <div class="signature-compact">
-            <div class="signature-box">
-                <strong>Responsable de Caja</strong><br>
-                <?php echo e($user->name); ?>
-
-            </div>
-            <div class="signature-box">
-                <strong>Supervisor/Gerente</strong>
-            </div>
+        <div class="summary-row">
+            <span>Total Gastos:</span>
+            <span>Bs. <?php echo e(number_format($totalExpenses, 2)); ?></span>
         </div>
-
-        
-        <div class="footer">
-            Reporte generado el <?php echo e(\Carbon\Carbon::now()->format('d/m/Y H:i:s')); ?> | Sistema de Gestión de Caja Chica
+        <div class="summary-row">
+            <span>SALDO FINAL:</span>
+            <span>Bs. <?php echo e(number_format($totalSalesBox - $totalExpenses, 2)); ?></span>
         </div>
     </div>
+
+    
+    <?php if(!empty($pettyCash->opening_notes)): ?>
+        <div class="section-title">NOTAS DE APERTURA</div>
+        <div class="note-box">
+            <div class="note-label">📝 Observaciones:</div>
+            <?php echo e($pettyCash->opening_notes); ?>
+
+        </div>
+    <?php endif; ?>
+
+    
+    <?php if(!empty($pettyCash->notes)): ?>
+        <div class="section-title">NOTAS DE CIERRE</div>
+        <div class="note-box">
+            <div class="note-label">📝 Observaciones:</div>
+            <?php echo e($pettyCash->notes); ?>
+
+        </div>
+    <?php endif; ?>
+
+    
+    <?php if($pettyCash->expenses()->count() > 0): ?>
+        <div class="section-title">DETALLE DE GASTOS</div>
+
+        <?php $__currentLoopData = $pettyCash->expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <div class="expense-row">
+            <div class="exp-top">
+                <span><?php echo e($index + 1); ?>. <?php echo e($expense->expense_name); ?></span>
+                <span><strong>Bs. <?php echo e(number_format($expense->amount, 2)); ?></strong></span>
+            </div>
+            <?php if(!empty($expense->description)): ?>
+                <div class="exp-desc"><?php echo e($expense->description); ?></div>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+        <div class="expense-total">
+            <span>TOTAL GASTOS:</span>
+            <span>Bs. <?php echo e(number_format($totalExpenses, 2)); ?></span>
+        </div>
+    <?php endif; ?>
+
+    
+    <hr class="dashed-sep">
+
+    <div class="signatures">
+        <div class="sig-box">
+            <div class="sig-line">Responsable</div>
+            <div class="sig-name"><?php echo e($user->name); ?></div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line">Supervisor</div>
+            <div class="sig-name">&nbsp;</div>
+        </div>
+    </div>
+
+    
+    <div class="footer">
+        Generado: <?php echo e(\Carbon\Carbon::now()->format('d/m/Y H:i:s')); ?><br>
+        Sistema de Gestión de Caja Chica
+    </div>
+
+    <div class="cut-line">- - - - ✂ - - - -</div>
+
+</div>
+
 </body>
 </html><?php /**PATH C:\Users\HP\Desktop\laravel\repo\restaurant_app\resources\views/petty_cash/print.blade.php ENDPATH**/ ?>

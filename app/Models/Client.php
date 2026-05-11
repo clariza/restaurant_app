@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Client extends Model
 {
@@ -17,7 +18,7 @@ class Client extends Model
         'document_type',
         'document_number',
         'birthdays',
-        'city',
+        'branch_id',
         'notes',
         'is_active'
     ];
@@ -37,5 +38,9 @@ class Client extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

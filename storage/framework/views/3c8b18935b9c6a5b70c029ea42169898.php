@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
 
@@ -594,16 +594,6 @@
      
         <!-- Botones de Acciones Rápidas - Minimalistas con Color -->
         <div class="hidden md:flex items-center gap-2 ml-4 mr-20 pr-5">
-            <!-- Botón Gastos - Naranja -->
-            <button 
-                onclick="openExpensesModal()" 
-                class="action-btn-minimal action-btn-expenses
-                       w-10 h-10 rounded-full flex items-center justify-center 
-                       transition-all duration-200 hover:shadow-lg group"
-                title="Gestión de Gastos">
-                <i class="fas fa-receipt text-base transition-transform duration-200 group-hover:scale-110"></i>
-            </button>
-            
             <!-- Botón Historial - Azul -->
             <a 
                 href="<?php echo e(route('orders.index')); ?>" 
@@ -634,10 +624,7 @@
     <!-- Área de usuario y notificaciones -->
     <div class="flex items-center space-x-3 pr-4 flex-shrink-0">
         <!-- Botón de notificaciones -->
-        <button class="text-gray-600 hover:text-[#203363] relative transition-colors duration-200 hidden sm:block">
-            <i class="fas fa-bell text-xl"></i>
-            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
+        
 
         <!-- Menú de usuario -->
         <div class="relative">
@@ -759,10 +746,19 @@
                         <i class="fas fa-table mr-3"></i>
                         <span>Gastos</span>
                     </a>
+                    <?php if(auth()->user()->role === 'vendedor'): ?>
+                         <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" 
+           href="<?php echo e(route('clients.index')); ?>">
+            <i class="fas fa-users mr-3"></i>
+            <span>Clientes</span>
+        </a>
+                    <?php endif; ?>
+                    <?php if(auth()->user()->role === 'admin'): ?>
                     <a class="flex items-center p-2 mt-2 text-[#b6e0f6] hover:bg-[#47517c] rounded-md" href="<?php echo e(route('petty-cash.index')); ?>">
                         <i class="fas fa-cash-register mr-3"></i>
                         <span>Cierre de Caja</span>
                     </a>
+                    <?php endif; ?>
 
                     <?php if (! (auth()->user()->role === 'vendedor')): ?>
                     <!-- Configuración - Solo visible para no vendedores -->

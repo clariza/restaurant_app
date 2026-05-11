@@ -1359,7 +1359,10 @@ function generateTicketContent(dailyOrderNumber) {
     if (!customerName) {
         customerName = localStorage.getItem('customerName') || '';
     }
-
+    // Después de obtener customerName, agregar:
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim()
+        || localStorage.getItem('customerNotes')
+        || '';
     const sellerName = window.authUserName || 'Usuario';
 
     // Calcular totales
@@ -1381,12 +1384,12 @@ function generateTicketContent(dailyOrderNumber) {
         if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
     } else {
         // Pedido normal: solo notas del pedido
-        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+        if (orderNotes) allNotes += `<div class="notes"><span class="notes-label" style="font-size:16px;">Notas del pedido:</span> ${orderNotes}</div>\n`;
     }
 
     // Las notas de recoger son independientes y siempre aplican si corresponde
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de recojo: ${pickupNotes}`;
+        allNotes += `<div class="notes" style="font-size:16px;"><span class="notes-label" style="font-size:16px;">Notas de recojo:</span> ${pickupNotes}</div>`;
     }
 
     console.log('✅ Ticket generado con:', {
@@ -1416,11 +1419,14 @@ function generateTicketContent(dailyOrderNumber) {
         <div class="divider"></div>
         
         ${orderType ? `
-            <div class="item-row">
-                <span>Tipo:</span>
-                <span>${orderType}${tableDisplayText ? ' ' + tableDisplayText : ''}${deliveryService ? ' - ' + deliveryService : ''}</span>
-            </div>
-        ` : ''}
+<div class="item-row">
+  <span>Tipo:</span>
+  <span>${orderType === 'Comer aquí'
+                ? `Para la Mesa${tableDisplayText ? ' ' + tableDisplayText : ''}`
+                : `${orderType}${deliveryService ? ' - ' + deliveryService : ''}`
+            }</span>
+</div>
+` : ''}
         
         ${customerName ? `
             <div class="item-row">
@@ -1481,7 +1487,10 @@ ${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
             <div class="divider"></div>
             <div class="notes">${allNotes}</div>
         ` : ''}
-        
+        ${customerNotes ? `
+    <div class="divider"></div>
+    <div class="notes">Notas del cliente: ${customerNotes}</div>
+` : ''}
         <div class="divider"></div>
         <div class="footer">
             ¡Gracias por su preferencia!
@@ -1637,7 +1646,9 @@ async function generateTicketContentAsync(dailyOrderNumber) {
 
     // Opción 1: Desde el modal (Paso 3)
     customerName = document.getElementById('modal-customer-name')?.value?.trim();
-
+    const customerNotes = document.getElementById('modal-customer-notes')?.value?.trim()
+        || localStorage.getItem('customerNotes')
+        || '';
     // Opción 2: Desde la vista customer-details
     if (!customerName) {
         customerName = document.getElementById('customer-name')?.value?.trim();
@@ -1664,17 +1675,77 @@ async function generateTicketContentAsync(dailyOrderNumber) {
 
     if (isConvertingProforma) {
         // Solo mostrar notas de la proforma, ignorar orderNotes (pueden ser iguales)
-        if (proformaNotes) allNotes += `Notas de reserva: ${proformaNotes}\n`;
+        if (proformaNotes) allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas de reserva:</span> ${proformaNotes}</div>\n`
     } else {
         // Pedido normal: solo notas del pedido
-        if (orderNotes) allNotes += `Notas del pedido: ${orderNotes}\n`;
+        if (orderNotes) allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas del pedido:</span> ${orderNotes}</div>\n`;
     }
 
     // Las notas de recoger son independientes y siempre aplican si corresponde
     if (pickupNotes && orderType === 'Recoger') {
-        allNotes += `Notas de recojo: ${pickupNotes}`;
+        allNotes += `<div class="notes" style="font-size:15px;"><span class="notes-label" style="font-size:15px;">Notas de recojo:</span> ${pickupNotes}</div>`;
     }
+
     let paymentMethods = [];
+
+    return `
+        <div class="header">
+            <div class="title">RESTAURANTE MIQUNA</div>
+            <div class="subtitle">${dateStr} ${timeStr}</div>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Vendedor:</span>
+            <span>${sellerName}</span>
+        </div>
+        <div class="item-row">
+            <span>Pedido:</span>
+            <span>${dailyOrderNumber}</span>
+        </div>
+        <div class="divider"></div>
+        
+        ${orderType ? `
+    <div class="item-row">
+        <span>Tipo:</span>
+        <span>${orderType === 'Comer aquí'
+                ? `Para la Mesa${tableDisplayText ? ' ' + tableDisplayText : ''}`
+                : `${orderType}${deliveryService ? ' - ' + deliveryService : ''}`
+            }</span>
+    </div>
+` : ''}
+        
+        ${customerName ? `
+            <div class="item-row">
+                <span>Cliente:</span>
+                <span>${customerName}</span>
+            </div>
+        ` : ''}
+        
+        <div class="divider"></div>
+        
+        ${order.map(item => `
+            <div class="item-row">
+                <span>${item.quantity}x ${item.name.substring(0, 20)}</span>
+                <span>Bs ${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('')}
+        
+        <div class="divider"></div>
+        
+        <div class="item-row">
+            <span>Subtotal:</span>
+            <span>Bs${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="item-row">
+            <span>Impuesto:</span>
+            <span>Bs${tax.toFixed(2)}</span>
+        </div>
+        <div class="item-row total-row">
+    <span>TOTAL:</span>
+    <span>Bs${total.toFixed(2)}</span>
+</div>
+
 
     try {
         paymentMethods = JSON.parse(localStorage.getItem('paymentMethods') || '[]').map(method => ({
@@ -1684,6 +1755,7 @@ async function generateTicketContentAsync(dailyOrderNumber) {
     } catch (e) {
         paymentMethods = [];
     }
+
 
     if (parseFloat(localStorage.getItem('paymentChange') || '0') > 0) {
         paymentMethods.push({
@@ -1709,6 +1781,29 @@ async function generateTicketContentAsync(dailyOrderNumber) {
         payments: paymentMethods,
         notes: allNotes
     });
+
+${parseFloat(localStorage.getItem('paymentChange') || '0') > 0 ? `
+    <div class="item-row" style="font-weight: bold;">
+        <span>CAMBIO:</span>
+        <span>Bs${parseFloat(localStorage.getItem('paymentChange')).toFixed(2)}</span>
+    </div>
+` : ''}
+        
+        ${allNotes ? `
+            <div class="divider"></div>
+            <div class="notes">${allNotes}</div>
+        ` : ''}
+        ${customerNotes ? `
+    <div class="divider"></div>
+    <div class="notes">Notas del cliente: ${customerNotes}</div>
+` : ''}
+        
+        <div class="divider"></div>
+        <div class="footer">
+            ¡Gracias por su preferencia!
+        </div>
+    `;
+
 }
 /**
  * Cierra la vista previa de impresión
@@ -1737,7 +1832,29 @@ function confirmPrint() {
                     padding: 2mm;
                     -webkit-print-color-adjust: exact;
                 }
+
                 @page { size: 72mm auto; margin: 0; }
+
+                .header { text-align: center; margin-bottom: 3px; }
+                .title { font-weight: bold; font-size: 14px; }
+                .subtitle { font-size: 11px; }
+                .divider { border-top: 1px dashed #000; margin: 3px 0; }
+                .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
+                .total-row { font-weight: bold; margin-top: 4px; }
+                .footer { text-align: center; margin-top: 5px; font-size: 10px; }
+                .notes { 
+                    margin-top: 4px; 
+                    font-size: 13px;
+                    white-space: pre-wrap; /* Para mantener los saltos de línea */
+                }
+                .notes-label {
+                    font-size: 13px;
+                    }
+                @page {
+                    size: 72mm auto;
+                    margin: 0;
+                }
+
                 @media print {
                     body { margin: 0; padding: 0; }
                     .no-print { display: none !important; }
@@ -1823,6 +1940,28 @@ function updateNotesCounter() {
     if (textarea && counter) {
         counter.textContent = textarea.value.length;
         counter.style.color = textarea.value.length > 200 ? '#e53e3e' : '#718096';
+    }
+}
+async function clearProformaIfNoPettyCash() {
+    const isConverting = localStorage.getItem('convertingProforma') === 'true';
+    if (!isConverting) return;
+
+    try {
+        const response = await fetch('/petty-cash/check-status', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.csrfToken }
+        });
+        const data = await response.json();
+
+        if (!data.open) {
+            console.warn('⚠️ Caja cerrada — limpiando conversión de proforma en curso');
+            clearProformaConversionFlags();
+            localStorage.removeItem('order');
+            if (typeof window.updateOrderDetails === 'function') {
+                window.updateOrderDetails();
+            }
+        }
+    } catch (e) {
+        console.error('Error verificando caja al cargar:', e);
     }
 }
 // Función para insertar ejemplos
@@ -3629,7 +3768,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (document.getElementById('order-panel')) {
         // 🔥 PRIMERO: Sincronizar estado de mesas
         await syncInitialTablesState();
-
+        await clearProformaIfNoPettyCash();
         // LUEGO: Inicializar todo lo demás
         initializeOrderSystem();
         setupEventListeners();

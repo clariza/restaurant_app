@@ -31,7 +31,11 @@ class PettyCashExport implements FromCollection, WithHeadings, WithMapping, With
 
     public function collection()
     {
-        $query = PettyCash::with('user');
+        $query = PettyCash::with(['user', 'branch']);
+
+        if (!empty($this->filters['branch_id'])) {
+            $query->where('branch_id', $this->filters['branch_id']);
+        }
 
         if (!empty($this->filters['user_id'])) {
             $query->where('user_id', $this->filters['user_id']);
@@ -57,6 +61,7 @@ class PettyCashExport implements FromCollection, WithHeadings, WithMapping, With
         return [
             'Fecha',
             'Cajero',
+            'Sucursal',
             'Ventas Efectivo',
             'Ventas QR',
             'Ventas Tarjeta',
@@ -75,12 +80,13 @@ class PettyCashExport implements FromCollection, WithHeadings, WithMapping, With
         return [
             $pettyCash->date,
             $pettyCash->user->name ?? 'N/A',
-            '$' . number_format($pettyCash->total_sales_cash, 2),
-            '$' . number_format($pettyCash->total_sales_qr, 2),
-            '$' . number_format($pettyCash->total_sales_card, 2),
-            '$' . number_format($totalVentas, 2),
-            '$' . number_format($pettyCash->total_expenses, 2),
-            '$' . number_format($saldoFinal, 2),
+            $pettyCash->branch->name ?? 'Sin sucursal',
+            'Bs. ' . number_format($pettyCash->total_sales_cash, 2),
+            'Bs. ' . number_format($pettyCash->total_sales_qr, 2),
+            'Bs. ' . number_format($pettyCash->total_sales_card, 2),
+            'Bs. ' . number_format($totalVentas, 2),
+            'Bs. ' . number_format($pettyCash->total_expenses, 2),
+            'Bs. ' . number_format($saldoFinal, 2),
             $pettyCash->status === 'open' ? 'Abierta' : 'Cerrada'
         ];
     }
